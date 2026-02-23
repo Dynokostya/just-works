@@ -5,12 +5,14 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 CLAUDE_HOME="${HOME}/.claude"
 CODEX_HOME="${HOME}/.codex"
 TIMESTAMP="$(date +%Y%m%d_%H%M%S)"
+BACKUP_DIR="${HOME}/just-works-backups/${TIMESTAMP}"
 
 # Flags
 PERSONAL=false
 DRY_RUN=false
 CLAUDE_ONLY=false
 CODEX_ONLY=false
+DO_BACKUP=true
 
 # Colors
 if [[ -t 1 ]]; then
@@ -83,16 +85,59 @@ else
     copy_dir() { cp -r "$1/." "$2/"; }
 fi
 
-backup_file() {
+echo -e "${BOLD}just-works installer${NC}"
+echo ""
+
+# --- Interactive: backup prompt ---
+if ! $DRY_RUN; then
+    read -rp "Do you want to create backups? (Y/n) " answer
+    case "${answer:-Y}" in
+        [Yy]*) DO_BACKUP=true ;;
+        [Nn]*) DO_BACKUP=false ;;
+        *)     DO_BACKUP=true ;;
+    esac
+    echo ""
+fi
+
+# Backup a file or directory to ~/just-works-backups/<datetime>/
+backup_target() {
     local target="$1"
-    if [[ -f "$target" ]]; then
-        local backup="${target}.bak.${TIMESTAMP}"
-        if $DRY_RUN; then
-            warn "Would back up: $target -> $backup"
+    [[ -e "$target" ]] || return 0
+    local rel_path="${target#"$HOME"/}"
+    local backup_path="${BACKUP_DIR}/${rel_path}"
+    if $DRY_RUN; then
+        warn "Would back up: $target -> $backup_path"
+    else
+        mkdir -p "$(dirname "$backup_path")"
+        if [[ -d "$target" ]]; then
+            mkdir -p "$backup_path"
+            copy_dir "$target" "$backup_path"
         else
-            cp "$target" "$backup"
-            warn "Backed up: $target -> $backup"
+            cp "$target" "$backup_path"
         fi
+        warn "Backed up: $target -> $backup_path"
+    fi
+}
+
+# Remove a target before fresh copy (clean install without backup)
+clean_target() {
+    local target="$1"
+    [[ -e "$target" ]] || return 0
+    if $DRY_RUN; then
+        warn "Would remove: $target"
+    else
+        rm -rf "$target"
+        warn "Removed: $target"
+    fi
+}
+
+# Prepare a target: backup or clean depending on user choice
+prepare_target() {
+    local target="$1"
+    if $DO_BACKUP; then
+        backup_target "$target"
+    else
+        clean_target "$target"
     fi
 }
 
@@ -102,6 +147,7 @@ install_dir() {
         warn "Source not found, skipping: $src"
         return
     fi
+    prepare_target "$dest"
     if $DRY_RUN; then
         info "Would copy: $src/ -> $dest/"
     else
@@ -117,7 +163,7 @@ install_file() {
         warn "Source not found, skipping: $src"
         return
     fi
-    backup_file "$dest"
+    prepare_target "$dest"
     if $DRY_RUN; then
         info "Would copy: $src -> $dest"
     else
@@ -126,9 +172,6 @@ install_file() {
         info "Installed: $label -> $dest"
     fi
 }
-
-echo -e "${BOLD}just-works installer${NC}"
-echo ""
 
 # --- Claude Code ---
 if ! $CODEX_ONLY; then
@@ -162,6 +205,9 @@ if $DRY_RUN; then
     echo -e "${YELLOW}Dry run complete — no files were modified.${NC}"
 else
     echo -e "${GREEN}Done.${NC}"
+    if $DO_BACKUP; then
+        echo "  Backups:     ${BACKUP_DIR}/"
+    fi
     if ! $CODEX_ONLY; then
         echo "  Claude Code: ${CLAUDE_HOME}/"
     fi

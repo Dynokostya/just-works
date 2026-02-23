@@ -26,6 +26,12 @@ install.bat             # Windows
 
 Installs agents, skills, commands, and settings globally to `~/.claude/` and `~/.codex/`. Existing files get backed up automatically.
 
+To update, pull the latest changes and run the installer again:
+
+```bash
+git pull && ./install.sh
+```
+
 ### Options
 
 ```bash
