@@ -1,0 +1,26 @@
+# Paste this in ~/.codex/config.toml
+
+model = "gpt-5.2" 
+model_provider = "azure"
+model_reasoning_effort = "xhigh"
+ 
+[model_providers.azure]
+name = "Azure OpenAI"
+base_url = "https://<your-resource-name>.openai.azure.com/openai/v1"
+env_key = "AZURE_OPENAI_API_KEY"
+wire_api = "responses"
+
+# MCP for library up-to-date docs
+[mcp_servers.context7]
+command = "npx"
+args = ["-y", "@upstash/context7-mcp"]
+
+# MCP for frontend guys
+[mcp_servers.playwright]
+command = "npx"
+args = ["-y", "@playwright/mcp@latest"]
+
+# MCP for shadcn/ui
+[mcp_servers.shadcn]
+command = "npx"
+args = ["shadcn@latest", "mcp"]

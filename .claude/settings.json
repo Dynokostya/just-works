@@ -1,0 +1,77 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(find:*)",
+      "Bash(ls:*)",
+      "Bash(grep:*)",
+      "Bash(tree:*)",
+      "Bash(wc:*)",
+      "Bash(file:*)",
+      "Bash(du:*)",
+      "Bash(which:*)",
+      "Bash(diff:*)",
+      "Bash(pwd:*)",
+      "Bash(head:*)",
+      "Bash(tail:*)",
+      "Bash(sort:*)",
+      "Bash(uniq:*)",
+      "Bash(echo:*)"
+    ],
+    "deny": [
+      "Read(**/.env)",
+      "Read(**/.env*)",
+      "Read(**/*.pem)",
+      "Read(**/*.key)",
+      "Read(**/*.p12)",
+      "Read(**/*.pfx)",
+      "Read(**/*.jks)",
+      "Read(**/*credentials*)",
+      "Read(**/*secret*)",
+      "Read(**/.netrc)",
+      "Read(**/.pgpass)",
+      "Read(**/.aws/*)",
+      "Read(**/.gcp/*)",
+      "Read(**/service-account*.json)",
+      "Read(**/.azure/*)",
+      "Read(**/terraform.tfvars)",
+      "Read(**/*.tfstate)",
+      "Read(**/*.tfstate.*)",
+      "Read(**/.ssh/*)",
+      "Read(**/.gnupg/*)",
+      "Read(**/*.sqlite)",
+      "Read(**/*.db)",
+      "Read(**/.htpasswd)"
+    ]
+  },
+  "enableAllProjectMcpServers": true,
+  "enabledMcpjsonServers": [
+    "Context7"
+  ],
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Read",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "FILE=$(echo '$CLAUDE_TOOL_INPUT' | jq -r '.file_path') && [ -f \"$FILE\" ] && LINES=$(wc -l < \"$FILE\") && [ \"$LINES\" -gt 500 ] && echo 'File is too large, do not read it fully. Use offset and limit parameters to read specific sections.' >&2 && exit 2 || exit 0"
+          }
+        ]
+      }
+    ],
+    "Notification": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "afplay /System/Library/Sounds/Glass.aiff"
+          }
+        ]
+      }
+    ]
+  },
+  "outputStyle": "default",
+  "spinnerTipsEnabled": true,
+  "plansDirectory": "./.claude/plans"
+}
