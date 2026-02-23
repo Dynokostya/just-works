@@ -19,3 +19,8 @@ args = ["-y", "@upstash/context7-mcp"]
 [mcp_servers.playwright]
 command = "npx"
 args = ["-y", "@playwright/mcp@latest"]
+
+# MCP for shadcn/ui
+[mcp_servers.shadcn]
+command = "npx"
+args = ["shadcn@latest", "mcp"]
