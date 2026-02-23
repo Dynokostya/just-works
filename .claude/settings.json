@@ -73,5 +73,9 @@
   },
   "outputStyle": "default",
   "spinnerTipsEnabled": true,
-  "plansDirectory": "./.claude/plans"
+  "plansDirectory": "./.claude/plans",
+  "statusLine": {
+    "type": "command",
+    "command": "bash ~/.claude/statusline-command.sh"
+  }
 }
