@@ -1,20 +1,20 @@
 ---
 name: opus-4-6-prompting
-description: Apply when creating or editing prompts targeting Claude Opus 4.6. Covers adaptive thinking, XML tag structure, language softening, behavioral tuning, over-engineering prevention, tool overtriggering mitigation, and prompt migration.
+description: Apply when creating or editing prompts targeting Opus 4.6. Covers adaptive thinking, XML tag structure, language softening, behavioral tuning, over-engineering prevention, tool overtriggering mitigation, and prompt migration.
 ---
 
 # Opus 4.6 Prompting
 
 ## When to Use
 
-- Creating or editing system prompts targeting Claude Opus 4.6
+- Creating or editing system prompts targeting Opus 4.6
 - Tuning tool usage, autonomy, and safety guardrails in prompts
 - Adjusting prompt language to match Opus 4.6's sensitivity
 - Migrating prompt text from older Claude models
 
 ## Overview
 
-Claude Opus 4.6 is Anthropic's most capable frontier model. It is more responsive to system prompts, more autonomous in agentic workflows, and more capable at long-horizon reasoning than previous Claude models. Techniques that reduced undertriggering in earlier models can now cause overtriggering, and prefilling is no longer supported.
+Opus 4.6 is Anthropic's most capable frontier model. It is more responsive to system prompts, more autonomous in agentic workflows, and more capable at long-horizon reasoning than previous Claude models. Techniques that reduced undertriggering in earlier models can now cause overtriggering, and prefilling is no longer supported.
 
 <context>
 Key characteristics to design around:
@@ -311,5 +311,5 @@ LaTeX. For example, write "x^2 + 3x + 1" instead of "$x^2 + 3x + 1$".
 
 ## Reference
 
-- Official Claude Opus 4.6 Prompting Guide: https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices/
+- Official Opus 4.6 Prompting Guide: https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices/
 - Official Claude Opus 4.5 Migration Guide: https://github.com/anthropics/claude-code/tree/main/plugins/claude-opus-4-5-migration 
