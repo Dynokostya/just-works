@@ -1,9 +1,9 @@
 ---
-name: claude-opus-4-6-prompting
+name: opus-4-6-prompting
 description: Apply when creating or editing prompts targeting Claude Opus 4.6. Covers adaptive thinking, XML tag structure, language softening, behavioral tuning, over-engineering prevention, tool overtriggering mitigation, and prompt migration.
 ---
 
-# Claude Opus 4.6 Prompting
+# Opus 4.6 Prompting
 
 ## When to Use
 
