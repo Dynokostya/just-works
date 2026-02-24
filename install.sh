@@ -12,6 +12,7 @@ PERSONAL=false
 DRY_RUN=false
 CLAUDE_ONLY=false
 CODEX_ONLY=false
+SKIP_CONFIG=false
 DO_BACKUP=true
 
 # Colors
@@ -38,6 +39,7 @@ Install just-works agents, skills, and commands globally.
 Options:
   --personal      Use opinionated settings.json (permissions, hooks, sounds)
                   Default: minimal settings.json.default
+  --skip-config   Skip installing config files (settings.json, statusline-command.sh)
   --claude-only   Install only Claude Code files (~/.claude/)
   --codex-only    Install only Codex files (~/.codex/)
   --dry-run       Show what would be installed without making changes
@@ -67,6 +69,7 @@ while [[ $# -gt 0 ]]; do
         --dry-run)     DRY_RUN=true; shift ;;
         --claude-only) CLAUDE_ONLY=true; shift ;;
         --codex-only)  CODEX_ONLY=true; shift ;;
+        --skip-config) SKIP_CONFIG=true; shift ;;
         -h|--help)     usage ;;
         *) error "Unknown option: $1"; usage ;;
     esac
@@ -180,14 +183,22 @@ if ! $CODEX_ONLY; then
     install_dir  "${SCRIPT_DIR}/.claude/skills"    "${CLAUDE_HOME}/skills"   "skills"
     install_dir  "${SCRIPT_DIR}/.claude/commands"  "${CLAUDE_HOME}/commands" "commands"
 
-    if $PERSONAL; then
-        install_file "${SCRIPT_DIR}/.claude/settings.json" "${CLAUDE_HOME}/settings.json" "settings.json (personal)"
+    if ! $SKIP_CONFIG; then
+        if $PERSONAL; then
+            install_file "${SCRIPT_DIR}/.claude/settings.json" "${CLAUDE_HOME}/settings.json" "settings.json (personal)"
+        else
+            install_file "${SCRIPT_DIR}/.claude/settings.json.default" "${CLAUDE_HOME}/settings.json" "settings.json (default)"
+        fi
     else
-        install_file "${SCRIPT_DIR}/.claude/settings.json.default" "${CLAUDE_HOME}/settings.json" "settings.json (default)"
+        info "Skipping settings.json (--skip-config)"
     fi
 
     install_file "${SCRIPT_DIR}/CLAUDE.md" "${CLAUDE_HOME}/CLAUDE.md" "CLAUDE.md"
-    install_file "${SCRIPT_DIR}/.claude/statusline-command.sh" "${CLAUDE_HOME}/statusline-command.sh" "statusline-command.sh"
+    if ! $SKIP_CONFIG; then
+        install_file "${SCRIPT_DIR}/.claude/statusline-command.sh" "${CLAUDE_HOME}/statusline-command.sh" "statusline-command.sh"
+    else
+        info "Skipping statusline-command.sh (--skip-config)"
+    fi
     echo ""
 fi
 

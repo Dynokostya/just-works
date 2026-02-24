@@ -15,6 +15,7 @@ set "PERSONAL=0"
 set "DRY_RUN=0"
 set "CLAUDE_ONLY=0"
 set "CODEX_ONLY=0"
+set "SKIP_CONFIG=0"
 set "DO_BACKUP=1"
 
 :: Parse arguments
@@ -24,6 +25,7 @@ if /i "%~1"=="--personal"    ( set "PERSONAL=1"    & shift & goto :parse_args )
 if /i "%~1"=="--dry-run"     ( set "DRY_RUN=1"     & shift & goto :parse_args )
 if /i "%~1"=="--claude-only" ( set "CLAUDE_ONLY=1"  & shift & goto :parse_args )
 if /i "%~1"=="--codex-only"  ( set "CODEX_ONLY=1"   & shift & goto :parse_args )
+if /i "%~1"=="--skip-config" ( set "SKIP_CONFIG=1"  & shift & goto :parse_args )
 if /i "%~1"=="-h"            goto :usage
 if /i "%~1"=="--help"        goto :usage
 echo [x] Unknown option: %~1
@@ -54,14 +56,20 @@ call :install_dir "%SCRIPT_DIR%.claude\agents"   "%CLAUDE_HOME%\agents"   "agent
 call :install_dir "%SCRIPT_DIR%.claude\skills"    "%CLAUDE_HOME%\skills"   "skills"
 call :install_dir "%SCRIPT_DIR%.claude\commands"  "%CLAUDE_HOME%\commands" "commands"
 
-if "%PERSONAL%"=="1" (
+if "%SKIP_CONFIG%"=="1" (
+    echo [+] Skipping settings.json (--skip-config)
+) else if "%PERSONAL%"=="1" (
     call :install_file "%SCRIPT_DIR%.claude\settings.json"         "%CLAUDE_HOME%\settings.json" "settings.json (personal)"
 ) else (
     call :install_file "%SCRIPT_DIR%.claude\settings.json.default" "%CLAUDE_HOME%\settings.json" "settings.json (default)"
 )
 
 call :install_file "%SCRIPT_DIR%CLAUDE.md" "%CLAUDE_HOME%\CLAUDE.md" "CLAUDE.md"
-call :install_file "%SCRIPT_DIR%.claude\statusline-command.sh" "%CLAUDE_HOME%\statusline-command.sh" "statusline-command.sh"
+if "%SKIP_CONFIG%"=="1" (
+    echo [+] Skipping statusline-command.sh (--skip-config)
+) else (
+    call :install_file "%SCRIPT_DIR%.claude\statusline-command.sh" "%CLAUDE_HOME%\statusline-command.sh" "statusline-command.sh"
+)
 echo.
 
 :: --- Codex ---
@@ -177,6 +185,7 @@ echo.
 echo Options:
 echo   --personal      Use opinionated settings.json (permissions, hooks, sounds)
 echo                   Default: minimal settings.json.default
+echo   --skip-config   Skip installing config files (settings.json, statusline-command.sh)
 echo   --claude-only   Install only Claude Code files
 echo   --codex-only    Install only Codex files
 echo   --dry-run       Show what would be installed without making changes

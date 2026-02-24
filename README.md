@@ -37,6 +37,7 @@ git pull && ./install.sh
 ```bash
 ./install.sh --dry-run          # preview without changes
 ./install.sh --personal         # opinionated settings (pre-approved commands, hooks, sounds)
+./install.sh --skip-config      # skip config files (settings.json, statusline-command.sh)
 ./install.sh --claude-only      # skip Codex
 ./install.sh --codex-only       # skip Claude
 ```
