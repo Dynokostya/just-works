@@ -31,16 +31,17 @@ Example -- "add logout endpoint":
 - Include: single endpoint, clear session/token, return 200, basic test
 - Skip: logout history, event system, multi-device logout, analytics
 
-Before implementing features with external libraries, call `resolve-library-id` to find the library ID, then `query-docs` for usage patterns and APIs. Do not implement based on stale knowledge.
+Before implementing features involving external libraries, verify that methods, patterns, and APIs actually exist using available documentation tools and web search. Do not implement based on stale knowledge.
 
 ## Environment
 
 Use the project's package manager and toolchain — discover from config files (package.json, pyproject.toml, Cargo.toml, Makefile, etc.). Never manually edit lock files or dependency manifests directly when a CLI command exists.
 
-Before implementation work, orient yourself in the project:
+Before every implementation task, build context about the affected code, architecture, and conventions:
 - Look for project documentation (README, docs/, ARCHITECTURE.md, or similar)
 - Check build/config files to understand the stack
 - Read the entry points and directory structure relevant to the task
+- Read the files you intend to change and their surrounding context
 
 ## Editing Constraints
 

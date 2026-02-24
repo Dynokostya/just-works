@@ -1,6 +1,7 @@
 {
   "permissions": {
     "allow": [
+      "Bash(cd:*)",
       "Bash(find:*)",
       "Bash(ls:*)",
       "Bash(grep:*)",
@@ -25,8 +26,6 @@
       "Read(**/*.p12)",
       "Read(**/*.pfx)",
       "Read(**/*.jks)",
-      "Read(**/*credentials*)",
-      "Read(**/*secret*)",
       "Read(**/.netrc)",
       "Read(**/.pgpass)",
       "Read(**/.aws/*)",

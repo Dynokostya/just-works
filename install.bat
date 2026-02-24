@@ -8,12 +8,14 @@ set "CODEX_HOME=%USERPROFILE%\.codex"
 :: Timestamp for backups
 for /f "tokens=2 delims==" %%I in ('wmic os get localdatetime /value') do set "DT=%%I"
 set "TIMESTAMP=%DT:~0,8%_%DT:~8,6%"
+set "BACKUP_DIR=%USERPROFILE%\just-works-backups\%TIMESTAMP%"
 
 :: Flags
 set "PERSONAL=0"
 set "DRY_RUN=0"
 set "CLAUDE_ONLY=0"
 set "CODEX_ONLY=0"
+set "DO_BACKUP=1"
 
 :: Parse arguments
 :parse_args
@@ -35,6 +37,14 @@ if "%CLAUDE_ONLY%"=="1" if "%CODEX_ONLY%"=="1" (
 
 echo just-works installer
 echo.
+
+:: --- Interactive: backup prompt ---
+if not "%DRY_RUN%"=="1" (
+    set /p "ANSWER=Do you want to create backups? (Y/n) "
+    if /i "!ANSWER!"=="n" ( set "DO_BACKUP=0" )
+    if /i "!ANSWER!"=="no" ( set "DO_BACKUP=0" )
+    echo.
+)
 
 :: --- Claude Code ---
 if "%CODEX_ONLY%"=="1" goto :codex
@@ -70,6 +80,7 @@ if "%DRY_RUN%"=="1" (
     echo [!] Dry run complete -- no files were modified.
 ) else (
     echo Done.
+    if "%DO_BACKUP%"=="1" echo   Backups:     %BACKUP_DIR%\
     if not "%CODEX_ONLY%"=="1" echo   Claude Code: %CLAUDE_HOME%\
     if not "%CLAUDE_ONLY%"=="1" echo   Codex:       %CODEX_HOME%\
 )
@@ -79,12 +90,59 @@ exit /b 0
 :: Functions
 :: ============================================================
 
+:prepare_target
+:: %~1 = target path (file or dir)
+if not exist "%~1" exit /b 0
+if "%DO_BACKUP%"=="1" (
+    call :backup_target "%~1"
+) else (
+    call :clean_target "%~1"
+)
+exit /b 0
+
+:backup_target
+:: %~1 = target path (file or dir)
+if not exist "%~1" exit /b 0
+:: Build relative path by stripping USERPROFILE prefix
+set "TARGET=%~1"
+set "REL_PATH=!TARGET:%USERPROFILE%\=!"
+set "BACKUP_PATH=%BACKUP_DIR%\!REL_PATH!"
+if "%DRY_RUN%"=="1" (
+    echo [!] Would back up: %~1 -^> !BACKUP_PATH!
+    exit /b 0
+)
+:: Ensure backup parent directory exists
+for %%F in ("!BACKUP_PATH!") do if not exist "%%~dpF" mkdir "%%~dpF"
+if exist "%~1\" (
+    xcopy "%~1" "!BACKUP_PATH!" /e /i /y /q >nul
+) else (
+    copy "%~1" "!BACKUP_PATH!" >nul
+)
+echo [!] Backed up: %~1 -^> !BACKUP_PATH!
+exit /b 0
+
+:clean_target
+:: %~1 = target path (file or dir)
+if not exist "%~1" exit /b 0
+if "%DRY_RUN%"=="1" (
+    echo [!] Would remove: %~1
+    exit /b 0
+)
+if exist "%~1\" (
+    rmdir /s /q "%~1"
+) else (
+    del /q "%~1"
+)
+echo [!] Removed: %~1
+exit /b 0
+
 :install_dir
 :: %~1 = source dir, %~2 = dest dir, %~3 = label
 if not exist "%~1\" (
     echo [!] Source not found, skipping: %~1
     exit /b 0
 )
+call :prepare_target "%~2"
 if "%DRY_RUN%"=="1" (
     echo [+] Would copy: %~1\ -^> %~2\
     exit /b 0
@@ -100,15 +158,7 @@ if not exist "%~1" (
     echo [!] Source not found, skipping: %~1
     exit /b 0
 )
-:: Backup existing file
-if exist "%~2" (
-    if "%DRY_RUN%"=="1" (
-        echo [!] Would back up: %~2 -^> %~2.bak.%TIMESTAMP%
-    ) else (
-        copy "%~2" "%~2.bak.%TIMESTAMP%" >nul
-        echo [!] Backed up: %~2 -^> %~2.bak.%TIMESTAMP%
-    )
-)
+call :prepare_target "%~2"
 if "%DRY_RUN%"=="1" (
     echo [+] Would copy: %~1 -^> %~2
     exit /b 0

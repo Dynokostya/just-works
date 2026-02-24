@@ -79,33 +79,23 @@ Before writing the review, gather context. Parallelize independent reads.
 1. **Plan file** -- the thing being reviewed (via discovery logic above).
 2. **Files the plan will modify** -- understand current patterns the plan should follow.
 3. **Project dependencies** (`pyproject.toml`) -- check if proposed dependencies already exist or are redundant.
-4. **Applicable skill standards** (`.codex/skills/`) -- evaluate compliance against project conventions.
-5. **New dependency docs** (via MCP Context7) -- verify APIs, maintenance status, and alternatives.
-
-Read what's relevant to the plan. Skip categories that don't apply.
+4. **Applicable skill standards** -- scan available skills directories and evaluate compliance against every skill whose description matches the plan's file types and tasks.
+5. **New dependency docs** -- verify APIs, maintenance status, and alternatives using available documentation tools and web search.
 
 ### Skill Reference
 
-When the plan touches a domain covered by a skill, read the skill file and evaluate the proposal against it.
+Check all available skills before writing the review. For each skill:
+1. Read the skill's description to determine what file types and tasks it covers
+2. If the plan touches files or tasks matching that description, evaluate the proposal against the skill's standards
+3. Multiple skills may apply — check all that match
 
-| Skill | Trigger | What to Check |
-|-------|---------|---------------|
-| `python-coding` | Python code changes, new modules, async, DI, type annotations | Modern type hints (`list[str]` not `List[str]`), Protocol for interfaces, Pydantic/dataclasses, httpx for HTTP, proper exception chaining |
-| `claude-opus-4-6-prompting` | Claude prompts, system instructions, Claude API interactions | Adaptive thinking, XML tags, effort parameter, over-engineering prevention |
-| `gemini-3-prompting` | Gemini prompts, Jinja templates (.j2), Gemini API interactions | Native thinking_level, context-first pattern, temperature=1.0, media_resolution |
-| `gpt-5-2-prompting` | GPT/Codex prompts, AGENTS.md, OpenAI API interactions | reasoning_effort, apply_patch, 6-section system prompt, compaction |
+### Dependency Verification
 
-Skill paths: `.codex/skills/{skill-name}/SKILL.md`
-
-### Dependency Verification via MCP Context7
-
-For each new dependency proposed in the plan:
-
-1. Call `resolve-library-id` with the library name and what you need to verify.
-2. Call `query-docs` with the resolved ID and the relevant topic.
-3. Check: actively maintained? Current API patterns (not deprecated)? Built-in alternatives in existing deps? Known security issues?
-
-Skip this step for stdlib modules or dependencies already in `pyproject.toml`.
+For each new dependency proposed in the plan, verify using available documentation tools and web search:
+- Actively maintained?
+- Current API patterns (not deprecated)?
+- Built-in alternatives in existing project dependencies?
+- Known security issues?
 
 ## Output Format
 
