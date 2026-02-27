@@ -1,5 +1,5 @@
 ---
-name: feature-driven-architecture
+name: feature-driven-architecture-python
 description: Apply when structuring Python projects by business capability (vertical slices). Covers directory layout, feature boundaries, inter-feature communication, database model ownership, migration strategies, boundary enforcement, testing across features, and migration from layered architectures. Best suited for FastAPI and Flask projects with 5+ distinct features.
 ---
 

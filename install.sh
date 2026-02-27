@@ -13,6 +13,9 @@ DRY_RUN=false
 CLAUDE_ONLY=false
 CODEX_ONLY=false
 SKIP_CONFIG=false
+SKIP_STATUSLINE=false
+SKIP_SKILLS_CLAUDE=false
+SKIP_SKILLS_CODEX=false
 DO_BACKUP=true
 
 # Colors
@@ -39,7 +42,10 @@ Install just-works agents, skills, and commands globally.
 Options:
   --personal      Use opinionated settings.json (permissions, hooks, sounds)
                   Default: minimal settings.json.default
-  --skip-config   Skip installing config files (settings.json, statusline-command.sh)
+  --skip-config      Skip installing settings.json
+  --skip-statusline  Skip installing statusline-command.sh
+  --skip-skills-claude  Skip installing Claude Code skills
+  --skip-skills-codex   Skip installing Codex skills
   --claude-only   Install only Claude Code files (~/.claude/)
   --codex-only    Install only Codex files (~/.codex/)
   --dry-run       Show what would be installed without making changes
@@ -69,7 +75,10 @@ while [[ $# -gt 0 ]]; do
         --dry-run)     DRY_RUN=true; shift ;;
         --claude-only) CLAUDE_ONLY=true; shift ;;
         --codex-only)  CODEX_ONLY=true; shift ;;
-        --skip-config) SKIP_CONFIG=true; shift ;;
+        --skip-config)     SKIP_CONFIG=true; shift ;;
+        --skip-statusline) SKIP_STATUSLINE=true; shift ;;
+        --skip-skills-claude) SKIP_SKILLS_CLAUDE=true; shift ;;
+        --skip-skills-codex)  SKIP_SKILLS_CODEX=true; shift ;;
         -h|--help)     usage ;;
         *) error "Unknown option: $1"; usage ;;
     esac
@@ -180,7 +189,11 @@ install_file() {
 if ! $CODEX_ONLY; then
     echo -e "${BOLD}Claude Code${NC}"
     install_dir  "${SCRIPT_DIR}/.claude/agents"   "${CLAUDE_HOME}/agents"   "agents"
-    install_dir  "${SCRIPT_DIR}/.claude/skills"    "${CLAUDE_HOME}/skills"   "skills"
+    if ! $SKIP_SKILLS_CLAUDE; then
+        install_dir  "${SCRIPT_DIR}/.claude/skills"    "${CLAUDE_HOME}/skills"   "skills"
+    else
+        info "Skipping Claude skills (--skip-skills-claude)"
+    fi
     install_dir  "${SCRIPT_DIR}/.claude/commands"  "${CLAUDE_HOME}/commands" "commands"
 
     if ! $SKIP_CONFIG; then
@@ -194,10 +207,10 @@ if ! $CODEX_ONLY; then
     fi
 
     install_file "${SCRIPT_DIR}/CLAUDE.md" "${CLAUDE_HOME}/CLAUDE.md" "CLAUDE.md"
-    if ! $SKIP_CONFIG; then
+    if ! $SKIP_STATUSLINE; then
         install_file "${SCRIPT_DIR}/.claude/statusline-command.sh" "${CLAUDE_HOME}/statusline-command.sh" "statusline-command.sh"
     else
-        info "Skipping statusline-command.sh (--skip-config)"
+        info "Skipping statusline-command.sh (--skip-statusline)"
     fi
     echo ""
 fi
@@ -206,7 +219,11 @@ fi
 if ! $CLAUDE_ONLY; then
     echo -e "${BOLD}Codex${NC}"
     install_dir  "${SCRIPT_DIR}/.codex/prompts"  "${CODEX_HOME}/prompts"  "prompts"
-    install_dir  "${SCRIPT_DIR}/.codex/skills"   "${CODEX_HOME}/skills"   "skills"
+    if ! $SKIP_SKILLS_CODEX; then
+        install_dir  "${SCRIPT_DIR}/.codex/skills"   "${CODEX_HOME}/skills"   "skills"
+    else
+        info "Skipping Codex skills (--skip-skills-codex)"
+    fi
     install_file "${SCRIPT_DIR}/AGENTS.md"        "${CODEX_HOME}/AGENTS.md" "AGENTS.md"
     echo ""
 fi

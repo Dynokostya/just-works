@@ -16,6 +16,9 @@ set "DRY_RUN=0"
 set "CLAUDE_ONLY=0"
 set "CODEX_ONLY=0"
 set "SKIP_CONFIG=0"
+set "SKIP_STATUSLINE=0"
+set "SKIP_SKILLS_CLAUDE=0"
+set "SKIP_SKILLS_CODEX=0"
 set "DO_BACKUP=1"
 
 :: Parse arguments
@@ -25,7 +28,10 @@ if /i "%~1"=="--personal"    ( set "PERSONAL=1"    & shift & goto :parse_args )
 if /i "%~1"=="--dry-run"     ( set "DRY_RUN=1"     & shift & goto :parse_args )
 if /i "%~1"=="--claude-only" ( set "CLAUDE_ONLY=1"  & shift & goto :parse_args )
 if /i "%~1"=="--codex-only"  ( set "CODEX_ONLY=1"   & shift & goto :parse_args )
-if /i "%~1"=="--skip-config" ( set "SKIP_CONFIG=1"  & shift & goto :parse_args )
+if /i "%~1"=="--skip-config"     ( set "SKIP_CONFIG=1"     & shift & goto :parse_args )
+if /i "%~1"=="--skip-statusline" ( set "SKIP_STATUSLINE=1" & shift & goto :parse_args )
+if /i "%~1"=="--skip-skills-claude" ( set "SKIP_SKILLS_CLAUDE=1" & shift & goto :parse_args )
+if /i "%~1"=="--skip-skills-codex"  ( set "SKIP_SKILLS_CODEX=1"  & shift & goto :parse_args )
 if /i "%~1"=="-h"            goto :usage
 if /i "%~1"=="--help"        goto :usage
 echo [x] Unknown option: %~1
@@ -53,7 +59,11 @@ if "%CODEX_ONLY%"=="1" goto :codex
 
 echo Claude Code
 call :install_dir "%SCRIPT_DIR%.claude\agents"   "%CLAUDE_HOME%\agents"   "agents"
-call :install_dir "%SCRIPT_DIR%.claude\skills"    "%CLAUDE_HOME%\skills"   "skills"
+if "%SKIP_SKILLS_CLAUDE%"=="1" (
+    echo [+] Skipping Claude skills (--skip-skills-claude)
+) else (
+    call :install_dir "%SCRIPT_DIR%.claude\skills"    "%CLAUDE_HOME%\skills"   "skills"
+)
 call :install_dir "%SCRIPT_DIR%.claude\commands"  "%CLAUDE_HOME%\commands" "commands"
 
 if "%SKIP_CONFIG%"=="1" (
@@ -65,8 +75,8 @@ if "%SKIP_CONFIG%"=="1" (
 )
 
 call :install_file "%SCRIPT_DIR%CLAUDE.md" "%CLAUDE_HOME%\CLAUDE.md" "CLAUDE.md"
-if "%SKIP_CONFIG%"=="1" (
-    echo [+] Skipping statusline-command.sh (--skip-config)
+if "%SKIP_STATUSLINE%"=="1" (
+    echo [+] Skipping statusline-command.sh (--skip-statusline)
 ) else (
     call :install_file "%SCRIPT_DIR%.claude\statusline-command.sh" "%CLAUDE_HOME%\statusline-command.sh" "statusline-command.sh"
 )
@@ -78,7 +88,11 @@ if "%CLAUDE_ONLY%"=="1" goto :summary
 
 echo Codex
 call :install_dir  "%SCRIPT_DIR%.codex\prompts" "%CODEX_HOME%\prompts" "prompts"
-call :install_dir  "%SCRIPT_DIR%.codex\skills"  "%CODEX_HOME%\skills"  "skills"
+if "%SKIP_SKILLS_CODEX%"=="1" (
+    echo [+] Skipping Codex skills (--skip-skills-codex)
+) else (
+    call :install_dir  "%SCRIPT_DIR%.codex\skills"  "%CODEX_HOME%\skills"  "skills"
+)
 call :install_file "%SCRIPT_DIR%AGENTS.md"       "%CODEX_HOME%\AGENTS.md" "AGENTS.md"
 echo.
 
@@ -185,7 +199,10 @@ echo.
 echo Options:
 echo   --personal      Use opinionated settings.json (permissions, hooks, sounds)
 echo                   Default: minimal settings.json.default
-echo   --skip-config   Skip installing config files (settings.json, statusline-command.sh)
+echo   --skip-config      Skip installing settings.json
+echo   --skip-statusline  Skip installing statusline-command.sh
+echo   --skip-skills-claude  Skip installing Claude Code skills
+echo   --skip-skills-codex   Skip installing Codex skills
 echo   --claude-only   Install only Claude Code files
 echo   --codex-only    Install only Codex files
 echo   --dry-run       Show what would be installed without making changes
