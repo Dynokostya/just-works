@@ -11,7 +11,7 @@ All CLAUDE.md files merge into context simultaneously. When instructions conflic
 2. Outline your approach (files to change, strategy)
 3. Wait for explicit approval before making changes
 
-Reading, exploring, and asking questions need no approval. Only start editing, creating, or running commands after the user confirms. If the user says "just do it" or grants autonomy, skip the approval step.
+Do not start implementing unless the user explicitly asks. Default to providing information and recommendations. Only proceed with edits when the user requests them. If the user says "just do it" or grants autonomy, skip the approval step.
 
 **Be honest and direct.** Challenge unnecessary complexity, flag contradictions, propose simpler alternatives. Say "no" with reasoning when an approach has problems. Do not agree just to be agreeable.
 
@@ -34,7 +34,7 @@ Safe without confirmation: reading files, creating new files, local commits, run
 - Scope is ambiguous enough that two reasonable engineers would build different things
 - The wrong choice would waste significant effort to redo
 
-One good question beats building the wrong thing. Use AskUserQuestion tool liberally.
+One good question beats building the wrong thing. Clarify scope before exploring the codebase — don't explore to compensate for missing requirements. For clarification questions, use the AskUserQuestion tool (not inline text questions).
 
 **No automatic plan mode.** Do not enter plan mode unless the user explicitly requests it or enables it manually.
 
@@ -55,7 +55,7 @@ Never select an agent by name familiarity alone. The description is the contract
 
 **Verify external APIs before planning.** When a plan point involves external libraries, launch an Explore agent to verify that methods, patterns, and APIs actually exist and are used correctly. Use available documentation tools and web search. Return findings with source links.
 
-**Plan structure.** When planning implementation work, create Tasks via TaskCreate. For each task, specify the matching agent (check available agents by description), target file paths, requirements, and acceptance criteria.
+**Plan structure.** When writing a plan, create tasks using TaskCreate and delegate each task to a matching agent (if one exists). For each task, specify the matching agent (check available agents by description), target file paths, requirements, and acceptance criteria.
 
 ## Skills
 

@@ -11,9 +11,9 @@ Match the project's existing API conventions. When uncertain, read 2-3 existing 
 
 These are unconditional. They prevent security vulnerabilities, broken contracts, and common API design mistakes regardless of project style.
 
-- **Never use singular nouns for collection endpoints.** Use `/users`, not `/user`. The same base path serves both the collection (`GET /users`) and individual resources (`GET /users/123`).
+- **Never use singular nouns for collection endpoints.** Use `/users`, not `/user`. Mixing singular and plural creates ambiguity — clients have to guess whether the endpoint is `/user/123` or `/users/123`. A consistent plural convention means the same base path serves both the collection (`GET /users`) and individual resources (`GET /users/123`).
 - **Never nest resources deeper than 3 levels.** `/customers/123/orders/456/items` is the limit. Deeper nesting increases coupling and URL complexity. If the child has a globally unique ID, expose it as a top-level resource.
-- **Never use verbs in URL paths for CRUD operations.** `POST /users/123/delete` is always a defect. Use `DELETE /users/123`. Verbs are acceptable only for non-CRUD actions as sub-resource endpoints (`POST /charges/ch_123/capture`) or colon syntax (`POST /instances/my-vm:start`).
+- **Never use verbs in URL paths for CRUD operations.** `POST /users/123/delete` duplicates what HTTP methods already express and makes the API unpredictable — clients can't know whether to use `POST /users/delete` or `DELETE /users`. Use `DELETE /users/123`. Verbs are acceptable only for non-CRUD actions as sub-resource endpoints (`POST /charges/ch_123/capture`) or colon syntax (`POST /instances/my-vm:start`).
 - **Never return only the first validation error.** Return all validation errors at once with field paths. Returning one at a time forces clients into frustrating fix-one-discover-another cycles.
 - **Never use offset pagination on datasets exceeding 10K rows.** Performance degrades linearly with offset depth — benchmarks show 17x slowdown at deep offsets. Use cursor-based pagination.
 - **Never omit `Retry-After` on 429 responses.** Rate limit responses without `Retry-After` force clients to guess retry timing, causing thundering herds or aggressive polling.
@@ -22,11 +22,11 @@ These are unconditional. They prevent security vulnerabilities, broken contracts
 - **Never bind raw client input directly to internal models.** This enables mass assignment — attackers adding `is_admin: true` to request bodies. Use explicit allowlists of writable fields via DTOs or schemas.
 - **Never trust user-supplied resource IDs without server-side ownership verification.** BOLA (Broken Object Level Authorization) is the #1 API vulnerability. Every endpoint receiving an object ID must verify the caller owns or has access to that resource.
 - **Never use wildcard `*` for CORS `Access-Control-Allow-Origin` with credentials.** Browsers reject `Access-Control-Allow-Credentials: true` with wildcard origin. Validate the `Origin` header against an allowlist and reflect the specific origin.
-- **Never expose internal error details in production responses.** Stack traces, SQL queries, file paths, and dependency versions in error responses are information disclosure vulnerabilities. Return generic messages externally; log details internally.
+- **Never expose internal error details in production responses.** Stack traces, SQL queries, file paths, and dependency versions give attackers a detailed map of your internals — database schema, framework versions with known CVEs, and directory structure for path traversal. Return generic messages externally; log details internally.
 - **Never skip `Idempotency-Key` on POST endpoints with side effects.** Network retries on non-idempotent mutations cause duplicate charges, duplicate emails, duplicate records. Require an `Idempotency-Key` header on all state-changing POSTs.
-- **Never deploy an API without health check endpoints.** Kubernetes, AWS ELB, and every major load balancer requires health probes for pod/instance management. Missing health checks means no automated recovery.
-- **Never support TLS versions below 1.2.** TLS 1.0 and 1.1 are deprecated by all major cloud providers. Require TLS 1.2 minimum, prefer 1.3.
-- **Never omit security headers from API responses.** Every response must include `Strict-Transport-Security`, `X-Content-Type-Options: nosniff`, and `Cache-Control: no-store` on authenticated endpoints.
+- **Never deploy an API without health check endpoints.** Without health probes, orchestrators (Kubernetes, AWS ELB) can't distinguish a crashed pod from a healthy one — traffic routes to dead instances, and there's no automated recovery. A simple `/livez` returning 200 takes minutes to add and prevents hours of debugging silent outages.
+- **Never support TLS versions below 1.2.** TLS 1.0 and 1.1 have known vulnerabilities (BEAST, POODLE) and are deprecated by all major cloud providers and PCI DSS. Require TLS 1.2 minimum, prefer 1.3.
+- **Never omit security headers from API responses.** Missing `Strict-Transport-Security` allows SSL-stripping attacks on first visit. Missing `X-Content-Type-Options: nosniff` lets browsers reinterpret response content types, enabling XSS. Missing `Cache-Control: no-store` on authenticated endpoints means sensitive data persists in browser and proxy caches.
 
 ## Resource design
 

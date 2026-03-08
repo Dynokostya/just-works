@@ -65,7 +65,7 @@ const { data: user } = useQuery({
 });
 ```
 
-- **Never chain `useEffect` calls that sync state to other state** -- cascading effects create render waterfalls (render, effect, setState, render, effect, setState). Compute derived values inline or batch updates in event handlers.
+- **Never chain `useEffect` calls that sync state to other state** -- cascading effects create render waterfalls (render, effect, setState, render, effect, setState…). Each link in the chain adds a full render cycle, so three chained effects means four renders for one user action — visible jank and wasted CPU. Compute derived values inline or batch updates in event handlers.
 
 - **Never mutate state directly** -- React detects changes by reference. `array.push()` and `obj.prop = x` won't trigger re-renders. Use spread, `structuredClone`, or non-mutating methods like `.toSorted()` (not `.sort()` which mutates).
 
@@ -88,7 +88,7 @@ setItems([...items, newItem].toSorted((a, b) => a.name.localeCompare(b.name)));
 {items.map(item => <ListItem key={item.id} item={item} />)}
 ```
 
-- **Never add `"use client"` by default** -- in Next.js App Router, components are Server Components by default. Only add `"use client"` when the component uses hooks (`useState`, `useEffect`), event handlers, or browser APIs. Place the boundary as low in the tree as possible.
+- **Never add `"use client"` by default** -- in Next.js App Router, components are Server Components by default. Adding `"use client"` unnecessarily pushes components and their entire subtree to the client bundle, losing server-side rendering, data fetching, and streaming benefits. Only add it when the component uses hooks (`useState`, `useEffect`), event handlers, or browser APIs. Place the boundary as low in the tree as possible.
 
 - **Never use `forwardRef` in React 19+** -- `ref` is a regular prop in React 19+. `forwardRef` is deprecated. In React 18, `forwardRef` is still required.
 
@@ -123,7 +123,7 @@ function Child() { return <div>child</div>; }
 function Parent() { return <Child />; }
 ```
 
-- **Never suppress `react-hooks/exhaustive-deps`** -- `eslint-disable` for this rule masks stale closures. Fix the code: extract functions, use updater functions for state, or move objects inside the effect.
+- **Never suppress `react-hooks/exhaustive-deps`** -- `eslint-disable` for this rule masks stale closures, where an effect captures an old value of a prop or state and silently operates on outdated data. The resulting bugs are intermittent and hard to trace because the component appears to work until a specific re-render order exposes the stale value. Fix the code: extract functions, use updater functions for state, or move objects inside the effect.
 
 - **Never mirror props in state** -- `useState(prop)` captures the initial value only. Subsequent prop changes are silently ignored. Use the prop directly, or name it `initialX` to signal intent.
 

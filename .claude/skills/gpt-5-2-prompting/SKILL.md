@@ -50,7 +50,9 @@ Adjust the default ranges to match your use case. The model respects quantitativ
 
 ## Scope and Design Constraints
 
-GPT-5.2 is stronger at structured code but may produce more code than minimal specs require. Use this template to prevent over-engineering and scope creep:
+GPT-5.2 is stronger at structured code but may produce more code than minimal specs require. Use scope constraints adapted to the task domain to prevent over-engineering and scope creep.
+
+For code generation and UI tasks:
 
 ```
 <design_and_scope_constraints>
@@ -63,7 +65,14 @@ GPT-5.2 is stronger at structured code but may produce more code than minimal sp
 </design_and_scope_constraints>
 ```
 
-This is especially effective for code generation and UI tasks where the model might otherwise add unrequested polish.
+For extraction and data tasks, scope constraints take the form of schema adherence:
+
+```
+- Follow this schema exactly (no extra fields).
+- If a field is not present in the source, set it to null rather than guessing.
+```
+
+For research and synthesis tasks, scope is less about restriction and more about query coverage -- instruct the model to cover plausible user intents rather than expanding into tangential topics.
 
 ## Long-Context Handling
 

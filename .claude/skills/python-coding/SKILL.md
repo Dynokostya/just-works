@@ -11,18 +11,18 @@ Match the project's existing conventions. When uncertain, read 2-3 existing modu
 
 These are unconditional. They prevent bugs and vulnerabilities regardless of project style.
 
-- **Never `except: pass`** or bare `except Exception` without re-raise. Catch specific exception types. The only acceptable broad catch re-raises or logs with full traceback then re-raises.
-- **Never `datetime.now()` or `datetime.utcnow()`** -- both produce naive datetimes. Always use `datetime.now(tz=timezone.utc)`. Use `zoneinfo.ZoneInfo` for other timezones, not `pytz`.
-- **Never `random` for security** -- use `secrets.token_hex()`, `secrets.token_urlsafe()`, or `secrets.token_bytes()` for tokens, keys, session IDs.
-- **Never `shell=True` in `subprocess`** -- use argument lists: `subprocess.run(["cmd", arg1, arg2])`. Never interpolate user input into shell command strings.
-- **Never string formatting in SQL** -- use parameterized queries only. `f"SELECT * FROM users WHERE id = {uid}"` is always a defect.
-- **Never `yaml.load()`** without `SafeLoader` -- use `yaml.safe_load()`. Unsafe YAML loading enables arbitrary code execution.
-- **Never `pickle.load()` on untrusted data** -- use JSON, MessagePack, or Protocol Buffers for data interchange.
+- **Never `except: pass`** or bare `except Exception` without re-raise. Catch specific exception types. Broad catches silently swallow bugs — a `KeyError` from a typo looks the same as a network failure, and you'll spend hours debugging something the traceback would have told you instantly.
+- **Never `datetime.now()` or `datetime.utcnow()`** -- both produce naive datetimes that lose timezone info. Naive datetimes cause subtle bugs when code crosses timezone boundaries (servers, users, DST). Use `datetime.now(tz=timezone.utc)`. Use `zoneinfo.ZoneInfo` for other timezones, not `pytz`.
+- **Never `random` for security** -- `random` uses a predictable PRNG; an attacker who observes a few outputs can predict future ones. Use `secrets.token_hex()`, `secrets.token_urlsafe()`, or `secrets.token_bytes()` for tokens, keys, session IDs.
+- **Never `shell=True` in `subprocess`** -- shell interpretation enables command injection if any argument contains user input. Use argument lists: `subprocess.run(["cmd", arg1, arg2])`.
+- **Never string formatting in SQL** -- SQL injection is one of the most exploited vulnerabilities. Use parameterized queries only. `f"SELECT * FROM users WHERE id = {uid}"` is always a defect.
+- **Never `yaml.load()`** without `SafeLoader` -- use `yaml.safe_load()`. Unsafe YAML loading deserializes arbitrary Python objects, enabling remote code execution from a crafted YAML file.
+- **Never `pickle.load()` on untrusted data** -- pickle executes arbitrary code during deserialization by design. Use JSON, MessagePack, or Protocol Buffers for data interchange.
 - **Never `eval()` or `exec()` on external input** -- use `ast.literal_eval()` for safe evaluation of literals.
-- **Never mutable default arguments** -- `def f(items=[])` is always a defect. Use `None` sentinel: `def f(items: list[str] | None = None)` then `items = items or []`.
-- **Never shadow builtins** -- don't use `list`, `dict`, `id`, `type`, `input`, `hash`, `map`, `set`, `filter` as variable names.
-- **Never blocking calls in async** -- no `time.sleep()`, bare `open()`, or `requests.get()` inside `async def`. Use `asyncio.sleep()`, `aiofiles`, `httpx`.
-- **Never `+=` string concatenation in loops** -- use `"".join(parts)`. Concatenation in loops is O(n^2).
+- **Never mutable default arguments** -- `def f(items=[])` shares one list across all calls. Appending in one call mutates the default for every subsequent call. Use `None` sentinel: `def f(items: list[str] | None = None)` then `items = items or []`.
+- **Never shadow builtins** -- don't use `list`, `dict`, `id`, `type`, `input`, `hash`, `map`, `set`, `filter` as variable names. Shadowing causes confusing errors when you later need the builtin in the same scope.
+- **Never blocking calls in async** -- no `time.sleep()`, bare `open()`, or `requests.get()` inside `async def`. These block the entire event loop, freezing all concurrent tasks. Use `asyncio.sleep()`, `aiofiles`, `httpx`.
+- **Never `+=` string concatenation in loops** -- use `"".join(parts)`. Python strings are immutable, so each `+=` allocates a new string and copies all previous content — O(n²) at scale. At 10k iterations this turns milliseconds into seconds.
 
 ## Error handling
 
@@ -100,7 +100,7 @@ async def managed_session(config: Config) -> AsyncIterator[Session]:
 
 ## Async patterns
 
-**Use `TaskGroup` (3.11+), not `gather`.** TaskGroup enforces structured concurrency: if one task fails, siblings are cancelled and errors are raised as `ExceptionGroup`. `gather(return_exceptions=True)` silently mixes exceptions into results.
+**Prefer `TaskGroup` (3.11+) over `gather` for most concurrent work.** TaskGroup enforces structured concurrency: if one task fails, siblings are cancelled and errors are raised as `ExceptionGroup`. `gather(return_exceptions=True)` silently mixes exceptions into results, which is error-prone. Use `gather` when you genuinely need partial results despite failures, or when targeting Python < 3.11.
 
 ```python
 async with asyncio.TaskGroup() as tg:
@@ -156,6 +156,34 @@ def process_items(items: Sequence[str]) -> list[str]:  # accepts tuple, list, et
 
 def merge_configs(base: Mapping[str, Any], override: Mapping[str, Any]) -> dict[str, Any]:
     return {**base, **override}
+```
+
+**Use `TYPE_CHECKING` for import-only types.** When a type is only needed for annotations (not at runtime), import it under `TYPE_CHECKING` to avoid circular imports and reduce startup cost:
+
+```python
+from __future__ import annotations
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from myapp.services import PaymentService
+
+class OrderProcessor:
+    def __init__(self, payments: PaymentService) -> None:
+        self._payments = payments
+```
+
+## Pattern matching
+
+Use `match`/`case` (3.10+) when branching on structure — it's clearer than if/elif chains for destructuring dicts, tuples, or typed objects. Don't use it as a substitute for simple value comparisons where `if/elif` reads fine.
+
+```python
+match event:
+    case {"type": "click", "target": target}:
+        handle_click(target)
+    case {"type": "scroll", "offset": int(offset)} if offset > 0:
+        handle_scroll(offset)
+    case _:
+        logger.warning("Unhandled event: %s", event.get("type"))
 ```
 
 ## Data modeling
