@@ -11,10 +11,9 @@ Three paths through the BMM module by task complexity.
 For small changes, brownfield additions, utilities. Skips planning entirely.
 
 
-| Step          | Command                | Agent                       |
-| ------------- | ---------------------- | --------------------------- |
-| 1. Quick Spec | `/bmad-bmm-quick-spec` | Barry (Quick Flow Solo Dev) |
-| 2. Quick Dev  | `/bmad-bmm-quick-dev`  | Barry (Quick Flow Solo Dev) |
+| Step         | Command               | Agent                       |
+| ------------ | --------------------- | --------------------------- |
+| 1. Quick Dev | `/bmad-bmm-quick-dev` | Barry (Quick Flow Solo Dev) |
 
 
 ---
@@ -27,9 +26,8 @@ For features that need investigation but not the full PRD/architecture pipeline.
 | Step           | Required | Command                                                       | Agent                       |
 | -------------- | -------- | ------------------------------------------------------------- | --------------------------- |
 | 1. Research    | optional | `/bmad-bmm-technical-research` or `/bmad-bmm-domain-research` | Mary (Analyst)              |
-| 2. Quick Spec  | yes      | `/bmad-bmm-quick-spec`                                        | Barry (Quick Flow Solo Dev) |
-| 3. Quick Dev   | yes      | `/bmad-bmm-quick-dev`                                         | Barry (Quick Flow Solo Dev) |
-| 4. Code Review | optional | `/bmad-bmm-code-review`                                       | Amelia (Developer)          |
+| 2. Quick Dev   | yes      | `/bmad-bmm-quick-dev`                                         | Barry (Quick Flow Solo Dev) |
+| 3. Code Review | optional | `/bmad-bmm-code-review`                                       | Amelia (Developer)          |
 
 
 ---
