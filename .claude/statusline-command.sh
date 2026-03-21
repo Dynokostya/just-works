@@ -16,7 +16,7 @@ FILLED=$((PCT / 8)); EMPTY=$((8 - FILLED))
 BAR=$(printf "%${FILLED}s" | tr ' ' '▮')$(printf "%${EMPTY}s" | tr ' ' '▯')
 
 BRANCH=""
-git rev-parse --git-dir > /dev/null 2>&1 && BRANCH=" | ${BLUE}$(git branch --show-current 2>/dev/null)${RESET}"
+git rev-parse --git-dir > /dev/null 2>&1 && BRANCH="${BLUE}$(git branch --show-current 2>/dev/null)${RESET}"
 
 TIME=$(date +%H:%M)
 HOUR=$(date +%H | sed 's/^0//')
@@ -25,6 +25,10 @@ if [ "$HOUR" -ge 9 ] && [ "$HOUR" -lt 20 ]; then TIME_COLOR='\033[38;5;71m'
 elif [ "$HOUR" -ge 6 ] && [ "$HOUR" -lt 9 ]; then TIME_COLOR='\033[38;5;117m'
 else TIME_COLOR='\033[38;5;124m'
 fi
-echo -e "${ORANGE}${MODEL}${RESET} | ${DIR##*/}$BRANCH"
+
 COST_FMT=$(printf '$%.2f' "$COST")
+
+echo -e "${ORANGE}${MODEL}${RESET}"
+echo -e "${DIR##*/}"
+[ -n "$BRANCH" ] && echo -e "| ${BRANCH}"
 echo -e "${TIME_COLOR}${TIME}${RESET} | ${COST_FMT} | ${BAR_COLOR}${BAR}${RESET} ${PCT}%"
