@@ -30,5 +30,5 @@ COST_FMT=$(printf '$%.2f' "$COST")
 
 echo -e "${ORANGE}${MODEL}${RESET}"
 echo -e "${DIR##*/}"
-[ -n "$BRANCH" ] && echo -e "| ${BRANCH}"
+[ -n "$BRANCH" ] && echo -e "${BRANCH}"
 echo -e "${TIME_COLOR}${TIME}${RESET} | ${COST_FMT} | ${BAR_COLOR}${BAR}${RESET} ${PCT}%"
