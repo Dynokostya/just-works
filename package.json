@@ -1,6 +1,6 @@
 {
   "name": "@dynokostya/just-works",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Drop-in AI agent workflows, coding skills, and prompt standards for Claude Code and OpenAI Codex",
   "type": "module",
   "bin": {
@@ -17,6 +17,7 @@
     ".codex/prompts/",
     ".codex/skills/",
     "CLAUDE.md",
+    "CLAUDE-CHAT.md",
     "AGENTS.md",
     "LICENSE"
   ],

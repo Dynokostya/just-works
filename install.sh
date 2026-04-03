@@ -49,6 +49,7 @@ Options:
   --claude-only   Install only Claude Code files (~/.claude/)
   --codex-only    Install only Codex files (~/.codex/)
   --dry-run       Show what would be installed without making changes
+  --no-backup     Skip backup prompt, disable backups (for CI/non-interactive)
   -h, --help      Show this help message
 
 What gets installed:
@@ -79,6 +80,7 @@ while [[ $# -gt 0 ]]; do
         --skip-statusline) SKIP_STATUSLINE=true; shift ;;
         --skip-skills-claude) SKIP_SKILLS_CLAUDE=true; shift ;;
         --skip-skills-codex)  SKIP_SKILLS_CODEX=true; shift ;;
+        --no-backup)   DO_BACKUP=false; shift ;;
         -h|--help)     usage ;;
         *) error "Unknown option: $1"; usage ;;
     esac
@@ -101,13 +103,17 @@ echo -e "${BOLD}just-works installer${NC}"
 echo ""
 
 # --- Interactive: backup prompt ---
-if ! $DRY_RUN; then
-    read -rp "Do you want to create backups? (Y/n) " answer
-    case "${answer:-Y}" in
-        [Yy]*) DO_BACKUP=true ;;
-        [Nn]*) DO_BACKUP=false ;;
-        *)     DO_BACKUP=true ;;
-    esac
+if ! $DRY_RUN && $DO_BACKUP; then
+    if [[ -t 0 ]]; then
+        read -rp "Do you want to create backups? (Y/n) " answer
+        case "${answer:-Y}" in
+            [Yy]*) DO_BACKUP=true ;;
+            [Nn]*) DO_BACKUP=false ;;
+            *)     DO_BACKUP=true ;;
+        esac
+    else
+        warn "Non-interactive mode detected — backups enabled by default"
+    fi
     echo ""
 fi
 
@@ -207,6 +213,7 @@ if ! $CODEX_ONLY; then
     fi
 
     install_file "${SCRIPT_DIR}/CLAUDE.md" "${CLAUDE_HOME}/CLAUDE.md" "CLAUDE.md"
+    install_file "${SCRIPT_DIR}/CLAUDE-CHAT.md" "${CLAUDE_HOME}/CLAUDE-CHAT.md" "CLAUDE-CHAT.md"
     if ! $SKIP_STATUSLINE; then
         install_file "${SCRIPT_DIR}/.claude/statusline-command.sh" "${CLAUDE_HOME}/statusline-command.sh" "statusline-command.sh"
     else
