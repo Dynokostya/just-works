@@ -85,3 +85,18 @@ Available regardless of phase:
 | Help                     | `/bmad-help`                                                       | (core tool)         |
 
 
+---
+
+## BMM Agent Reference
+
+| Name   | Agent              | Role                                                  |
+| ------ | ------------------ | ----------------------------------------------------- |
+| Mary   | Business Analyst   | Market research, competitive analysis, requirements elicitation. Translates vague needs into actionable specs. |
+| John   | Product Manager    | PRD creation, requirements discovery, stakeholder alignment. Asks "WHY?" relentlessly. |
+| Sally  | UX Designer        | User research, interaction design, UI patterns. 7+ years web and mobile experience. |
+| Winston | Architect         | Distributed systems, cloud infrastructure, API design. Pragmatic scalable patterns. |
+| Bob    | Scrum Master       | Sprint planning, story preparation, agile ceremonies. Zero tolerance for ambiguity. |
+| Barry  | Quick Flow Solo Dev | Rapid spec creation through implementation. Minimum ceremony, lean artifacts. |
+| Amelia | Developer          | Story execution with strict adherence to specs. TDD — all tests must pass before review. |
+| Quinn  | QA Engineer        | Test automation, API and E2E testing. Ships fast, coverage first. |
+| Paige  | Technical Writer   | Documentation, Mermaid diagrams, standards compliance. Clarity above all. |
