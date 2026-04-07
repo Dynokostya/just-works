@@ -45,9 +45,6 @@
   },
   "model": "opus[1m]",
   "enableAllProjectMcpServers": true,
-  "enabledMcpjsonServers": [
-    "Context7"
-  ],
   "cleanupPeriodDays": 180,
   "maxTerminalOutputChars": 150000,
   "maxFileReadTokens": 30000,
