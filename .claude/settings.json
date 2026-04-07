@@ -75,15 +75,6 @@
   "hooks": {
     "PreToolUse": [
       {
-        "matcher": "Read",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "FILE=$(echo '$CLAUDE_TOOL_INPUT' | jq -r '.file_path') && [ -f \"$FILE\" ] && LINES=$(wc -l < \"$FILE\") && [ \"$LINES\" -gt 500 ] && echo 'File is too large, do not read it fully. Use offset and limit parameters to read specific sections.' >&2 && exit 2 || exit 0"
-          }
-        ]
-      },
-      {
         "matcher": "Bash",
         "hooks": [
           {
