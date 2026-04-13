@@ -32,8 +32,3 @@ status_line = ["model-with-reasoning", "git-branch", "context-remaining", "used-
 [mcp_servers.playwright]
 command = "npx"
 args = ["-y", "@playwright/mcp@latest"]
-
-# MCP: shadcn/ui
-[mcp_servers.shadcn]
-command = "npx"
-args = ["shadcn@latest", "mcp"]
