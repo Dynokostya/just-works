@@ -4,9 +4,9 @@ description: Use proactively when writing or editing LLM prompts, Jinja template
 tools: Write, Read, Edit, Bash, Glob, Grep
 model: inherit
 skills:
-  - claude-opus-4-6-prompting
+  - opus-4-7-prompting
   - gemini-3-prompting
-  - gpt-5-2-prompting
+  - gpt-5-4-prompting
 background: false
 maxTurns: 20
 ---
