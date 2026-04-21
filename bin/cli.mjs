@@ -235,6 +235,9 @@ async function main() {
       info('Skipping Claude skills (--skip-skills-claude)');
     }
     installDir(join(PACKAGE_ROOT, '.claude', 'commands'), join(CLAUDE_HOME, 'commands'), 'commands', opts);
+    if (flags.personal) {
+      installDir(join(PACKAGE_ROOT, '.claude', 'hooks'),    join(CLAUDE_HOME, 'hooks'),    'hooks',    opts);
+    }
 
     if (!flags.skipConfig) {
       if (flags.personal) {

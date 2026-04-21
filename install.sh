@@ -67,7 +67,7 @@ What gets installed:
   ~/.codex/
     agents/       Custom agent definitions (python-code-writer, diagrammer, ...)
     config.toml   Codex CLI configuration (--azure for Azure OpenAI)
-    hooks.json    Lifecycle hooks (notification, rtk rewrite)
+    hooks.json    Lifecycle hooks (notification)
     prompts/      Slash commands (plan-reviewer, project-docs, git-sync)
     AGENTS.md     Global behavioral instructions
 
@@ -210,6 +210,9 @@ if ! $CODEX_ONLY; then
         info "Skipping Claude skills (--skip-skills-claude)"
     fi
     install_dir  "${SCRIPT_DIR}/.claude/commands"  "${CLAUDE_HOME}/commands" "commands"
+    if $PERSONAL; then
+        install_dir  "${SCRIPT_DIR}/.claude/hooks"     "${CLAUDE_HOME}/hooks"    "hooks"
+    fi
 
     if ! $SKIP_CONFIG; then
         if $PERSONAL; then

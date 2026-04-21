@@ -39,7 +39,21 @@
       "Read(**/.gnupg/*)",
       "Read(**/*.sqlite)",
       "Read(**/*.db)",
-      "Read(**/.htpasswd)"
+      "Read(**/.htpasswd)",
+      "Read(**/package-lock.json)",
+      "Read(**/pnpm-lock.yaml)",
+      "Read(**/yarn.lock)",
+      "Read(**/Cargo.lock)",
+      "Read(**/poetry.lock)",
+      "Read(**/uv.lock)",
+      "Read(**/node_modules/**)",
+      "Read(**/dist/**)",
+      "Read(**/build/**)",
+      "Read(**/.next/**)",
+      "Read(**/target/**)",
+      "Read(**/coverage/**)",
+      "Read(**/*.min.js)",
+      "Read(**/*.map)"
     ],
     "defaultMode": "bypassPermissions"
   },
@@ -76,7 +90,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "/Users/dynokostya/.claude/hooks/rtk-rewrite.sh"
+            "command": "bash -c 'exec \"$HOME/.claude/hooks/rtk-rewrite.sh\"'"
           }
         ]
       }
