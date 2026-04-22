@@ -1,5 +1,7 @@
 # just-works
 
+I am tired of manually prompting Claude Code each time to include all tools, best practices, aggressive language — that's why I created this repo.
+
 Drop-in AI agent workflows, coding skills, and prompt standards for **Claude Code** and **OpenAI Codex**.
 
 Just copy `.claude/` into any project — or install globally — and get pre-configured agents, quality guardrails, and documentation pipelines out of the box.
@@ -17,14 +19,39 @@ Just copy `.claude/` into any project — or install globally — and get pre-co
 
 ## Installation
 
+Installs agents, skills, commands, and settings globally to `~/.claude/` and `~/.codex/`. Existing files get backed up automatically.
+
 ### Quick install (recommended)
+
+One-liner, no Node.js required. Needs `curl` and `tar` (preinstalled on macOS/Linux).
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/dynokostya/just-works/main/bootstrap.sh | bash
+```
+
+With flags:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/dynokostya/just-works/main/bootstrap.sh | bash -s -- --personal
+curl -fsSL https://raw.githubusercontent.com/dynokostya/just-works/main/bootstrap.sh | bash -s -- --dry-run
+```
+
+Pin to a specific version:
+
+```bash
+JUST_WORKS_REF=v1.1.3 curl -fsSL https://raw.githubusercontent.com/dynokostya/just-works/main/bootstrap.sh | bash
+```
+
+To update: re-run the same command.
+
+### Via npm
 
 Requires [Node.js](https://nodejs.org/) 18+.
 
 ```bash
 npx @dynokostya/just-works              # default settings
 npx @dynokostya/just-works --personal   # opinionated settings (permissions, hooks, sounds)
-npx @dynokostya/just-works --dry-run    # preview without changes
+npx @dynokostya/just-works@latest       # update
 ```
 
 ### From source
@@ -36,15 +63,7 @@ cd just-works
 install.bat             # Windows
 ```
 
-Installs agents, skills, commands, and settings globally to `~/.claude/` and `~/.codex/`. Existing files get backed up automatically.
-
-To update:
-
-```bash
-npx @dynokostya/just-works@latest
-```
-
-Or from source: `git pull && ./install.sh`
+To update: `git pull && ./install.sh`
 
 ### Options
 
