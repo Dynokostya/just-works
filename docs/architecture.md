@@ -16,7 +16,7 @@ Two parallel provider directories plus distribution scaffolding:
 
 **Agents** (`.claude/agents/`, `.codex/agents/`) — 8 specialized writers per provider, file-type-triggered via `description` frontmatter:
 - `python-code-writer`, `typescript-code-writer`, `swift-code-writer`, `csharp-code-writer`
-- `frontend-code-writer` (React/Tailwind/shadcn)
+- `react-code-writer` (React/Tailwind/shadcn)
 - `prompt-writer` (Opus, GPT, Gemini)
 - `diagrammer` (PlantUML)
 - `ticket-creator` (ClickUp MCP)
@@ -44,7 +44,7 @@ Commands orchestrate multi-phase work: `project-docs` spawns three parallel `Exp
 
 - **Dual-provider mirror** — `.claude/` (Markdown with YAML frontmatter) and `.codex/` (TOML) hold parallel copies of the same agents and skills; Codex can't resolve `@file` references, so skills must be duplicated.
 - **File-extension-triggered selection** — agent `description` fields declare target file types; the orchestrator matches on descriptions, not names.
-- **Skill composition** — agents stack multiple skills (e.g., `frontend-code-writer` loads `react-coding` + `tailwind-css-coding` + `shadcn-ui-coding`).
+- **Skill composition** — agents stack multiple skills (e.g., `react-code-writer` loads `react-coding` + `tailwind-css-coding` + `shadcn-ui-coding`).
 - **Permission deny-list** — shipped `settings.json` blocks `.env`, `*.pem`, `*.key`, credentials, cloud configs, SSH keys, and DB files.
 - **Evidence-gated documentation** — `project-docs` discards claims without source citations during verification.
 - **Personal vs default configs** — `settings.json` + `settings.json.default` pair, `config.toml` + `config.toml.default` pair; installer `--personal` flag picks the opinionated variants.

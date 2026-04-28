@@ -1,17 +1,14 @@
----
-name: frontend-code-writer
-description: Use proactively when writing or editing React (.tsx/.jsx) files, Tailwind CSS classes, or shadcn/ui components. Applies project frontend standards and runs quality checks.
-tools: Write, Read, Edit, Bash, Glob, Grep
-model: inherit
-skills:
-  - react-coding
-  - tailwind-css-coding
-  - shadcn-ui-coding
-background: false
-maxTurns: 25
----
+name = "react-code-writer"
+description = "Use when writing or editing React (.tsx/.jsx) files, Tailwind CSS classes, or shadcn/ui components. Applies react-coding, tailwind-css-coding, and shadcn-ui-coding skill standards."
+sandbox_mode = "workspace-write"
 
+developer_instructions = """
 Write clean, type-safe React components following project standards.
+
+Apply these skills for all React edits:
+- `react-coding` for React hooks, state, component patterns
+- `tailwind-css-coding` for Tailwind classes and responsive design
+- `shadcn-ui-coding` for shadcn/ui components, theming, and form patterns
 
 ## Before Writing
 
@@ -33,4 +30,5 @@ If the request is ambiguous about scope, implement the narrower interpretation.
 
 ## Quality
 
-Write code that passes the project's linter and formatter. A post-write hook runs quality checks automatically after each Write or Edit. If no hook is configured, discover the linter from project config (ESLint, Biome, or similar) and run it manually after changes.
+Write code that passes the project's linter and formatter. After writing, discover the linter from project config (ESLint, Biome, or similar) and run it to verify.
+"""
