@@ -10,7 +10,8 @@ Apply alongside `ticket-writing` — that skill handles body content and title f
 ## Never rules
 
 - **Never put a structured attribute in the description when a native field exists.** Due dates → `due_date`, start dates → `start_date`, owners → `assignees`, priority → `priority`, blocked-by → dependency, relates-to → linked task, parent/epic → `parent`, effort → `time_estimate`. A date in prose is dead data; the same date in `due_date` drives reminders, Gantt, and filters.
-- **Never auto-fill values the user didn't specify.** Priority, due date, assignees, tags, sprint membership — if the user didn't say, ask. The only exception is when the user explicitly grants discretion ("use your judgment", "go ahead", "you decide").
+- **Never auto-fill values the user didn't specify.** Applies to every field: `priority`, `due_date`, `start_date`, `assignees`, `tags`, sprint membership, `time_estimate`, `parent`, `status`, custom fields, dependencies, linked tasks, attachments. If the user didn't say, ask. Don't infer "reasonable defaults" from context — the user can't tell guess from confirmed and ends up re-checking everything. Only exception: the user explicitly grants discretion ("use your judgment", "go ahead", "you decide").
+- **Never create a task without checking that a similar one isn't already in the list.** Duplicates fragment discussion, split assignments, and waste triage. Search the target list first via the search/filter MCP. Surface candidates to the user; let them decide: dedupe, link as relates-to or blocks, or proceed.
 - **Never create a task without at least one assignee** unless the user explicitly says "no assignee yet". A task with no owner drifts.
 - **Never set a tag that doesn't already exist in the Space.** ClickUp tags must preexist; creating with an unknown tag fails or silently drops it. Discover the Space's tags first.
 - **Never use `description` when the source contains Markdown.** Use `markdown_content` — it takes precedence over `description` when both are sent.
@@ -145,13 +146,14 @@ Protocol:
 ## Orchestration sequence (create flow)
 
 1. **Resolve list.** Convert list name → id via get-list if needed. Require the user to name the list; never guess.
-2. **Introspect** (once per list per session): custom fields, tags, statuses, members, task types.
-3. **Resolve assignees.** Convert names → user IDs via member lookup.
-4. **Compose body** per `ticket-writing` — title, sections, formatting.
-5. **Collect missing values by asking.** For every unspecified attribute — due date, priority, tags, parent, status — ask the user. Bundle related questions. Don't default. Skip this step only when the user grants discretion.
-6. **Create task** with a single call: `name`, `markdown_content`, `assignees`, `tags`, `priority`, `due_date`, `status`, `parent`, `custom_fields`, `check_required_custom_fields: true`, `notify_all: false`.
-7. **Attach relationships** separately: add-dependency for blocks/blocked-by, add-link for relates-to, attach-file for attachments.
-8. **Return the task URL** as `https://app.clickup.com/t/<task_id>`. Confirm the fields back to the user.
+2. **Search for duplicates.** Query the list (and obvious adjacent lists when scope is unclear) via the search/filter MCP. Use the candidate title's keywords and likely tags. Surface near-matches to the user; let them decide — dedupe, link as relates-to or blocks, or proceed. Skip only when the user has already confirmed it's a new ticket.
+3. **Introspect** (once per list per session): custom fields, tags, statuses, members, task types.
+4. **Resolve assignees.** Convert names → user IDs via member lookup.
+5. **Compose body** per `ticket-writing` — title, sections, formatting. Include only sections and values the user supplied or confirmed; don't add Out of scope, Open questions, Timebox, Severity, or any other section to "look complete".
+6. **Collect missing values by asking.** For every unspecified attribute — due date, priority, tags, parent, status, custom fields, time estimate — ask the user. Bundle related questions. Don't default. Skip this step only when the user grants discretion.
+7. **Create task** with a single call: `name`, `markdown_content`, `assignees`, `tags`, `priority`, `due_date`, `status`, `parent`, `custom_fields`, `check_required_custom_fields: true`, `notify_all: false`.
+8. **Attach relationships** separately: add-dependency for blocks/blocked-by, add-link for relates-to, attach-file for attachments.
+9. **Return the task URL** as `https://app.clickup.com/t/<task_id>`. Confirm the fields back to the user.
 
 ## Update-vs-create
 
@@ -172,6 +174,8 @@ Protocol:
 - **Typed data in Text custom fields** — URL, Date, Email, Dropdown, Number all have typed variants that preserve filterability.
 - **Inventing tags** — always reuse existing ones unless the user explicitly asks to create a new convention.
 - **Guessing the list** — always ask. Creating in the wrong list is a slow revert.
+- **Skipping the duplicate search** — filing a near-duplicate fragments the conversation and splits the work. One MCP search call costs less than reverting a duplicate.
+- **Auto-filling fields the user didn't authorize** — picking a `priority`, due date, sprint tag, or `time_estimate` because "it seems reasonable". The user can't distinguish your guess from their input and ends up auditing every field. Ask, or leave unset.
 
 ## When no MCP is available
 

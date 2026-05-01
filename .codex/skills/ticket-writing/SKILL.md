@@ -21,6 +21,8 @@ These are unconditional. They prevent ambiguity, lost provenance, and wasted tri
 - **Never title a ticket with a trailing period.** Wastes characters in scan-width views and doesn't match imperative-mood form.
 - **Never publish a ticket without a Source link** when the context came from a conversation, doc, or meeting. Tickets lose their origin within weeks.
 - **Never block work on a dependency without linking the blocker.** If ticket A can't start until B ships, use a blocked-by link so the board and dependency tooling can surface it.
+- **Never create a ticket without checking that a similar one isn't already open.** Duplicates fragment discussion, split assignment, and waste triage. Search the target tracker by title keywords and by likely tags first. Surface near-matches to the requester and let them decide: dedupe, link as relates-to, or proceed.
+- **Never include a section, field, or value the user didn't request or you haven't confirmed.** Required fields for the type get asked, not guessed (Spike's Timebox, Bug's Severity, Bug's Priority). Optional sections stay omitted unless the user supplies the content (Out of scope, Open questions, Attachments, Links). Inventing values to match a template pollutes the ticket with content the user must re-check, and erodes trust that the body reflects their intent.
 
 ## Vocabulary
 
@@ -255,7 +257,9 @@ Skip formal DoR if refinement conversations already cover these items. The check
 
 **When a ticket is sourced from a meeting or transcript** — link the transcript or recording permalink in **Source**. Without it, the conversation context is gone within days.
 
-**When a required value is unknown at creation** — ask before creating, or omit it and add a follow-up comment the same day. Don't insert `[TBD]` or `[paste link]`; those become permanent.
+**When a required value is unknown at creation** — ask before creating, or omit it and add a follow-up comment the same day. Don't insert `[TBD]` or `[paste link]`; those become permanent. If the user can't supply a value the type demands (e.g., a Spike with no timebox), the type is probably wrong — propose a different type rather than fabricating a placeholder.
+
+**Before creating, search for existing tickets** — query the target tracker by title keywords and by likely tags. If candidates exist, surface them to the requester. They decide: close as duplicate, link as relates-to or blocks, or proceed. Skip this step only when the user has already confirmed it's a new ticket.
 
 **When rewriting an existing ticket** — preserve the original Source link. Rewrite the title to imperative mood. Restructure into the correct sections for the ticket type. Enforce the Never rules. If the ticket describes two distinct changes, split them rather than letting them ride together.
 
@@ -267,6 +271,8 @@ Skip formal DoR if refinement conversations already cover these items. The check
 - No placeholders
 - No em-dash separators, no horizontal rules
 - Length in range, or the overrun is justified by the framing
+- Duplicate search done; no near-matches, or near-matches reviewed with the requester
+- Every section and value came from the user or was confirmed — nothing added to fit the template
 
 ## Anti-patterns
 
@@ -286,6 +292,8 @@ Skip formal DoR if refinement conversations already cover these items. The check
 - **"Relates to" as a catch-all link** — pick the most specific link type, or none.
 - **Tickets without a Source** — no way to retrace the origin. Conversation context evaporates.
 - **Stories treated as full specification documents** — three pages of prose for a two-day change. Tickets are conversation starters; use docs for deep specs and link them.
+- **Filing without a duplicate search** — filing a near-duplicate fragments the discussion, splits the work, and signals weak hygiene. Search first; surface candidates to the requester before creating.
+- **Inventing values to look complete** — filling Severity, Priority, Timebox, Out of scope, or any other field with a guess so the ticket "feels finished". The user can't tell guess from confirmed and ends up re-checking everything. Ask, or omit.
 
 ## Rewrite examples
 
