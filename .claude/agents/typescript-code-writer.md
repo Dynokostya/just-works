@@ -5,7 +5,6 @@ tools: Write, Read, Edit, Bash, Glob, Grep
 model: inherit
 skills:
   - typescript-coding
-background: false
 maxTurns: 25
 ---
 

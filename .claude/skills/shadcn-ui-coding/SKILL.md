@@ -158,6 +158,20 @@ function Card({ className, isActive, ...props }: CardProps) {
 
 shadcn components use CVA for variants. Export `*Variants` separately to style non-native elements (e.g., `<Link className={cn(buttonVariants({ variant: "outline" }))}>`). Use `VariantProps<typeof xVariants>` for type-safe variant props.
 
+### Blocks and the Registry Directory
+
+Blocks are pre-composed, multi-component layouts (dashboard, auth, forms). Pull from the official [Registry Directory](https://ui.shadcn.com/blocks) or third-party registries configured in `components.json` via `registries`:
+
+```json
+{
+  "registries": {
+    "@acme": "https://example.com/registry/{name}.json"
+  }
+}
+```
+
+Blocks support multiple frameworks as of Feb 2025 (not Next.js-only).
+
 ## Theming
 
 ### CSS variables
@@ -354,16 +368,29 @@ Radix primitives provide: focus trapping in modals, arrow-key navigation in menu
 
 You handle: `FormLabel` association with inputs (via FormField), visible focus rings (`focus-visible:ring-2`), color contrast (WCAG AA minimum), skip-to-content links, meaningful `alt` text on images, `DialogTitle` and `DialogDescription` in every Dialog (required by Radix, warns if missing).
 
+## MCP server (Aug 2025+)
+
+shadcn ships an MCP server that exposes the component registry to LLM tools. Configure in your Claude Code MCP config to let the agent list, search, view, and add components via MCP calls rather than CLI subprocess. This avoids the permissions prompt loop on each `add`.
+
 ## CLI and configuration
 
 ### Commands
 
 ```bash
-npx shadcn@latest init          # initialize project, creates components.json
-npx shadcn@latest add button    # add a component
-npx shadcn@latest add sonner    # add sonner (toast replacement)
-npx shadcn@latest diff button   # show upstream changes to a component
-npx shadcn@latest create        # scaffold a new registry block (Dec 2025+)
+npx shadcn@latest init                # initialize project, creates components.json
+npx shadcn@latest init --pointer      # init with cursor-pointer on buttons (Apr 2026+)
+npx shadcn@latest add button          # add a component
+npx shadcn@latest add button --diff   # show upstream changes (replaces the old diff command)
+npx shadcn@latest add sonner          # add sonner (toast replacement)
+npx shadcn@latest search <query>      # search items across registries
+npx shadcn@latest view <item>         # preview a registry item before install
+npx shadcn@latest apply <preset>      # apply a preset (theme/fonts) to existing project
+npx shadcn@latest apply <preset> --only=theme  # partial preset apply
+npx shadcn@latest migrate radix       # run a built-in migration
+npx shadcn@latest build               # build your own registry JSON
+npx shadcn@latest info                # display project info
+npx shadcn@latest docs <component>    # retrieve component documentation
+npx shadcn@latest create              # scaffold a new registry block
 ```
 
 ### components.json
@@ -372,7 +399,7 @@ Key settings:
 
 | Field | Effect |
 |---|---|
-| `style` | `"new-york"` only. `"default"` is deprecated. |
+| `style` | `"new-york"` or `"sera"` (Apr 2026+). `"default"` is deprecated. |
 | `rsc` | `true` adds `"use client"` to components automatically |
 | `aliases.components` | Import path prefix (e.g., `@/components`) |
 | `aliases.utils` | Path to `cn()` utility (e.g., `@/lib/utils`) |

@@ -65,6 +65,7 @@ if "%SKIP_SKILLS_CLAUDE%"=="1" (
     call :install_dir "%SCRIPT_DIR%.claude\skills"    "%CLAUDE_HOME%\skills"   "skills"
 )
 call :install_dir "%SCRIPT_DIR%.claude\commands"  "%CLAUDE_HOME%\commands" "commands"
+call :install_dir "%SCRIPT_DIR%.claude\output-styles"  "%CLAUDE_HOME%\output-styles" "output-styles"
 if "%PERSONAL%"=="1" call :install_dir "%SCRIPT_DIR%.claude\hooks"     "%CLAUDE_HOME%\hooks"    "hooks"
 
 if "%SKIP_CONFIG%"=="1" (
@@ -214,6 +215,7 @@ echo   %%USERPROFILE%%\.claude\
 echo     agents\       Agent definitions (python-code-writer, prompt-writer)
 echo     skills\       Coding and prompting standards
 echo     commands\     Workflows (project-docs)
+echo     output-styles\  Selectable output styles (compressed, ...)
 echo     settings.json             Permission and hook configuration
 echo     CLAUDE.md                 Global behavioral instructions
 echo     statusline-command.sh     Status line script

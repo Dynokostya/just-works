@@ -2,7 +2,7 @@
 # Install: ./install.sh --azure
 # Manual: cp to ~/.codex/config.toml
 
-model = "gpt-5.4"
+model = "gpt-5.5"
 model_provider = "azure"
 model_reasoning_effort = "xhigh"
 

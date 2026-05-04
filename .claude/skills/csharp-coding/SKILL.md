@@ -5,7 +5,7 @@ description: Apply when writing or editing C# (.cs) files. Behavioral correction
 
 # C# Coding
 
-Match the project's existing conventions. When uncertain, read 2-3 existing files to infer the local style. Check `.csproj` for target framework, C# language version, nullable settings, and analyzer config. These defaults apply only when the project has no established convention.
+Match the project's existing conventions. When uncertain, read 2-3 existing files to infer the local style. Check `.csproj` for `TargetFramework` (`net10.0` LTS or `net9.0` STS in 2026), C# `LangVersion` (default `latest`; assume C# 14 on .NET 10), nullable settings, and analyzer config. These defaults apply only when the project has no established convention.
 
 ## Never rules
 
@@ -156,6 +156,32 @@ public Task<User> GetUserAsync(int id, CancellationToken ct)
 
 Exception: keep `async`/`await` when you need `using`, `try/catch`, or when the method does work before/after the awaited call.
 
+## C# 13 params collections
+
+`params` is no longer limited to arrays. Use `params ReadOnlySpan<T>` for zero-allocation variadic APIs; use `params IEnumerable<T>` when the caller may pass a lazy source:
+
+```csharp
+public static int Sum(params ReadOnlySpan<int> values)
+{
+    var total = 0;
+    foreach (var v in values) total += v;
+    return total;
+}
+
+Sum(1, 2, 3); // no heap allocation
+```
+
+For shared-state synchronization, prefer `System.Threading.Lock` over `lock (someObject)` where available:
+
+```csharp
+private readonly Lock _gate = new();
+
+void AppendSafely(string item)
+{
+    using (_gate.EnterScope()) { _items.Add(item); }
+}
+```
+
 ## Nullability
 
 Enable nullable reference types (`<Nullable>enable</Nullable>` in .csproj). Use the compiler's flow analysis — don't add redundant null checks where the type system already guarantees non-null.
@@ -184,6 +210,28 @@ public UserService(IUserRepository repository, ILogger<UserService> logger)
 ```
 
 With C# 11+ and nullable enabled, prefer `required` keyword or primary constructors over null checks for constructor injection when the DI container guarantees non-null.
+
+C# 11+: prefer `required` properties with object initializers when the DI container guarantees non-null:
+
+```csharp
+public sealed class UserService
+{
+    public required IUserRepository Repository { get; init; }
+    public required ILogger<UserService> Logger { get; init; }
+}
+```
+
+C# 14: use the `field` keyword in property accessors to add validation without declaring an explicit backing field:
+
+```csharp
+public string Email
+{
+    get;
+    set => field = !string.IsNullOrWhiteSpace(value)
+        ? value
+        : throw new ArgumentException("Email required");
+}
+```
 
 ## Pattern matching
 
@@ -219,6 +267,18 @@ var tier = score switch
     _ => "None"
 };
 ```
+
+Null-conditional assignment (C# 14):
+
+```csharp
+// Before C# 14:
+if (customer is not null) { customer.Order = GetCurrentOrder(); }
+
+// C# 14:
+customer?.Order = GetCurrentOrder();
+```
+
+The right side is evaluated only when the left is non-null.
 
 ## Data modeling
 

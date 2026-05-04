@@ -206,12 +206,30 @@ function Parent() {
 }
 ```
 
+## React 19 APIs
+
+- **Document metadata.** Render `<title>`, `<meta>`, and `<link>` anywhere in the tree — React hoists them to `<head>`. Skip framework-specific `<Head>` helpers for simple cases.
+- **Stylesheet precedence.** `<link rel="stylesheet" href="..." precedence="default" />` lets React manage insertion order.
+- **Resource preloading from `react-dom`.** `preinit`, `preload`, `prefetchDNS`, `preconnect` — call at module scope or in event handlers to prime the browser before navigation.
+- **Ref cleanup.** Return a cleanup function from a ref callback: `ref={(node) => { attach(node); return () => detach(node); }}`. React calls it on unmount.
+- **`<Context>` as provider.** `<ThemeContext value="dark">...</ThemeContext>` — no more `.Provider`.
+
 ## Hooks
 
 Rules of hooks -- no exceptions:
 - Call hooks at the top level of function components and custom hooks only.
 - Never call hooks inside conditions, loops, nested functions, `try`/`catch`, or after early returns.
-- The `use()` API (React 19) is the exception -- it can be called conditionally.
+- The `use()` API (React 19) is the exception — it can be called conditionally. Use it to read promises and context during render, integrating with Suspense:
+
+  ```tsx
+  function UserProfile({ userPromise }: { userPromise: Promise<User> }) {
+    const user = use(userPromise);
+    return <div>{user.name}</div>;
+  }
+
+  // Wrap in Suspense for loading fallback and ErrorBoundary for errors.
+  ```
+  Prefer `use(promise)` + `<Suspense>` over `useEffect`+`useState` for request-response fetching in Server Components and async data flows.
 
 **`useEffect` decision tree -- ask before writing any effect:**
 
@@ -220,6 +238,37 @@ Rules of hooks -- no exceptions:
 3. Do you need to reset state when a prop changes? Use `key` on the component.
 4. Do you need to sync with an external system (DOM, network, third-party widget)? This is a valid `useEffect`. Add cleanup.
 5. Do you need to fetch data? Prefer framework data fetching or TanStack Query. If raw `useEffect`, always use `AbortController`.
+
+## Actions (React 19+)
+
+Actions are async functions that perform mutations. React tracks pending state, errors, and optimistic updates for you.
+
+- **Form actions.** Pass an async function to `<form action={fn}>`. React runs it in a transition, shows pending state, and resets the form on success.
+- **`useActionState(reducer, initial)`** — returns `[state, dispatchAction, isPending]`. Use for form submissions and state-mutation workflows.
+- **`useFormStatus()`** — read pending/data of the nearest form from a descendant. Use for in-form submit buttons.
+- **`useOptimistic(state, reducer)`** — render an optimistic value until the async action settles. Use for UI that should appear to have updated immediately.
+
+```tsx
+function UpdateNameForm({ name }: { name: string }) {
+  const [error, submitAction, isPending] = useActionState(
+    async (_: unknown, formData: FormData) => {
+      const result = await updateName(formData.get("name") as string);
+      return result.error ?? null;
+    },
+    null,
+  );
+
+  return (
+    <form action={submitAction}>
+      <input name="name" defaultValue={name} />
+      <button type="submit" disabled={isPending}>Save</button>
+      {error && <p>{error}</p>}
+    </form>
+  );
+}
+```
+
+Don't roll your own `isSubmitting` state — `useActionState` and `useFormStatus` own that state and integrate with Suspense/error boundaries.
 
 ## Component typing
 

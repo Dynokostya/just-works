@@ -5,7 +5,6 @@ tools: Write, Read, Edit, Bash, Glob, Grep
 model: inherit
 skills:
   - plantuml-diagramming
-background: false
 maxTurns: 20
 ---
 

@@ -7,7 +7,6 @@ skills:
   - react-coding
   - tailwind-css-coding
   - shadcn-ui-coding
-background: false
 maxTurns: 25
 ---
 

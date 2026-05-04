@@ -60,6 +60,7 @@ What gets installed:
     agents/       Agent definitions (python-code-writer, prompt-writer, ...)
     skills/       Coding and prompting standards
     commands/     Workflows (project-docs, git-sync)
+    output-styles/  Selectable output styles (compressed, ...)
     settings.json             Permission and hook configuration
     CLAUDE.md                 Global behavioral instructions
     statusline-command.sh     Status line script
@@ -210,6 +211,7 @@ if ! $CODEX_ONLY; then
         info "Skipping Claude skills (--skip-skills-claude)"
     fi
     install_dir  "${SCRIPT_DIR}/.claude/commands"  "${CLAUDE_HOME}/commands" "commands"
+    install_dir  "${SCRIPT_DIR}/.claude/output-styles"  "${CLAUDE_HOME}/output-styles" "output-styles"
     if $PERSONAL; then
         install_dir  "${SCRIPT_DIR}/.claude/hooks"     "${CLAUDE_HOME}/hooks"    "hooks"
     fi

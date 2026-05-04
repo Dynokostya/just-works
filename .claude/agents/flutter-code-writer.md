@@ -6,7 +6,6 @@ model: inherit
 skills:
   - dart-coding
   - flutter-coding
-background: false
 maxTurns: 25
 ---
 

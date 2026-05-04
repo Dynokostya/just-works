@@ -6,12 +6,11 @@ model: inherit
 skills:
   - opus-4-7-prompting
   - gemini-3-prompting
-  - gpt-5-4-prompting
-background: false
+  - gpt-5-5-prompting
 maxTurns: 20
 ---
 
-Write effective prompts for Claude Opus 4.6, Gemini 3, and GPT-5.2 following model-specific best practices.
+Write effective prompts for Claude Opus 4.7, Gemini 3, and GPT-5.5 following model-specific best practices.
 
 ## Before Writing
 
@@ -19,9 +18,9 @@ Read existing prompts before editing. Identify the target model from context or 
 
 | Target Model | Skill |
 |---|---|
-| Claude Opus 4.6 | `claude-opus-4-6-prompting` |
+| Claude Opus 4.7 | `opus-4-7-prompting` |
 | Gemini 3 | `gemini-3-prompting` |
-| GPT-5.2 Codex | `gpt-5-2-prompting` |
+| GPT-5.5 | `gpt-5-5-prompting` |
 
 ## File Types
 

@@ -7,6 +7,20 @@ description: Apply when writing or editing PlantUML (.puml, .plantuml, .pu) file
 
 Match the project's existing conventions. When uncertain, check for existing `.puml` files to infer the local style -- naming, layout direction, theme usage, and abstraction level. Check for shared includes (`!include`) or a project theme file. These defaults apply only when the project has no established convention.
 
+## References index
+
+Deep-dive material lives alongside this file. Load the reference only when you need it.
+
+- `references/sequence-diagrams.md` -- participants, arrows, activation, grouping, notes and dividers.
+- `references/component-deployment.md` -- component and deployment diagrams, container types, interfaces.
+- `references/activity-diagrams.md` -- basic activity flow, swimlane partitions, stereotype coloring rules.
+- `references/class-diagrams.md` -- relationships table, full example, visibility modifiers, stereotypes, packages.
+- `references/state-diagrams.md` -- lifecycle modeling, key syntax, concurrent regions.
+- `references/other-diagram-types.md` -- use case, mindmap, gantt, WBS, ER, JSON/YAML visualization.
+- `references/styling.md` -- modern `<style>` blocks, built-in themes, color formats, layout direction.
+- `references/preprocessing.md` -- `!include`, `!procedure`, `!function`, variables, conditionals, loops.
+- `references/anti-patterns.md` -- soft smells that need contextual judgment.
+
 ## Never rules
 
 These are unconditional. They prevent broken or unreadable diagrams regardless of project style.
@@ -58,11 +72,7 @@ These are unconditional. They prevent broken or unreadable diagrams regardless o
 
 ## Sequence diagrams
 
-Sequence diagrams are the most common type. They show how components interact over time.
-
-### Participants
-
-Declare all participants at the top in display order. Use the right stereotype for each:
+The most common type. Shows how components interact over time. Declare all participants at the top in display order.
 
 ```plantuml
 @startuml
@@ -84,75 +94,11 @@ Web --> C: Display confirmation
 @enduml
 ```
 
-**Participant types:** `actor` (human user), `participant` (generic service), `boundary` (system edge/API gateway), `control` (orchestrator/coordinator), `entity` (domain object/data), `database` (data store), `queue` (message broker), `collections` (grouped instances).
-
-### Arrows
-
-| Syntax | Meaning |
-|--------|---------|
-| `->` | Synchronous request (solid line, filled arrow) |
-| `-->` | Synchronous response (dashed line, filled arrow) |
-| `->>` | Asynchronous message (solid line, open arrow) |
-| `-->>` | Asynchronous response (dashed line, open arrow) |
-| `->x` | Lost message (message that goes nowhere) |
-| `<->` | Bidirectional |
-
-### Activation and deactivation
-
-Use `activate`/`deactivate` or the shorthand `++`/`--` to show when a participant is processing:
-
-```plantuml
-Web -> Orders ++: Create order
-Orders -> DB ++: INSERT order
-DB --> Orders --: OK
-Orders --> Web --: Order ID
-```
-
-### Grouping
-
-Use grouping to show conditional and repetitive flows:
-
-```plantuml
-alt Payment succeeds
-    Orders -> Payments: Charge card
-    Payments --> Orders: Success
-else Payment fails
-    Payments --> Orders: Declined
-    Orders --> Web: Payment failed
-end
-
-opt Customer has loyalty account
-    Orders -> Loyalty: Award points
-end
-
-loop For each item in cart
-    Orders -> Inventory: Reserve stock
-end
-
-par Parallel notifications
-    Orders ->> Email: Send confirmation
-    Orders ->> SMS: Send text
-end
-```
-
-### Notes, dividers, and delays
-
-```plantuml
-note right of Orders: Validates inventory\nbefore charging
-note over Web, Orders: All communication over HTTPS
-
-== Fulfillment Phase ==
-
-...Warehouse picks and packs order...
-
-Shipping -> Customer: Delivery notification
-```
+See `references/sequence-diagrams.md` for participant types, the full arrow table, activation/deactivation, grouping (`alt`/`opt`/`loop`/`par`), notes, dividers, and delays.
 
 ## Component and deployment diagrams
 
 Use these for high-level system architecture. Focus on boundaries and data flow, not internals.
-
-### Component diagram
 
 ```plantuml
 @startuml
@@ -162,137 +108,45 @@ package "Frontend" {
     [Web Application] as Web
     [Mobile App] as Mobile
 }
-
-package "API Gateway" {
-    [Gateway] as GW
-}
-
 package "Backend Services" {
     [Order Service] as Orders
     [Payment Service] as Payments
-    [Inventory Service] as Inventory
 }
-
 package "Data Layer" {
     database "Orders DB" as ODB
-    database "Products DB" as PDB
     queue "Event Bus" as Events
 }
 
-Web --> GW: REST/HTTPS
-Mobile --> GW: REST/HTTPS
-GW --> Orders
-GW --> Payments
-GW --> Inventory
+Web --> Orders: REST/HTTPS
+Mobile --> Payments: REST/HTTPS
 Orders --> ODB
-Inventory --> PDB
 Orders --> Events: Publishes events
-Payments --> Events: Publishes events
 
 @enduml
 ```
 
-### Deployment diagram
-
-```plantuml
-@startuml
-title Production Deployment
-
-cloud "CDN" as cdn
-
-node "AWS Region us-east-1" {
-    node "EKS Cluster" {
-        [API Gateway] as gw
-        [Order Service] as orders
-        [Payment Service] as payments
-    }
-    database "RDS PostgreSQL" as db
-    queue "SQS" as sqs
-}
-
-cloud "Stripe" as stripe
-
-cdn --> gw: HTTPS
-gw --> orders
-gw --> payments
-orders --> db
-orders --> sqs
-payments --> stripe: Payment processing
-
-@enduml
-```
-
-**Container types:** `node` (server/VM/container), `cloud` (external/cloud provider), `database` (data store), `package` (logical grouping), `rectangle` (generic boundary), `frame` (subsystem boundary).
-
-Use `interface` or `()` for exposed ports:
-
-```plantuml
-() "REST API" as api
-[Order Service] - api
-```
+See `references/component-deployment.md` for the full component example, deployment topology with `node`/`cloud`, container types (`node`, `cloud`, `database`, `package`, `rectangle`, `frame`), and interface/port syntax.
 
 ## Activity diagrams
 
-Use for business processes, workflows, and decision flows. Swimlane partitions make it clear who is responsible for each step.
+Use for business processes, workflows, and decision flows. Swimlane partitions clarify responsibility per step.
 
 ```plantuml
 @startuml
 title Order Processing Workflow
 
 start
-
 :Customer submits order;
 
 if (Payment valid?) then (yes)
     :Charge payment method;
-    if (Inventory available?) then (yes)
-        fork
-            :Reserve inventory;
-        fork again
-            :Send confirmation email;
-        end fork
-        :Ship order;
-    else (no)
-        :Notify customer of backorder;
-        :Add to waitlist;
-    endif
+    :Ship order;
 else (no)
     :Reject order;
-    :Notify customer;
     stop
 endif
 
 :Update order status to "Complete";
-
-stop
-
-@enduml
-```
-
-### Swimlanes with partitions
-
-```plantuml
-@startuml
-title Support Ticket Resolution
-
-|Customer|
-start
-:Submit support ticket;
-
-|Support Agent|
-:Review ticket;
-if (Can resolve immediately?) then (yes)
-    :Provide solution;
-else (no)
-    |Engineering|
-    :Investigate issue;
-    :Implement fix;
-    |Support Agent|
-    :Communicate resolution;
-endif
-
-|Customer|
-:Confirm resolution;
 stop
 
 @enduml
@@ -300,66 +154,11 @@ stop
 
 **Key syntax:** `start`/`stop`, `:action;`, `if (condition?) then (yes) else (no) endif`, `fork`/`fork again`/`end fork`, `|Swimlane|`, floating notes with `floating note right: text`.
 
-### Coloring activity steps with stereotypes
-
-To highlight specific paths (e.g., desired flow, error paths, regeneration vs new), use **stereotypes with skinparam**. Do NOT use inline `#color` after `;` — it causes syntax errors in activity diagrams.
-
-```plantuml
-@startuml
-skinparam activity {
-  BackgroundColor #F5F5F5
-  BorderColor #333333
-}
-
-skinparam activity {
-  BackgroundColor<<desired>> #E3F2E7
-  BorderColor<<desired>> #7BAA87
-  FontColor<<desired>> #000000
-
-  BackgroundColor<<error>> #FDE2E2
-  BorderColor<<error>> #C77C7C
-  FontColor<<error>> #000000
-}
-
-title Example Flow
-
-start
-:Normal step;
-:Desired step; <<desired>>
-:Error step; <<error>>
-stop
-
-legend right
-  |= Color |= Meaning |
-  |<#E3F2E7>| Desired flow |
-  |<#FDE2E2>| Error path |
-endlegend
-@enduml
-```
-
-**Rules:**
-- Define stereotype colors in a `skinparam activity {}` block at the top
-- Apply with `<<stereotype>>` after the `;` on the activity line
-- Use a color legend table to explain meanings
-- Common stereotypes: `<<desired>>`, `<<error>>`, `<<regen>>`, `<<newgen>>`, `<<fallback>>`
-- `elseif` always requires `then` — omitting it causes syntax errors downstream
+See `references/activity-diagrams.md` for the full example with parallel forks, swimlane partitions, and the stereotype-based coloring pattern (including the rule that inline `#color` after `;` causes syntax errors -- use `<<stereotype>>` instead).
 
 ## Class diagrams
 
 **Technical diagrams only.** Use class diagrams when the user explicitly requests a technical or detailed diagram showing object relationships, inheritance, or data modeling.
-
-### Relationships
-
-| Syntax | Meaning | Use When |
-|--------|---------|----------|
-| `<\|--` | Extension/inheritance | "is a" relationship |
-| `*--` | Composition | Part cannot exist without whole |
-| `o--` | Aggregation | Part can exist independently |
-| `-->` | Dependency | Uses temporarily |
-| `--` | Association | General relationship |
-| `..\|>` | Implements | Realizes an interface |
-
-### Example
 
 ```plantuml
 @startuml
@@ -368,49 +167,18 @@ title Domain Model
 class Order {
     - id: UUID
     - status: OrderStatus
-    - createdAt: DateTime
-    + addItem(product: Product, qty: int)
     + calculateTotal(): Money
 }
-
-class OrderItem {
-    - quantity: int
-    - unitPrice: Money
-}
-
-class Product {
-    - name: String
-    - sku: String
-    - price: Money
-}
-
-enum OrderStatus {
-    PENDING
-    CONFIRMED
-    SHIPPED
-    DELIVERED
-    CANCELLED
-}
+class OrderItem
+enum OrderStatus
 
 Order *-- "1..*" OrderItem: contains
-OrderItem --> Product: references
 Order --> OrderStatus: has
 
 @enduml
 ```
 
-**Visibility modifiers:** `-` private, `+` public, `#` protected, `~` package-private.
-
-**Stereotypes:** `<<interface>>`, `<<abstract>>`, `<<enum>>`, `<<service>>`, `<<entity>>`.
-
-**Packages** group related classes:
-
-```plantuml
-package "Orders Domain" {
-    class Order
-    class OrderItem
-}
-```
+See `references/class-diagrams.md` for the full relationships table (`<|--`, `*--`, `o--`, `-->`, `--`, `..|>`), complete example with visibility modifiers, stereotypes, and packaging.
 
 ## State diagrams
 
@@ -421,203 +189,25 @@ Use for modeling the lifecycle of a single entity -- orders, tickets, user accou
 title Order Lifecycle
 
 [*] --> Pending: Order created
-
-state Pending {
-    [*] --> AwaitingPayment
-    AwaitingPayment --> PaymentReceived: Payment confirmed
-    AwaitingPayment --> [*]: Payment timeout
-}
-
 Pending --> Confirmed: Payment succeeds
 Pending --> Cancelled: Payment fails
-
 Confirmed --> Shipped: Carrier picks up
 Shipped --> Delivered: Delivery confirmed
-Shipped --> Returned: Customer returns
-
 Delivered --> [*]
 Cancelled --> [*]
-Returned --> Refunded: Refund processed
-Refunded --> [*]
 
 @enduml
 ```
 
-### Key syntax
-
-- `[*]` -- initial and final pseudo-states
-- `state Name { }` -- composite/nested states
-- `state "Long Name" as alias` -- aliasing for readability
-- `state fork_point <<fork>>` / `<<join>>` -- concurrent region fork/join
-- `state choice_point <<choice>>` -- decision point
-
-### Concurrent regions
-
-```plantuml
-state Processing {
-    state "Verify Payment" as vp
-    state "Check Inventory" as ci
-    [*] --> vp
-    [*] --> ci
-    vp --> [*]
-    ci --> [*]
-    --
-    state "Send Notification" as sn
-    [*] --> sn
-    sn --> [*]
-}
-```
+See `references/state-diagrams.md` for nested/composite states, pseudo-state syntax (`[*]`, `<<fork>>`, `<<join>>`, `<<choice>>`), and concurrent regions with the `--` separator.
 
 ## Other diagram types
 
-### Use case diagram
+Use case (feature scope), mindmap (brainstorming), gantt (timelines), WBS (deliverable hierarchy), ER (technical data relationships), and JSON/YAML visualization are all supported.
 
-Good for feature scope and actor interactions at a glance:
-
-```plantuml
-@startuml
-title Customer Portal Features
-
-left to right direction
-
-actor Customer as C
-actor "Support Agent" as SA
-
-rectangle "Customer Portal" {
-    usecase "View Orders" as UC1
-    usecase "Track Shipment" as UC2
-    usecase "Request Return" as UC3
-    usecase "Chat with Support" as UC4
-    usecase "Manage Returns" as UC5
-}
-
-C --> UC1
-C --> UC2
-C --> UC3
-C --> UC4
-SA --> UC4
-SA --> UC5
-
-@enduml
-```
-
-### Mindmap
-
-Quick brainstorming or knowledge structure:
-
-```plantuml
-@startmindmap
-title Project Architecture Decisions
-* Architecture
-** Frontend
-*** React SPA
-*** Server-Side Rendering
-** Backend
-*** Microservices
-*** Monolith
-** Data
-*** PostgreSQL
-*** Redis Cache
-@endmindmap
-```
-
-### Gantt chart
-
-Project timelines with dependencies:
-
-```plantuml
-@startgantt
-title Q1 Release Plan
-project starts 2026-01-05
-
-[Design Phase] lasts 10 days
-[Backend Development] lasts 15 days
-[Frontend Development] lasts 15 days
-[Testing] lasts 10 days
-[Deployment] lasts 3 days
-
-[Backend Development] starts at [Design Phase]'s end
-[Frontend Development] starts at [Design Phase]'s end
-[Testing] starts at [Backend Development]'s end
-[Deployment] starts at [Testing]'s end
-
-[Design Phase] is colored in LightBlue
-[Deployment] is colored in LightGreen
-
-@endgantt
-```
-
-### WBS (Work Breakdown Structure)
-
-Hierarchical deliverable decomposition:
-
-```plantuml
-@startwbs
-title Product Launch
-* Product Launch
-** Research
-*** User Interviews
-*** Competitive Analysis
-** Development
-*** Backend API
-*** Frontend UI
-*** Mobile App
-** Launch
-*** Marketing Campaign
-*** Documentation
-*** Training
-@endwbs
-```
-
-### ER diagram (using class diagram syntax)
-
-```plantuml
-@startuml
-title Database Schema
-
-entity "users" {
-    * id : UUID <<PK>>
-    --
-    * email : VARCHAR(255)
-    * name : VARCHAR(100)
-    created_at : TIMESTAMP
-}
-
-entity "orders" {
-    * id : UUID <<PK>>
-    --
-    * user_id : UUID <<FK>>
-    * status : VARCHAR(20)
-    * total : DECIMAL(10,2)
-    created_at : TIMESTAMP
-}
-
-users ||--o{ orders : places
-
-@enduml
-```
-
-### JSON and YAML visualization
-
-```plantuml
-@startjson
-title API Response Structure
-{
-    "order": {
-        "id": "abc-123",
-        "status": "confirmed",
-        "items": [
-            {"product": "Widget", "qty": 2},
-            {"product": "Gadget", "qty": 1}
-        ]
-    }
-}
-@endjson
-```
+See `references/other-diagram-types.md` for complete examples of each.
 
 ## Styling
-
-### Modern `<style>` blocks (preferred)
 
 Use CSS-like `<style>` blocks instead of legacy `skinparam`. Place the style block immediately after `@startuml`:
 
@@ -627,63 +217,19 @@ title Styled Sequence Diagram
 
 <style>
     sequenceDiagram {
-        actor {
-            BackgroundColor #E8F5E9
-            BorderColor #2E7D32
-        }
-        participant {
-            BackgroundColor #E3F2FD
-            BorderColor #1565C0
-        }
-        arrow {
-            LineColor #333333
-        }
-        note {
-            BackgroundColor #FFF9C4
-            BorderColor #F9A825
-        }
+        actor { BackgroundColor #E8F5E9 }
+        participant { BackgroundColor #E3F2FD }
     }
 </style>
-
-actor Customer
-participant "Order Service" as OS
 ...
 @enduml
 ```
 
-### Built-in themes
+Built-in themes work via `!theme cerulean` (or `plain`, `sketchy-outline`, `aws-orange`, `mars`, `minty`). For wide diagrams, set `left to right direction` after `@startuml`.
 
-PlantUML ships with themes. Use `!theme` to apply one:
-
-```plantuml
-@startuml
-!theme cerulean
-title Themed Diagram
-...
-@enduml
-```
-
-Common themes: `cerulean`, `plain`, `sketchy-outline`, `aws-orange`, `mars`, `minty`. Preview themes before committing to one.
-
-### Color formats
-
-- Named colors: `Red`, `LightBlue`, `DarkGreen`
-- Hex: `#FF5733`, `#2196F3`
-- Gradients: `#White/#LightBlue` (top to bottom)
-
-### Layout direction
-
-Default is top-to-bottom. For wide diagrams with many horizontal relationships:
-
-```plantuml
-left to right direction
-```
-
-Add this immediately after `@startuml` (before any elements).
+See `references/styling.md` for full `<style>` block examples, theme list, color formats, and layout direction rules.
 
 ## Preprocessing
-
-### !include
 
 Split large diagrams or share common definitions across files:
 
@@ -692,67 +238,12 @@ Split large diagrams or share common definitions across files:
 !include common/actors.puml
 ```
 
-Use relative paths. Keep shared definitions (themes, common participants, standard styles) in a `common/` or `shared/` directory.
+`!procedure`, `!function`, variables (`!$name = ...`), conditionals (`!if`/`!else`/`!endif`), and loops (`!while`/`!endwhile`) are all available.
 
-### !procedure
-
-Reusable diagram fragments:
-
-```plantuml
-!procedure $service($name, $alias)
-    participant "$name" as $alias
-!endprocedure
-
-$service("Order Service", OS)
-$service("Payment Service", PS)
-```
-
-### !function
-
-Reusable computed values:
-
-```plantuml
-!function $endpoint($service, $path)
-    !return $service + " " + $path
-!endfunction
-```
-
-### Variables
-
-```plantuml
-!$primary_color = "#1565C0"
-!$secondary_color = "#2E7D32"
-```
-
-### Conditionals and loops
-
-```plantuml
-!if (%getenv("DETAIL_LEVEL") == "high")
-    class Order {
-        - id: UUID
-        - status: OrderStatus
-        + addItem(product: Product, qty: int)
-    }
-!else
-    rectangle "Order Service"
-!endif
-
-!$i = 0
-!while ($i < 3)
-    node "Worker $i"
-    !$i = $i + 1
-!endwhile
-```
+See `references/preprocessing.md` for the full preprocessor syntax with examples.
 
 ## Anti-patterns
 
-- **Overcrowded diagrams without grouping** -- more than ~15 ungrouped elements makes the diagram unreadable. Split or group.
-- **Technical jargon in business-level diagrams** -- `POST /api/v2/orders` belongs in API docs, not in a diagram for stakeholders. Use "Creates order" instead.
-- **Mixing styling approaches** -- combining inline colors (`#Red`), `skinparam`, and `<style>` blocks in one file creates conflicting rules and unpredictable rendering. Pick one approach per file; prefer `<style>`.
-- **Deep nesting beyond 3 levels in component diagrams** -- deeply nested `package` blocks produce tiny, illegible boxes. Flatten the hierarchy or split into separate diagrams.
-- **Missing titles and legends** -- a diagram without a title is useless in a document with multiple diagrams. Add `title` always, `legend` when relationships need explanation.
-- **Using class diagrams when a simpler type suffices** -- showing `Order -> PaymentService` as a class relationship when a component or sequence diagram communicates the same thing more clearly. Choose the simplest diagram type that conveys the information.
-- **Duplicating diagram content instead of using `!include`** -- copy-pasted participant declarations and styles across multiple files drift out of sync. Extract shared definitions into include files.
-- **Forcing layout with direction keywords everywhere** -- sprinkling `-up->`, `-left->`, `-right->` on every arrow fights the layout engine and usually produces worse results. Use them sparingly, only when auto-layout genuinely fails.
-- **Bare `autonumber`** -- plain sequential integers (1, 2, 3...) on every arrow add clutter without meaning. Use formatted autonumber or omit it.
-- **Undeclared participants** -- letting PlantUML infer participants from usage produces unstable ordering that changes when you add a new message.
+Soft smells that need contextual judgment (distinct from the unconditional Never rules above). The most common are overcrowded diagrams without grouping, technical jargon in business-level diagrams, mixed styling approaches, deep nesting beyond 3 levels, missing titles/legends, and duplicating content instead of using `!include`.
+
+See `references/anti-patterns.md` for the full list with rationale.

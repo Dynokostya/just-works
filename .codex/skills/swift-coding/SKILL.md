@@ -5,7 +5,7 @@ description: Apply when writing or editing Swift (.swift) files. Behavioral corr
 
 # Swift Coding
 
-Match the project's existing conventions. When uncertain, read 2-3 existing files to infer the local style. Check `Package.swift` or `.xcodeproj`/`.xcworkspace` for Swift version, platform targets, and dependencies. These defaults apply only when the project has no established convention.
+Match the project's existing conventions. When uncertain, read 2-3 existing files to infer the local style. Check `Package.swift` or `.xcodeproj`/`.xcworkspace` for Swift version, platform targets, and dependencies. New Xcode 26+ app projects default to Approachable Concurrency (Swift 6.2+) with main-actor isolation for app module code — assume this default unless the project explicitly disables it. These defaults apply only when the project has no established convention.
 
 ## Never rules
 
@@ -124,7 +124,8 @@ Use `@MainActor` for UI work. Apply it to the type when all members need main-th
 
 ```swift
 @MainActor
-final class ViewModel: Observable {
+@Observable
+final class ViewModel {
     var items: [Item] = []
 
     func refresh() async throws {
@@ -135,6 +136,16 @@ final class ViewModel: Observable {
 ```
 
 `Sendable` conformance is required for values crossing actor boundaries. Structs and enums with all-Sendable stored properties conform automatically. For classes, mark as `final class: Sendable` with only immutable (`let`) properties or use `@unchecked Sendable` with internal synchronization.
+
+`sending` parameters and returns (Swift 6.0+) let you pass a non-Sendable value across isolation boundaries exactly once. Use when you need ownership transfer without requiring `Sendable`:
+
+```swift
+func enqueue(_ work: sending () async -> Void) async { /* ... */ }
+
+actor Pipeline {
+    func submit(_ task: sending SomeNonSendable) async { /* ownership moves here */ }
+}
+```
 
 Check cancellation in long-running work:
 
@@ -252,6 +263,33 @@ func handle(_ result: PaymentResult) {
         openVerification(url)
     }
 }
+```
+
+## Observation (SwiftUI)
+
+`@Observable` (Swift 5.9+) replaces the `ObservableObject` + `@Published` + Combine pairing. SwiftUI views observe only the properties they actually read — automatic, granular, no manual `@Published`.
+
+```swift
+@Observable
+final class Cart {
+    var items: [Item] = []
+    var total: Decimal = 0
+}
+
+struct CartView: View {
+    let cart: Cart
+    var body: some View {
+        Text("Items: \(cart.items.count)") // only rebuilds when items changes
+    }
+}
+```
+
+Combine `@Observable` with `@MainActor` when the model is UI-bound:
+
+```swift
+@MainActor
+@Observable
+final class ViewModel { /* ... */ }
 ```
 
 ## Memory management
@@ -399,3 +437,5 @@ actor SessionManager {
     }
 }
 ```
+
+On Swift 6.2+, enable the "Approachable Concurrency" build setting and "Default Actor Isolation = MainActor" for UI-facing modules. These ship as defaults for new Xcode 26 app targets and make single-threaded code simpler to write while keeping the migration path to full concurrency open.
