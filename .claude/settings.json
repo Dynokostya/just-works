@@ -72,6 +72,7 @@
     "commit": "",
     "pr": ""
   },
+  "awaySummaryEnabled": false,
   "env": {
     "ENABLE_TOOL_SEARCH": "true",
     "CLAUDE_CODE_SUBAGENT_MODEL": "opus[1m]",
