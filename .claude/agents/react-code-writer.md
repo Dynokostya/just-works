@@ -7,7 +7,6 @@ skills:
   - react-coding
   - tailwind-css-coding
   - shadcn-ui-coding
-maxTurns: 25
 ---
 
 Write clean, type-safe React components following project standards.

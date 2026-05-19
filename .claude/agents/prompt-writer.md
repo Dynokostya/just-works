@@ -7,7 +7,6 @@ skills:
   - opus-4-7-prompting
   - gemini-3-prompting
   - gpt-5-5-prompting
-maxTurns: 20
 ---
 
 Write effective prompts for Claude Opus 4.7, Gemini 3, and GPT-5.5 following model-specific best practices.

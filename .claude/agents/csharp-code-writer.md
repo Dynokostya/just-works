@@ -5,7 +5,6 @@ tools: Write, Read, Edit, Bash, Glob, Grep
 model: inherit
 skills:
   - csharp-coding
-maxTurns: 25
 ---
 
 Write clean, type-safe C# following project standards.

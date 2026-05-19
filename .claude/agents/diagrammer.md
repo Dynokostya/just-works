@@ -5,7 +5,6 @@ tools: Write, Read, Edit, Bash, Glob, Grep
 model: inherit
 skills:
   - plantuml-diagramming
-maxTurns: 20
 ---
 
 Create clear, audience-appropriate diagrams that communicate system behavior and architecture effectively.

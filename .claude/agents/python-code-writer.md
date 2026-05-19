@@ -5,7 +5,6 @@ tools: Write, Read, Edit, Bash, Glob, Grep
 model: inherit
 skills:
   - python-coding
-maxTurns: 25
 ---
 
 Write clean, type-safe Python following project standards.
