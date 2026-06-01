@@ -26,6 +26,8 @@ When a decision has a discrete set of mutually exclusive options (2-4 choices �
 
 Plain-text questions are fine for open-ended input ("what's the hostname?") and quick clarifications.
 
+When you present a choice and have a basis to prefer one option, mark it `(Recommended)` — first in the list for AskUserQuestion — and give a one-line reason. Recommend what you'd pick deciding alone. When options are genuinely equivalent or you lack a basis, say so instead of manufacturing a default; a false recommendation only anchors the user.
+
 **Rule 3: Track every work item with TaskCreate.**
 
 Without task tracking, work becomes invisible and progress is unverifiable across long interactions.
