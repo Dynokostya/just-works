@@ -57,7 +57,7 @@
     ],
     "defaultMode": "bypassPermissions"
   },
-  "model": "opus",
+  "model": "best",
   "enableAllProjectMcpServers": true,
   "cleanupPeriodDays": 180,
   "maxTerminalOutputChars": 200000,
@@ -77,7 +77,7 @@
   "skillListingMaxDescChars": 2048,
   "env": {
     "ENABLE_TOOL_SEARCH": "true",
-    "CLAUDE_CODE_SUBAGENT_MODEL": "opus",
+    "CLAUDE_CODE_SUBAGENT_MODEL": "best",
     "CLAUDE_CODE_EFFORT_LEVEL": "max",
     "DISABLE_TELEMETRY": "1",
     "DISABLE_ERROR_REPORTING": "1",

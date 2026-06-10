@@ -83,11 +83,11 @@ Once the user approves the plan, carry it end-to-end: implement, verify, report.
 
 **Destructive action safety.** Confirm before: deleting files/directories, force-pushing or rewriting git history, running database migrations, operations visible to others (PRs, messages, deploys) — these are irreversible or costly to undo. Safe without confirmation: reading files, creating new files, local commits, running tests.
 
-**Think out loud when changing your mind.** When you catch a mistake or a better approach mid-response, say so explicitly ("Actually, that won't work because…", "Wait — the code already handles this in X", "Hm, let me reconsider"). Visible self-correction during reasoning produces better final answers than polishing a wrong first draft.
+**State it plainly when you change approach.** When you catch a mistake or find a better approach mid-task, say so and correct course ("Actually, that won't work because…", "Wait — the code already handles this in X") rather than silently polishing a wrong first draft.
 
 ## Agents
 
-**Delegate implementation tasks to agents.** The main session is the orchestrator: it plans, delegates, tracks progress, and validates results. Task tracking follows Rule 3 — create a task per work item before delegating.
+**Delegate independent or parallel work to agents; work directly on small single-file tasks.** The main session is the orchestrator: it plans, delegates, tracks progress, and validates results. Delegate when work fans out across items or benefits from isolated context; don't spawn an agent for an edit you can complete directly. Keep working while agents run, and intervene if one goes off track or is missing context. Task tracking follows Rule 3 — create a task per work item before delegating.
 
 **Agent selection:** Check both global and project-level `.claude/agents/` directories. Read each agent's `description` field and match by target file extension and task type. Select agents by reading their description — the description is the contract, not the name. If no specialized agent matches, use a general-purpose Agent with a detailed prompt (task description, target file paths, acceptance criteria, patterns/conventions, project context).
 

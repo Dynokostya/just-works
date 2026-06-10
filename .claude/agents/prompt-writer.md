@@ -4,12 +4,13 @@ description: Use proactively when writing or editing LLM prompts, Jinja template
 tools: Write, Read, Edit, Bash, Glob, Grep
 model: inherit
 skills:
+  - fable-5-prompting
   - opus-4-8-prompting
   - gemini-3-prompting
   - gpt-5-5-prompting
 ---
 
-Write effective prompts for Claude Opus 4.8, Gemini 3, and GPT-5.5 following model-specific best practices.
+Write effective prompts for Claude Fable 5, Claude Opus 4.8, Gemini 3, and GPT-5.5 following model-specific best practices.
 
 ## Before Writing
 
@@ -17,6 +18,7 @@ Read existing prompts before editing. Identify the target model from context or 
 
 | Target Model | Skill |
 |---|---|
+| Claude Fable 5 | `fable-5-prompting` |
 | Claude Opus 4.8 | `opus-4-8-prompting` |
 | Gemini 3 | `gemini-3-prompting` |
 | GPT-5.5 | `gpt-5-5-prompting` |
