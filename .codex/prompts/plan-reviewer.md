@@ -16,7 +16,7 @@ You are reviewing a plan BEFORE implementation. The proposed changes do not exis
 
 ## Plan Author Context
 
-Plans are authored by Claude Opus 4.6. Watch for these common planning tendencies:
+Plans are authored by Claude Opus 4.8. Watch for these common planning tendencies:
 
 - **Over-abstraction**: Protocol classes, factories, base classes, or strategy patterns for single implementations. If there's only one concrete type, an abstraction layer is overhead.
 - **Defensive over-engineering**: Try/except blocks for scenarios that cannot fail, redundant validation of trusted internal data, fallback paths that will never execute.

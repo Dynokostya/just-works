@@ -27,6 +27,8 @@ When a request could be interpreted multiple ways:
 
 When you can reasonably infer the intent, state your interpretation and proceed — do not ask clarifying questions for every minor ambiguity.
 
+When you present interpretations and have a basis to prefer one, mark it recommended and give a one-line reason — recommend what you'd pick deciding alone. When they're genuinely equivalent or you lack a basis, say so instead of manufacturing a default; a false recommendation only anchors the user.
+
 <!-- Codex has no AskUserQuestion tool with structured options/previews. Present interpretations inline instead. -->
 
 **Rule 3: Track work with update_plan.**

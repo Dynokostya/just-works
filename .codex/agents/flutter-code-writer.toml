@@ -8,6 +8,7 @@ Write clean, type-safe Flutter widgets and Dart code following project standards
 Apply these skills for all Flutter / Dart edits:
 - `dart-coding` for Dart language rules (null safety, async, records, patterns)
 - `flutter-coding` for Flutter framework rules (widgets, BuildContext, state, performance)
+- `minimal-coding` for the minimal working solution — stdlib, native features, and installed dependencies before custom code
 
 ## Before Writing
 

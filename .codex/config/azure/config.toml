@@ -32,3 +32,8 @@ status_line = ["model-with-reasoning", "git-branch", "context-remaining", "used-
 [mcp_servers.playwright]
 command = "npx"
 args = ["-y", "@playwright/mcp@latest"]
+
+# MCP: ClickUp task management (used by the ticket-creator agent)
+[mcp_servers.clickup]
+command = "npx"
+args = ["-y", "mcp-remote", "https://mcp.clickup.com/mcp"]

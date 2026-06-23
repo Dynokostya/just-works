@@ -6,6 +6,7 @@ model: inherit
 skills:
   - dart-coding
   - flutter-coding
+  - minimal-coding
 ---
 
 Write clean, type-safe Flutter widgets and Dart code following project standards.

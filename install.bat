@@ -4,6 +4,7 @@ setlocal enabledelayedexpansion
 set "SCRIPT_DIR=%~dp0"
 set "CLAUDE_HOME=%USERPROFILE%\.claude"
 set "CODEX_HOME=%USERPROFILE%\.codex"
+set "AGENTS_HOME=%USERPROFILE%\.agents"
 
 :: Timestamp for backups
 for /f "tokens=2 delims==" %%I in ('wmic os get localdatetime /value') do set "DT=%%I"
@@ -12,6 +13,7 @@ set "BACKUP_DIR=%USERPROFILE%\just-works-backups\%TIMESTAMP%"
 
 :: Flags
 set "PERSONAL=0"
+set "AZURE=0"
 set "DRY_RUN=0"
 set "CLAUDE_ONLY=0"
 set "CODEX_ONLY=0"
@@ -25,6 +27,7 @@ set "DO_BACKUP=1"
 :parse_args
 if "%~1"=="" goto :validate
 if /i "%~1"=="--personal"    ( set "PERSONAL=1"    & shift & goto :parse_args )
+if /i "%~1"=="--azure"       ( set "AZURE=1"       & shift & goto :parse_args )
 if /i "%~1"=="--dry-run"     ( set "DRY_RUN=1"     & shift & goto :parse_args )
 if /i "%~1"=="--claude-only" ( set "CLAUDE_ONLY=1"  & shift & goto :parse_args )
 if /i "%~1"=="--codex-only"  ( set "CODEX_ONLY=1"   & shift & goto :parse_args )
@@ -32,6 +35,7 @@ if /i "%~1"=="--skip-config"     ( set "SKIP_CONFIG=1"     & shift & goto :parse
 if /i "%~1"=="--skip-statusline" ( set "SKIP_STATUSLINE=1" & shift & goto :parse_args )
 if /i "%~1"=="--skip-skills-claude" ( set "SKIP_SKILLS_CLAUDE=1" & shift & goto :parse_args )
 if /i "%~1"=="--skip-skills-codex"  ( set "SKIP_SKILLS_CODEX=1"  & shift & goto :parse_args )
+if /i "%~1"=="--no-backup"   ( set "DO_BACKUP=0"   & shift & goto :parse_args )
 if /i "%~1"=="-h"            goto :usage
 if /i "%~1"=="--help"        goto :usage
 echo [x] Unknown option: %~1
@@ -77,6 +81,7 @@ if "%SKIP_CONFIG%"=="1" (
 )
 
 call :install_file "%SCRIPT_DIR%CLAUDE.md" "%CLAUDE_HOME%\CLAUDE.md" "CLAUDE.md"
+call :install_file "%SCRIPT_DIR%CLAUDE-CHAT.md" "%CLAUDE_HOME%\CLAUDE-CHAT.md" "CLAUDE-CHAT.md"
 if "%SKIP_STATUSLINE%"=="1" (
     echo [+] Skipping statusline-command.sh (--skip-statusline)
 ) else (
@@ -89,12 +94,37 @@ echo.
 if "%CLAUDE_ONLY%"=="1" goto :summary
 
 echo Codex
+call :install_dir  "%SCRIPT_DIR%.codex\agents"  "%CODEX_HOME%\agents"  "agents"
 call :install_dir  "%SCRIPT_DIR%.codex\prompts" "%CODEX_HOME%\prompts" "prompts"
 if "%SKIP_SKILLS_CODEX%"=="1" (
     echo [+] Skipping Codex skills (--skip-skills-codex)
 ) else (
-    call :install_dir  "%SCRIPT_DIR%.codex\skills"  "%CODEX_HOME%\skills"  "skills"
+    call :install_dir  "%SCRIPT_DIR%.codex\skills"  "%AGENTS_HOME%\skills"  "skills (-> ~/.agents/)"
 )
+
+if "%SKIP_CONFIG%"=="1" (
+    echo [+] Skipping config.toml and hooks.json (--skip-config)
+) else if "%AZURE%"=="1" (
+    if "%PERSONAL%"=="1" (
+        call :install_file "%SCRIPT_DIR%.codex\config\azure\config.toml"         "%CODEX_HOME%\config.toml" "config.toml (azure, personal)"
+    ) else (
+        call :install_file "%SCRIPT_DIR%.codex\config\azure\config.toml.default" "%CODEX_HOME%\config.toml" "config.toml (azure, default)"
+    )
+) else (
+    if "%PERSONAL%"=="1" (
+        call :install_file "%SCRIPT_DIR%.codex\config.toml"         "%CODEX_HOME%\config.toml" "config.toml (personal)"
+    ) else (
+        call :install_file "%SCRIPT_DIR%.codex\config.toml.default" "%CODEX_HOME%\config.toml" "config.toml (default)"
+    )
+)
+if not "%SKIP_CONFIG%"=="1" (
+    if "%PERSONAL%"=="1" (
+        call :install_file "%SCRIPT_DIR%.codex\hooks.json"         "%CODEX_HOME%\hooks.json" "hooks.json (personal)"
+    ) else (
+        call :install_file "%SCRIPT_DIR%.codex\hooks.json.default" "%CODEX_HOME%\hooks.json" "hooks.json (default)"
+    )
+)
+
 call :install_file "%SCRIPT_DIR%AGENTS.md"       "%CODEX_HOME%\AGENTS.md" "AGENTS.md"
 echo.
 
@@ -107,6 +137,7 @@ if "%DRY_RUN%"=="1" (
     if "%DO_BACKUP%"=="1" echo   Backups:     %BACKUP_DIR%\
     if not "%CODEX_ONLY%"=="1" echo   Claude Code: %CLAUDE_HOME%\
     if not "%CLAUDE_ONLY%"=="1" echo   Codex:       %CODEX_HOME%\
+    if not "%CLAUDE_ONLY%"=="1" echo   Skills:      %AGENTS_HOME%\skills\
 )
 exit /b 0
 
@@ -201,27 +232,34 @@ echo.
 echo Options:
 echo   --personal      Use opinionated settings.json (permissions, hooks, sounds)
 echo                   Default: minimal settings.json.default
-echo   --skip-config      Skip installing settings.json
+echo   --azure         Use Azure OpenAI config instead of direct OpenAI API
+echo   --skip-config      Skip installing settings/config files
 echo   --skip-statusline  Skip installing statusline-command.sh
 echo   --skip-skills-claude  Skip installing Claude Code skills
 echo   --skip-skills-codex   Skip installing Codex skills
 echo   --claude-only   Install only Claude Code files
 echo   --codex-only    Install only Codex files
 echo   --dry-run       Show what would be installed without making changes
+echo   --no-backup     Skip backup prompt, disable backups (for CI/non-interactive)
 echo   -h, --help      Show this help message
 echo.
 echo What gets installed:
 echo   %%USERPROFILE%%\.claude\
-echo     agents\       Agent definitions (python-code-writer, prompt-writer)
+echo     agents\       Agent definitions (python-code-writer, prompt-writer, ...)
 echo     skills\       Coding and prompting standards
-echo     commands\     Workflows (project-docs)
+echo     commands\     Workflows (project-docs, git-sync)
 echo     output-styles\  Selectable output styles (compressed, ...)
 echo     settings.json             Permission and hook configuration
 echo     CLAUDE.md                 Global behavioral instructions
 echo     statusline-command.sh     Status line script
 echo.
 echo   %%USERPROFILE%%\.codex\
-echo     prompts\      Agent definitions (plan-reviewer, project-docs)
-echo     skills\       Coding and prompting standards
+echo     agents\       Custom agent definitions (python-code-writer, diagrammer, ...)
+echo     prompts\      Slash commands (plan-reviewer, project-docs, git-sync)
+echo     config.toml   Codex CLI configuration (--azure for Azure OpenAI)
+echo     hooks.json    Lifecycle hooks (notification)
 echo     AGENTS.md     Global behavioral instructions
+echo.
+echo   %%USERPROFILE%%\.agents\
+echo     skills\       Coding and prompting standards (Codex discovery path)
 exit /b 0

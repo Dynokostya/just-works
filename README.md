@@ -10,10 +10,10 @@ Just copy `.claude/` into any project — or install globally — and get pre-co
 
 ## What's Inside
 
-**Agents** — `python-code-writer`, `prompt-writer` (Claude).
-**Commands** - `plan-reviewer` (Codex), `project-docs` (Claude & Codex).
+**Agents** — file-type-triggered writers (`python`, `typescript`, `swift`, `csharp`, `react`), plus `prompt-writer`, `diagrammer`, and `ticket-creator`. 9 per provider.
+**Commands** — `project-docs` and `git-sync` (Claude & Codex), `plan-reviewer` (Codex).
 
-**Skills** — coding standards (Python, React, Tailwind, shadcn/ui), architecture patterns (DDD, feature-driven), and model-specific prompt engineering (Claude Opus 4.6, GPT-5.2, Gemini 3). Applied automatically based on the file type you're editing.
+**Skills** — coding standards (Python, TypeScript, React, Tailwind, shadcn/ui, Swift, C#, Dart/Flutter), architecture patterns (DDD, feature-driven), model-specific prompt engineering (Claude Opus 4.8 & Fable 5, GPT-5.5, Gemini 3), and behavioral modes (`minimal-coding` for least-code solutions). Applied automatically based on the file type you're editing.
 
 **Security** — `settings.json` blocks agent access to `.env`, `*.pem`, `*.key`, credentials, cloud configs, SSH keys, Terraform state, and databases.
 
@@ -110,13 +110,19 @@ Requires `npx` (Node.js) in your PATH.
 .claude/
   agents/           # Claude Code agent definitions
   skills/           # Coding and prompting standards
-  commands/         # Multi-step workflows (project-docs)
-  settings.json     # Permissions, hooks, MCP servers
+  commands/         # Multi-step workflows (project-docs, git-sync)
+  output-styles/    # Selectable output styles (compressed)
+  hooks/            # PreToolUse / notification hooks (--personal)
+  settings.json     # Permissions, hooks, env, MCP toggles
 .codex/
-  prompts/          # Codex agent definitions
+  agents/           # Codex custom agent definitions (TOML)
+  prompts/          # Codex slash commands (plan-reviewer, ...)
   skills/           # Same standards, mirrored for Codex
   config/azure/     # config.toml.default + config.toml
+  hooks.json        # Lifecycle hooks (notification)
+bin/cli.mjs         # npx installer
 CLAUDE.md           # Behavioral instructions for Claude Code
+CLAUDE-CHAT.md      # Behavioral instructions for claude.ai chat
 AGENTS.md           # Behavioral instructions for Codex
 ```
 
@@ -124,7 +130,7 @@ AGENTS.md           # Behavioral instructions for Codex
 
 ## Customization
 
-Add project-specific agents in `.claude/agents/` or `.codex/prompts/`. Override skill defaults in your own `CLAUDE.md` or `AGENTS.md`. Extend the deny-list in `.claude/settings.json`.
+Add project-specific agents in `.claude/agents/` or `.codex/agents/`. Override skill defaults in your own `CLAUDE.md` or `AGENTS.md`. Extend the deny-list in `.claude/settings.json`.
 
 If you fork this: skills must be mirrored across both providers (Codex doesn't support `@file` references). Keep instructions model-agnostic.
 

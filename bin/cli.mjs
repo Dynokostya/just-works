@@ -35,12 +35,13 @@ Install just-works agents, skills, and commands globally.
 Options:
   --personal         Use opinionated settings.json (permissions, hooks, sounds)
                      Default: minimal settings.json.default
-  --skip-config         Skip installing settings.json
+  --azure            Use Azure OpenAI config instead of direct OpenAI API
+  --skip-config         Skip installing settings/config files
   --skip-statusline     Skip installing statusline-command.sh
   --skip-skills-claude  Skip installing Claude Code skills
   --skip-skills-codex   Skip installing Codex skills
   --claude-only      Install only Claude Code files (~/.claude/)
-  --codex-only       Install only Codex files (~/.codex/)
+  --codex-only       Install only Codex files (~/.codex/, ~/.agents/)
   --dry-run          Show what would be installed without making changes
   --no-backup        Skip backup prompt, disable backups (for CI/non-interactive)
   -v, --version      Print version and exit
@@ -48,18 +49,23 @@ Options:
 
 What gets installed:
   ~/.claude/
-    agents/       Agent definitions (python-code-writer, prompt-writer)
+    agents/       Agent definitions (python-code-writer, prompt-writer, ...)
     skills/       Coding and prompting standards
-    commands/     Workflows (project-docs)
+    commands/     Workflows (project-docs, git-sync)
     output-styles/  Selectable output styles (compressed, ...)
     settings.json             Permission and hook configuration
     CLAUDE.md                 Global behavioral instructions
     statusline-command.sh     Status line script
 
   ~/.codex/
-    prompts/      Agent definitions (plan-reviewer, project-docs)
-    skills/       Coding and prompting standards
-    AGENTS.md     Global behavioral instructions`);
+    agents/       Custom agent definitions (python-code-writer, diagrammer, ...)
+    prompts/      Slash commands (plan-reviewer, project-docs, git-sync)
+    config.toml   Codex CLI configuration (--azure for Azure OpenAI)
+    hooks.json    Lifecycle hooks (notification)
+    AGENTS.md     Global behavioral instructions
+
+  ~/.agents/
+    skills/       Coding and prompting standards (Codex discovery path)`);
 }
 
 // ---------------------------------------------------------------------------
@@ -68,6 +74,7 @@ What gets installed:
 const args = process.argv.slice(2);
 const flags = {
   personal: false,
+  azure: false,
   dryRun: false,
   claudeOnly: false,
   codexOnly: false,
@@ -81,6 +88,7 @@ const flags = {
 for (const arg of args) {
   switch (arg) {
     case '--personal':          flags.personal = true; break;
+    case '--azure':             flags.azure = true; break;
     case '--dry-run':           flags.dryRun = true; break;
     case '--claude-only':       flags.claudeOnly = true; break;
     case '--codex-only':        flags.codexOnly = true; break;
@@ -119,6 +127,7 @@ const TIMESTAMP = `${now.getFullYear()}${pad(now.getMonth() + 1)}${pad(now.getDa
 const HOME = homedir();
 const CLAUDE_HOME = join(HOME, '.claude');
 const CODEX_HOME  = join(HOME, '.codex');
+const AGENTS_HOME = join(HOME, '.agents');
 const BACKUP_DIR  = join(HOME, 'just-works-backups', TIMESTAMP);
 
 // ---------------------------------------------------------------------------
@@ -264,12 +273,31 @@ async function main() {
   // --- Codex ---
   if (!flags.claudeOnly) {
     console.log(`${BOLD}Codex${NC}`);
+    installDir(join(PACKAGE_ROOT, '.codex', 'agents'),  join(CODEX_HOME, 'agents'),  'agents',  opts);
     installDir(join(PACKAGE_ROOT, '.codex', 'prompts'), join(CODEX_HOME, 'prompts'), 'prompts', opts);
     if (!flags.skipSkillsCodex) {
-      installDir(join(PACKAGE_ROOT, '.codex', 'skills'),  join(CODEX_HOME, 'skills'),  'skills',  opts);
+      // Codex discovers skills at ~/.agents/skills/ (see AGENTS.md, install.sh).
+      installDir(join(PACKAGE_ROOT, '.codex', 'skills'),  join(AGENTS_HOME, 'skills'),  'skills (-> ~/.agents/)', opts);
     } else {
       info('Skipping Codex skills (--skip-skills-codex)');
     }
+
+    if (!flags.skipConfig) {
+      const azureDir = join(PACKAGE_ROOT, '.codex', 'config', 'azure');
+      const configSrc = flags.azure
+        ? (flags.personal ? join(azureDir, 'config.toml') : join(azureDir, 'config.toml.default'))
+        : (flags.personal ? join(PACKAGE_ROOT, '.codex', 'config.toml') : join(PACKAGE_ROOT, '.codex', 'config.toml.default'));
+      const configLabel = `config.toml (${flags.azure ? 'azure, ' : ''}${flags.personal ? 'personal' : 'default'})`;
+      installFile(configSrc, join(CODEX_HOME, 'config.toml'), configLabel, opts);
+
+      const hooksSrc = flags.personal
+        ? join(PACKAGE_ROOT, '.codex', 'hooks.json')
+        : join(PACKAGE_ROOT, '.codex', 'hooks.json.default');
+      installFile(hooksSrc, join(CODEX_HOME, 'hooks.json'), `hooks.json (${flags.personal ? 'personal' : 'default'})`, opts);
+    } else {
+      info('Skipping config.toml and hooks.json (--skip-config)');
+    }
+
     installFile(join(PACKAGE_ROOT, 'AGENTS.md'), join(CODEX_HOME, 'AGENTS.md'), 'AGENTS.md', opts);
     console.log();
   }
@@ -287,6 +315,7 @@ async function main() {
     }
     if (!flags.claudeOnly) {
       console.log(`  Codex:       ${CODEX_HOME}/`);
+      console.log(`  Skills:      ${AGENTS_HOME}/skills/`);
     }
   }
 }

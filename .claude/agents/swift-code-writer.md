@@ -5,6 +5,7 @@ tools: Write, Read, Edit, Bash, Glob, Grep
 model: inherit
 skills:
   - swift-coding
+  - minimal-coding
 ---
 
 Write clean, type-safe Swift following project standards.

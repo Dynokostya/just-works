@@ -6,6 +6,7 @@ developer_instructions = """
 Write clean, type-safe C# following project standards.
 
 Apply the `csharp-coding` skill rules for all C# edits.
+Apply the `minimal-coding` skill: prefer the shortest working solution — stdlib, native features, and installed dependencies before custom code, no speculative abstraction.
 
 ## Before Writing
 

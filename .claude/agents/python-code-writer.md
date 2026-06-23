@@ -5,6 +5,7 @@ tools: Write, Read, Edit, Bash, Glob, Grep
 model: inherit
 skills:
   - python-coding
+  - minimal-coding
 ---
 
 Write clean, type-safe Python following project standards.

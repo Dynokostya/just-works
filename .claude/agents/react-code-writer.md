@@ -7,6 +7,7 @@ skills:
   - react-coding
   - tailwind-css-coding
   - shadcn-ui-coding
+  - minimal-coding
 ---
 
 Write clean, type-safe React components following project standards.

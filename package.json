@@ -12,6 +12,7 @@
     ".claude/commands/",
     ".claude/hooks/",
     ".claude/skills/",
+    ".claude/output-styles/",
     ".claude/settings.json",
     ".claude/settings.json.default",
     ".claude/statusline-command.sh",

@@ -5,6 +5,7 @@ tools: Write, Read, Edit, Bash, Glob, Grep
 model: inherit
 skills:
   - csharp-coding
+  - minimal-coding
 ---
 
 Write clean, type-safe C# following project standards.

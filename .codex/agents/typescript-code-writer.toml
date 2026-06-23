@@ -6,6 +6,7 @@ developer_instructions = """
 Write clean, type-safe TypeScript following project standards.
 
 Apply the `typescript-coding` skill rules for all TypeScript edits.
+Apply the `minimal-coding` skill: prefer the shortest working solution — stdlib, native features, and installed dependencies before custom code, no speculative abstraction.
 
 ## Before Writing
 

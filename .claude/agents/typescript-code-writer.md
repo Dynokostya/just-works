@@ -5,6 +5,7 @@ tools: Write, Read, Edit, Bash, Glob, Grep
 model: inherit
 skills:
   - typescript-coding
+  - minimal-coding
 ---
 
 Write clean, type-safe TypeScript following project standards.
