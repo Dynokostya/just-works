@@ -10,6 +10,12 @@ Just copy `.claude/` into any project — or install globally — and get pre-co
 
 ## What's Inside
 
+**Lean by default** — `caveman` and the `compressed` output style trim response tokens (filler, hedging, emojis); `minimal-coding` forces least-code solutions. Less context burned, lower cost.
+
+**Full Claude Code fluency** — uses the whole toolset by default: `AskUserQuestion` for structured choices, rich markdown, `TaskCreate` progress tracking, and parallel tool calls — not plain-text walls.
+
+**Context-isolating subagents** — delegates file-type work (`python`, `react`, `swift`, …) to subagents that carry their own context, so the main thread stays lean and focused.
+
 **Agents** — file-type-triggered writers (`python`, `typescript`, `swift`, `csharp`, `react`), plus `prompt-writer`, `diagrammer`, and `ticket-creator`. 9 per provider.
 **Commands** — `project-docs` and `git-sync` (Claude & Codex), `plan-reviewer` (Codex).
 
@@ -20,6 +26,30 @@ Just copy `.claude/` into any project — or install globally — and get pre-co
 ## Installation
 
 Installs agents, skills, commands, and settings globally to `~/.claude/` and `~/.codex/`. Existing files get backed up automatically.
+
+> **For the best experience, add `--personal`** — installs my full opinionated config instead of the minimal defaults:
+>
+> ```bash
+> curl -fsSL https://raw.githubusercontent.com/dynokostya/just-works/main/bootstrap.sh | bash -s -- --personal
+> ```
+
+### My `--personal` config vs default
+
+`--personal` swaps the minimal `*.default` files for my opinionated config:
+
+| | Default | `--personal` (my config) |
+|---|---|---|
+| Permissions | prompts for everything | `bypassPermissions` + safe read-only allow-list |
+| Security deny-list | empty | blocks reads of `.env`, keys, credentials, lockfiles, build dirs |
+| Model / effort | Claude Code defaults | `best` model + `max` effort (main agent & subagents) |
+| Output style | `default` | `Compressed` (fewer tokens) |
+| Codex | model + basic status line | `danger-full-access`, no approval prompts, MCP servers (Playwright, ClickUp) |
+| Hooks (Claude) | none | Bash command rewriting + completion sounds |
+
+**Two `--personal` hooks need extra setup to work:**
+
+- **`rtk` Bash rewriting** (`.claude/hooks/rtk-rewrite.sh`) rewrites commands to save tokens, but needs [`rtk`](https://github.com/rtk-ai/rtk) ≥ 0.23.0 and `jq` installed. Without them it prints a warning on every Bash call and does nothing — install `rtk`, or delete the `PreToolUse` hook from `settings.json`.
+- **Completion sounds** use `afplay` + `/System/Library/Sounds/Glass.aiff`, which are **macOS-only**. On Linux/Windows the notification hooks fail silently (no sound) — swap `afplay` for your player (`paplay`/`aplay` on Linux), or remove the hook.
 
 ### Quick install (recommended)
 
