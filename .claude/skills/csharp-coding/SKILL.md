@@ -11,18 +11,18 @@ Match the project's existing conventions. When uncertain, read 2-3 existing file
 
 These are unconditional. They prevent bugs and vulnerabilities regardless of project style.
 
-- **Never `catch { }` or `catch (Exception) { }` without rethrow or logging.** Broad catches silently swallow bugs — a NullReferenceException from a typo looks the same as a transient network failure. Catch specific exception types. If you must catch broadly at a boundary, always log and rethrow or convert to a meaningful error.
-- **Never `throw ex`** — use `throw` or `throw new XException("msg", ex)`. `throw ex` resets the stack trace, destroying the origin of the error. You'll spend hours debugging something the original stack trace would have shown instantly.
+- **Never `catch { }` or `catch (Exception) { }` without rethrow or logging** — catch specific types; at a boundary, log and rethrow or convert to a meaningful error.
+- **Never `throw ex`** — it resets the stack trace; use `throw` or wrap: `throw new XException("msg", ex)`.
 - **Never `DateTime.Now`** — use `DateTime.UtcNow` or `DateTimeOffset.UtcNow`. `DateTime.Now` produces local time that varies by server timezone and breaks across DST transitions. `DateTimeOffset` is preferred when the timezone context matters.
-- **Never `async void`** — except for event handlers. `async void` methods cannot be awaited, their exceptions crash the process unobserved, and they break structured error handling. Use `async Task` instead.
-- **Never `.Result`, `.Wait()`, or `.GetAwaiter().GetResult()` on tasks** — these block the calling thread and cause deadlocks in ASP.NET Core and UI contexts. Use `await` instead. If you're in a sync context that genuinely cannot be made async, use `Task.Run(() => AsyncMethod()).GetAwaiter().GetResult()` as a last resort with a comment explaining why.
-- **Never `Random` for security** — `Random` is not cryptographically secure and is predictable. Use `RandomNumberGenerator.GetBytes()`, `RandomNumberGenerator.GetInt32()`, or `Convert.ToHexString(RandomNumberGenerator.GetBytes(n))` for tokens, keys, session IDs.
-- **Never string interpolation or concatenation in SQL** — use parameterized queries only. `$"SELECT * FROM users WHERE id = {uid}"` is always a SQL injection vulnerability. Use `@param` placeholders with `SqlCommand.Parameters` or your ORM's parameterization.
-- **Never `GC.Collect()`** — the GC is self-tuning. Forcing collection hurts performance in nearly all cases by promoting short-lived objects to higher generations. If you think you need it, you have a design problem to fix instead.
-- **Never mutable static fields** — statics are shared across all threads. Mutable statics cause race conditions that are extremely hard to reproduce and debug. Use `IOptions<T>`, dependency injection, or `ConcurrentDictionary` if shared state is genuinely needed.
-- **Never `+` string concatenation in loops** — use `StringBuilder`. Strings are immutable in C#, so each `+` allocates a new string and copies all previous content — O(n^2) at scale. At 10k iterations this turns milliseconds into seconds.
-- **Never `dynamic` for typed data** — `dynamic` bypasses compile-time type checking, turns type errors into runtime exceptions, and kills IntelliSense. Use generics, interfaces, or pattern matching instead. Reserve `dynamic` for COM interop or truly dynamic scenarios.
-- **Never `Thread.Sleep()` in async code** — use `await Task.Delay()`. `Thread.Sleep` blocks the thread pool thread, starving other async operations. In ASP.NET Core this can exhaust the thread pool under load.
+- **Never `async void`** except event handlers — unawaitable, and exceptions crash the process unobserved; use `async Task`.
+- **Never `.Result`, `.Wait()`, or `.GetAwaiter().GetResult()` on tasks** — these block the calling thread and cause deadlocks in ASP.NET Core and UI contexts. Use `await` instead. If you're in a sync context that genuinely cannot be made async, use `Task.Run(() => AsyncMethod()).GetAwaiter().GetResult()` as a last resort with a comment explaining why — the `Task.Run` hop runs the async work on a thread-pool thread with no `SynchronizationContext` to marshal back to, which is what sidesteps the deadlock the bare construct causes.
+- **Never `Random` for security** — use `RandomNumberGenerator.GetBytes()`/`GetInt32()` for tokens, keys, and session IDs.
+- **Never string interpolation or concatenation in SQL** — parameterized queries only (`@param` with `SqlCommand.Parameters` or the ORM's parameterization).
+- **Never `GC.Collect()`** — the GC is self-tuning; forcing collection promotes short-lived objects and hurts performance.
+- **Never mutable static fields** — shared across all threads; use DI, `IOptions<T>`, or `ConcurrentDictionary` for genuinely shared state.
+- **Never `+` string concatenation in loops** — use `StringBuilder`.
+- **Never `dynamic` for typed data** — it defeats compile-time checking; use generics, interfaces, or pattern matching. Reserve `dynamic` for COM interop.
+- **Never `Thread.Sleep()` in async code** — use `await Task.Delay()`; sleeping blocks a thread-pool thread.
 
 ## Error handling
 
@@ -54,28 +54,7 @@ catch (HttpRequestException ex) when (ex.StatusCode >= HttpStatusCode.InternalSe
 }
 ```
 
-Create custom exception types when callers need to distinguish failure modes:
-
-```csharp
-public class AppException : Exception
-{
-    public AppException(string message) : base(message) { }
-    public AppException(string message, Exception inner) : base(message, inner) { }
-}
-
-public class NotFoundException : AppException
-{
-    public string Resource { get; }
-    public object Id { get; }
-
-    public NotFoundException(string resource, object id)
-        : base($"{resource} not found: {id}")
-    {
-        Resource = resource;
-        Id = id;
-    }
-}
-```
+Create custom exception types when callers need to distinguish failure modes — carry context as properties (resource, id) and provide an inner-exception constructor.
 
 ## Resource cleanup
 
@@ -130,31 +109,15 @@ public async Task<User> GetUserAsync(int id, CancellationToken cancellationToken
 
 **Use `ConfigureAwait(false)` in library code** (NuGet packages, shared class libraries) to avoid deadlocks in non-ASP.NET Core consumers. In ASP.NET Core application code, it's unnecessary — the default `SynchronizationContext` is null.
 
-**Use `Task.WhenAll` for independent concurrent work:**
+**Use `Task.WhenAll` for independent concurrent work** — don't await independent operations sequentially.
+
+**Consider eliding `async`/`await` on pure passthroughs only in measured hot paths.** Returning the task directly skips the state machine, but it also drops the method from async stack traces — default to keeping `async`/`await`. Always keep it when the method uses `using`, `try/catch`, or does work before/after the awaited call.
 
 ```csharp
-var usersTask = GetUsersAsync(cancellationToken);
-var ordersTask = GetOrdersAsync(cancellationToken);
-
-await Task.WhenAll(usersTask, ordersTask);
-
-var users = await usersTask;
-var orders = await ordersTask;
-```
-
-**Never use `async` on a method that just returns another task.** Remove the state machine overhead:
-
-```csharp
-// Wrong — unnecessary async state machine
-public async Task<User> GetUserAsync(int id, CancellationToken ct)
-    => await _repository.GetByIdAsync(id, ct);
-
-// Correct — direct passthrough
+// Hot path only — no state machine, but the method disappears from async stack traces
 public Task<User> GetUserAsync(int id, CancellationToken ct)
     => _repository.GetByIdAsync(id, ct);
 ```
-
-Exception: keep `async`/`await` when you need `using`, `try/catch`, or when the method does work before/after the awaited call.
 
 ## C# 13 params collections
 
@@ -171,7 +134,9 @@ public static int Sum(params ReadOnlySpan<int> values)
 Sum(1, 2, 3); // no heap allocation
 ```
 
-For shared-state synchronization, prefer `System.Threading.Lock` over `lock (someObject)` where available:
+## System.Threading.Lock (.NET 9+)
+
+For shared-state synchronization on .NET 9+, prefer the dedicated `System.Threading.Lock` type over `lock` on a plain `object`; on older targets keep the classic `private readonly object` pattern:
 
 ```csharp
 private readonly Lock _gate = new();
@@ -184,40 +149,27 @@ void AppendSafely(string item)
 
 ## Nullability
 
-Enable nullable reference types (`<Nullable>enable</Nullable>` in .csproj). Use the compiler's flow analysis — don't add redundant null checks where the type system already guarantees non-null.
+Enable nullable reference types (`<Nullable>enable</Nullable>` in .csproj). Use the compiler's flow analysis — don't add redundant null checks where the type system already guarantees non-null. Use `??` for defaults, `?.` for optional chains, and `??=` for lazy initialization.
 
-**Use `??` for defaults and `?.` for optional chains:**
-
-```csharp
-var name = user.DisplayName ?? user.Email ?? "Anonymous";
-var city = user.Address?.City;
-```
-
-**Use `??=` for lazy initialization:**
-
-```csharp
-_cache ??= new Dictionary<string, object>();
-```
-
-**Guard clause pattern for required non-null arguments:**
+**Guard clause for required non-null arguments** — use `ArgumentNullException.ThrowIfNull` (.NET 6+):
 
 ```csharp
 public UserService(IUserRepository repository, ILogger<UserService> logger)
 {
-    _repository = repository ?? throw new ArgumentNullException(nameof(repository));
-    _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+    ArgumentNullException.ThrowIfNull(repository);
+    ArgumentNullException.ThrowIfNull(logger);
+    _repository = repository;
+    _logger = logger;
 }
 ```
 
-With C# 11+ and nullable enabled, prefer `required` keyword or primary constructors over null checks for constructor injection when the DI container guarantees non-null.
-
-C# 11+: prefer `required` properties with object initializers when the DI container guarantees non-null:
+For DI services, prefer primary constructors (C# 12) — Microsoft.Extensions.DependencyInjection injects through constructors only, so a service exposing its dependencies as `required` properties is unconstructible by the default container. Reserve `required` properties for types built with object initializers (DTOs, options):
 
 ```csharp
-public sealed class UserService
+public sealed class SmtpOptions
 {
-    public required IUserRepository Repository { get; init; }
-    public required ILogger<UserService> Logger { get; init; }
+    public required string Host { get; init; }
+    public required int Port { get; init; }
 }
 ```
 
@@ -235,38 +187,7 @@ public string Email
 
 ## Pattern matching
 
-Use switch expressions for exhaustive branching. Clearer than if/elif chains for type checks, property destructuring, and value mapping.
-
-```csharp
-var message = result switch
-{
-    { IsSuccess: true, Value: var v } => $"Got {v}",
-    { Error: NotFoundError e } => $"{e.Resource} not found",
-    { Error: ValidationError e } => $"Invalid: {string.Join(", ", e.Errors)}",
-    _ => "Unknown error"
-};
-```
-
-Property patterns for conditional logic:
-
-```csharp
-if (order is { Status: OrderStatus.Shipped, TrackingNumber: not null } shipped)
-{
-    NotifyCustomer(shipped.TrackingNumber);
-}
-```
-
-Relational and logical patterns:
-
-```csharp
-var tier = score switch
-{
-    >= 90 => "Gold",
-    >= 70 => "Silver",
-    >= 50 => "Bronze",
-    _ => "None"
-};
-```
+Use switch expressions over if/else chains for exhaustive branching, property patterns (`order is { Status: OrderStatus.Shipped, TrackingNumber: not null } shipped`) for combined shape checks, and relational patterns (`>= 90 => "Gold"`) for range mapping.
 
 Null-conditional assignment (C# 14):
 
@@ -323,48 +244,11 @@ public sealed class PaginationOptions
 
 ## Dependency injection
 
-Constructor injection. Dependencies are explicit and testable.
-
-```csharp
-public sealed class OrderService(
-    IOrderRepository repository,
-    IPaymentClient payments,
-    ILogger<OrderService> logger)
-{
-    // ...
-}
-```
-
-**Service lifetimes:**
-- **Transient** — lightweight, stateless services. New instance per injection.
-- **Scoped** — per-request state (DbContext, unit of work, caller context). One instance per HTTP request.
-- **Singleton** — thread-safe shared state (caches, configuration, HTTP client factories). One instance for app lifetime.
-
-Match the project's DI container (Microsoft.Extensions.DependencyInjection, Autofac, etc.). Don't mix container-specific APIs across the codebase.
-
-**Register by interface, not concrete type:**
-
-```csharp
-services.AddScoped<IUserRepository, UserRepository>();
-services.AddSingleton<ICacheService, RedisCacheService>();
-```
+Use constructor injection (primary constructors) — dependencies stay explicit and testable. Register by interface (`services.AddScoped<IUserRepository, UserRepository>()`), and match the project's DI container rather than mixing container-specific APIs. Lifetimes: transient for stateless services, scoped for per-request state (DbContext, unit of work), singleton for thread-safe shared state (caches, configuration).
 
 ## Enums
 
-Use enums for known fixed value sets. Don't use raw strings or magic numbers.
-
-```csharp
-public enum OrderStatus
-{
-    Pending,
-    Confirmed,
-    Shipped,
-    Delivered,
-    Cancelled
-}
-```
-
-For enums that need string serialization (APIs, databases), configure the JSON serializer to use string names rather than integer values. Don't scatter `ToString()` / `Enum.Parse()` calls through business logic.
+Use enums for known fixed value sets, not raw strings or magic numbers. When enums cross serialization boundaries (APIs, databases), configure the JSON serializer to emit string names — don't scatter `ToString()`/`Enum.Parse()` through business logic.
 
 ## Imports
 
@@ -408,6 +292,8 @@ Match the project's test runner (xUnit, NUnit, MSTest) and mocking library (Moq,
 When to mock: external HTTP APIs, databases, third-party services, and anything with side effects or costs. When to use real instances: pure logic, in-memory implementations, value objects.
 
 Test behavior, not implementation — test what a method returns or what side effects it produces, not how it internally works.
+
+The example below is illustrative (NUnit + NSubstitute) — match the project's stack:
 
 ```csharp
 [Test]

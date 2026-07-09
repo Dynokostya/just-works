@@ -14,14 +14,15 @@ Two parallel provider directories plus distribution scaffolding:
 
 ## Module Boundaries
 
-**Agents** (`.claude/agents/`, `.codex/agents/`) — 8 specialized writers per provider, file-type-triggered via `description` frontmatter:
+**Agents** (`.claude/agents/`, `.codex/agents/`) — 9 specialized agents per provider, file-type-triggered via `description` frontmatter:
 - `python-code-writer`, `typescript-code-writer`, `swift-code-writer`, `csharp-code-writer`
 - `react-code-writer` (React/Tailwind/shadcn)
-- `prompt-writer` (Opus, GPT, Gemini)
+- `flutter-code-writer` (Dart/Flutter)
+- `prompt-writer` (Fable, Opus, GPT, Gemini)
 - `diagrammer` (PlantUML)
 - `ticket-creator` (ClickUp MCP)
 
-**Skills** (`.claude/skills/`, `.codex/skills/`) — 21 mirrored skill directories: coding standards per language, architecture patterns (DDD, feature-driven), model-specific prompting (`fable-5-prompting`, `opus-4-8-prompting`, `gpt-5-5-prompting`, `gemini-3-prompting`), domain skills (`ticket-writing`, `clickup-tickets`, `plantuml-diagramming`, `rest-api`), and the `caveman` communication mode.
+**Skills** (`.claude/skills/`, `.codex/skills/`) — 22 mirrored skill directories: coding standards per language, architecture patterns (DDD, feature-driven), model-specific prompting (`fable-5-prompting`, `opus-4-8-prompting`, `gpt-5-5-prompting`, `gemini-3-prompting`), domain skills (`ticket-writing`, `clickup-tickets`, `sprint-estimation`, `plantuml-diagramming`, `rest-api`), and behavioral modes (`caveman`, `minimal-coding`).
 
 **Commands** (`.claude/commands/`, `.codex/prompts/`) — multi-phase workflows:
 - `project-docs` — 5-phase documentation pipeline (Detect → Explore → Synthesize → Write → Verify)
@@ -56,8 +57,8 @@ Commands orchestrate multi-phase work: `project-docs` spawns three parallel `Exp
 - `.claude/commands/project-docs.md` — documentation pipeline
 - `.claude/commands/git-sync.md` — multi-repo branch sync
 - `.codex/prompts/plan-reviewer.md` — Codex plan review
-- `.claude/agents/*.md`, `.codex/agents/*.toml` — 8 specialized writer agents per provider
+- `.claude/agents/*.md`, `.codex/agents/*.toml` — 9 specialized agents per provider
 - `src/evals/` — pytest harness for skill validation via OpenRouter
 
 ---
-*Generated: 2026-04-21 | Commit: 2dc99fd*
+*Generated: 2026-07-07 | Commit: ef80bb5*

@@ -1,6 +1,6 @@
 ---
 name: opus-4-8-prompting
-description: Apply when creating or editing prompts targeting Claude Opus 4.8 (model ID claude-opus-4-8). Covers effort-level recalibration, tool triggering improvements, mid-conversation system messages, literal instruction following, response-length calibration, subagent spawning, tone shifts, XML structure, design defaults, adaptive thinking, and migration from Opus 4.7.
+description: Apply when creating or editing prompts targeting Claude Opus 4.8 (model ID claude-opus-4-8). Covers effort-level recalibration, tool triggering improvements, mid-conversation system messages, literal instruction following, response-length calibration, subagent spawning, tone shifts, XML structure, design defaults, adaptive thinking, and migration from Opus 4.7. Do not apply to other Claude models — for Fable 5 use fable-5-prompting.
 ---
 
 # Opus 4.8 Prompting
@@ -33,7 +33,7 @@ Key behavioral characteristics to design around:
 
 ## Effort Levels — Prompt Implications
 
-On 4.8, the `effort` parameter controls reasoning depth. The default is `high` on all surfaces (API, Claude Code). Effort is more important for this model than any prior Opus — experiment with it actively. Effort levels are recalibrated from 4.7: re-baseline cost and latency before adjusting.
+On 4.8, the `effort` parameter controls reasoning depth. The default is `high` on all surfaces (API, Claude Code). Effort is more important for this model than any prior Opus — experiment with it actively. Effort levels are recalibrated from 4.7: re-baseline cost and latency before adjusting. Effort governs deliberation and tool-calling scope independently of whether the `thinking` parameter is enabled (see Adaptive Thinking below).
 
 | Level | Prompt-authoring implication |
 |-------|--------------|
@@ -46,7 +46,7 @@ On 4.8, the `effort` parameter controls reasoning depth. The default is `high` o
 4.8 respects effort **strictly** at `low`/`medium`. If you see shallow reasoning on a complex task, raise effort rather than prompting around it. If you must keep effort low, add targeted guidance:
 
 ```
-This task involves multi-step reasoning. Think carefully through the problem before responding.
+This task involves multi-step reasoning. Analyze the problem carefully step by step before responding.
 ```
 
 Source: https://platform.claude.com/docs/en/build-with-claude/effort
@@ -84,23 +84,11 @@ Avoid: "Apply this formatting." (when multiple sections exist and generalization
 
 ### Add Context and Motivation
 
-Explain WHY an instruction exists. A rule with a reason is followed more consistently than a bare directive.
-
-```xml
-<task>
-Format all responses as plain text without markdown.
-
-<context>
-Your response will be read aloud by a text-to-speech system.
-Users are visually impaired and rely entirely on audio output.
-Markdown formatting characters would be spoken literally and disrupt comprehension.
-</context>
-</task>
-```
+Explain WHY an instruction exists. A rule with a reason ("format as plain text — the response is read aloud by a text-to-speech system") is followed more consistently than a bare directive.
 
 ### Examples Are Load-Bearing
 
-Positive examples outperform "don't do X" instructions. Every example is a pattern the model may reproduce — if an example contains an anti-pattern, it leaks into the output. Be precise.
+Positive examples outperform "don't do X" instructions — every example is a pattern the model may reproduce, so keep examples precise and free of anti-patterns.
 
 ### Long-Horizon Reasoning
 
@@ -122,35 +110,16 @@ For specific kinds of over-explanation, show a positive example of the target co
 
 Four techniques in order of effectiveness:
 
-1. **Tell Claude what to do, not what not to do.**
-   Instead of: "Do not use markdown in your response"
-   Try: "Your response should be composed of smoothly flowing prose paragraphs."
-
-2. **Use XML format indicators.**
-   "Write the prose sections of your response in `<smoothly_flowing_prose_paragraphs>` tags."
-
-3. **Match prompt style to output style.**
-   Removing markdown from your prompt reduces markdown in the output.
-
+1. **Tell Claude what to do, not what not to do** — "compose your response of smoothly flowing prose paragraphs" beats "do not use markdown in your response".
+2. **Use XML format indicators** — "Write the prose sections of your response in `<smoothly_flowing_prose_paragraphs>` tags."
+3. **Match prompt style to output style** — removing markdown from your prompt reduces markdown in the output.
 4. **Use detailed prompts for formatting preferences.**
 
-For reducing over-formatted responses (bullet-soup, unnecessary bold):
-
-```xml
-<avoid_excessive_markdown_and_bullet_points>
-When writing reports, documents, technical explanations, analyses, or any long-form
-content, write in clear, flowing prose using complete paragraphs and sentences. Use
-standard paragraph breaks for organization and reserve markdown primarily for
-inline code, code blocks, and simple headings (###).
-
-DO NOT use ordered lists (1. ...) or unordered lists (*) unless a) you are presenting
-truly discrete items where a list format is the best option, or b) the user explicitly
-requests a list or ranking.
-
-Instead of listing items with bullets or numbers, incorporate them naturally into
-sentences.
-</avoid_excessive_markdown_and_bullet_points>
-```
+For reducing over-formatted responses (bullet-soup, unnecessary bold), add an
+`<avoid_excessive_markdown_and_bullet_points>` block: write long-form content in
+clear, flowing prose; reserve markdown primarily for inline code, code blocks, and
+simple headings (###); use lists only for truly discrete items or when the user
+explicitly requests a list or ranking — otherwise incorporate items into sentences.
 
 For post-tool-call summaries (4.8 may skip them):
 
@@ -191,14 +160,7 @@ XML tags help Claude parse complex prompts unambiguously, especially when your p
 - Nest when content has natural hierarchy (`<documents>` -> `<document index="n">` -> `<document_content>` + `<source>`).
 - Wrap multiple examples in `<examples>` with each in `<example>`; 3-5 examples is Anthropic's recommended range.
 
-**Commonly used in Anthropic's own examples:**
-- Input content: `<document>`, `<documents>`, `<document_content>`, `<source>`, `<context>`
-- Directives and constraints: `<instructions>`, `<task>`, `<requirements>`, `<constraint>`
-- Demonstrations: `<example>`, `<examples>`, `<input>`, `<output>`
-- Output shape: `<format>`, `<output_format>`, `<answer>`
-- Long-context grounding: `<quotes>`, `<info>`
-- Reasoning in few-shot examples: `<thinking>`
-- Behavioral steering: `<use_parallel_tool_calls>`, `<default_to_action>`, `<do_not_act_before_instructions>`, `<investigate_before_answering>`, `<frontend_aesthetics>`, `<avoid_excessive_markdown_and_bullet_points>`, `<scope_constraints>`, `<action_safety>`
+**Commonly used in Anthropic's own examples:** `<documents>`/`<document>` (with `<source>`, `<document_content>`), `<context>`, `<instructions>`, `<task>`, `<examples>`/`<example>` (with `<input>`, `<output>`), `<format>`, `<output_format>`, `<quotes>`, `<thinking>` (in few-shot demos), and named behavioral-steering tags (`<use_parallel_tool_calls>`, `<default_to_action>`, `<do_not_act_before_instructions>`, `<investigate_before_answering>`, `<frontend_aesthetics>`, `<avoid_excessive_markdown_and_bullet_points>`, `<scope_constraints>`, `<action_safety>`).
 
 Default to markdown headers and tables where they are sufficient; reach for XML when you need unambiguous separation or when an instruction has a natural name.
 
@@ -209,19 +171,6 @@ When prompts exceed 20k tokens:
 - **Put long documents at the top, query at the end.** Queries-last improves response quality by up to 30% in Anthropic's tests, especially with multi-document inputs.
 - **Wrap each document** in `<document index="n">` with `<source>` and `<document_content>` subtags; wrap the collection in `<documents>`.
 - **Ground in quotes** for long-document tasks: ask Claude to extract relevant quotes into `<quotes>` before answering, then reason from there. Cuts through noise and reduces fabrication.
-
-Skeleton:
-
-```xml
-<documents>
-  <document index="1">
-    <source>annual_report_2023.pdf</source>
-    <document_content>{{ANNUAL_REPORT}}</document_content>
-  </document>
-</documents>
-
-Analyze the document above. {{ question }}
-```
 
 4.8 has a 1M context window at standard pricing (no long-context premium, no beta header). The tokenizer (same as 4.7) consumes up to ~35% more tokens per unit of text vs 4.6 — budget longer prompts accordingly.
 
@@ -428,15 +377,6 @@ Report any bugs that could cause incorrect behavior, a test failure, or a mislea
 result; only omit nits like pure style or naming preferences.
 ```
 
-### Interactive Coding Products
-
-Interactive multi-turn sessions cost more tokens than autonomous single-turn agents — 4.8 reasons more after user turns. That improves long-horizon coherence and instruction following, at token cost. Prompt-authoring implications:
-
-- **Specify task, intent, and constraints upfront** in the first user turn. A well-specified first turn pays off more on 4.8 than on prior models.
-- **Avoid ambiguous prompts conveyed progressively** across many turns — this pattern hurts efficiency and sometimes quality.
-- **Favor auto modes** in prompts where safe — reduce required human interactions.
-- **Use `xhigh` or `high` effort** to maximize both performance and token efficiency.
-
 ### Frontend Design
 
 Opus 4.8 has a persistent house style: warm cream (~#F4F1EA), serifs (Georgia, Fraunces, Playfair), italic accents, terracotta/amber. Reads well for editorial and hospitality briefs; feels off for dashboards, dev tools, fintech, healthcare, enterprise.
@@ -462,6 +402,8 @@ to pick one, then implement only that direction.
 
 A minimal prompt snippet works well on 4.8:
 
+*(This canonical snippet is the documented exception to the no-NEVER guidance in Tool Use Triggering above.)*
+
 ```xml
 <frontend_aesthetics>
 NEVER use generic AI-generated aesthetics like overused font families (Inter,
@@ -478,15 +420,7 @@ Source: https://platform.claude.com/docs/en/build-with-claude/prompt-engineering
 
 ### Research and Information Gathering
 
-For complex research tasks:
-
-```
-Search for this information in a structured way. As you gather data, develop several
-competing hypotheses. Track your confidence levels in your progress notes to improve
-calibration. Regularly self-critique your approach and plan. Update a hypothesis
-tree or research notes file to persist information and provide transparency. Break
-down this complex research task systematically.
-```
+For complex research tasks, prompt for structured investigation: develop competing hypotheses, track confidence levels in progress notes, self-critique the approach regularly, and persist findings to a hypothesis tree or research notes file.
 
 ### Structured Outputs
 
@@ -501,70 +435,7 @@ Prompt-authoring implications:
 
 Source: https://platform.claude.com/docs/en/build-with-claude/structured-outputs
 
-### Task Budgets — Prompting Implications
-
-Task Budgets (beta) give the model an advisory token budget across a full agentic loop; it sees a running countdown and paces accordingly. Prompt-authoring implications:
-
-- **Budget-aware prompts can skip scaffolding** like "work efficiently" or "don't get stuck" — the budget itself paces the model.
-- **Budgets below 20k tokens are rejected and budgets that are clearly insufficient cause 4.8 to refuse or stop early.** If you are prompting for a large job, state the scope plainly rather than relying on the budget to keep the model focused.
-- **Instruct the model to finish gracefully** if your task benefits from end-of-budget summaries: "As the task budget nears depletion, finalize and summarize progress rather than starting new subtasks."
-- **Don't layer a task_budget onto open-ended research prompts** where quality matters more than speed — let the model run without the countdown.
-
-Source: https://platform.claude.com/docs/en/build-with-claude/task-budgets
-
-### Memory Tool and Long-Running Agents
-
-4.8 is meaningfully better at writing and using file-system-based memory than 4.6. When a memory tool is in play, prompts should give domain-specific guidance (what to record, what to read) rather than re-explaining the tool.
-
-Useful phrasings:
-
-- "Before starting work, view /memories to load any prior progress."
-- "Update /memories/progress.md when you finish a feature; record assumptions that may need verifying later."
-
-For multi-session software development, use the initializer/subsequent-session pattern: first session writes a progress log, feature checklist, and startup script; subsequent sessions read memory before starting, work on one feature at a time, update memory before ending.
-
-Path-safety: constrain file-path parameters in the prompt ("Only access paths under /memories") — path-traversal is a known concern.
-
-Source: https://platform.claude.com/docs/en/agents-and-tools/tool-use/memory-tool
-
-### High-Resolution Image Support
-
-4.8 supports images up to 2576px / 3.75MP (inherited from 4.7), and model-emitted coordinates are 1:1 with actual image pixels.
-
-Prompt-authoring implications:
-
-- **Remove any "scale coordinates by X" instructions** from prompts carried over from 4.6 — 4.8 reports coordinates in actual pixel space.
-- **For pointing / bounding-box / chart-transcription tasks**, you can ask for precise pixel coordinates without scaling caveats.
-- **If your harness exposes a crop tool**, tell the model to crop into regions before detailed inspection: "If you need pixel-level detail from part of an image, call the crop tool to zoom into that region first, then analyze the crop."
-- **Image-heavy prompts consume up to ~3x more tokens per full-res image** vs 4.6 — factor this into your context budgeting when you size prompts.
-
-Source: https://platform.claude.com/docs/en/build-with-claude/vision#high-resolution-image-support-on-claude-opus-4-7
-
-### Computer Use
-
-Computer use works across resolutions up to 2576px / 3.75MP. Internal testing shows 1080p provides a good balance of performance and cost. For cost-sensitive workloads, 720p or 1366x768 are lower-cost options with strong performance. Experiment with effort settings to tune behavior.
-
-Source: https://platform.claude.com/docs/en/agents-and-tools/tool-use/computer-use-tool
-
-### Cybersecurity Safeguards
-
-A real-time safeguard layer for cybersecurity topics (inherited from 4.7). Requests involving prohibited or high-risk cyber topics may lead to refusals (stop_reason: "refusal", with stop_details category now publicly documented on 4.8).
-
-Prompt-authoring implications:
-
-- **Legitimate security prompts (pen testing, vulnerability research, red teaming)** may be refused where older models would comply. Apply to the Cyber Verification Program for reduced restrictions: https://claude.com/form/cyber-use-case
-- **Framing matters.** Be explicit about the defensive/legitimate purpose in the prompt when it is ambiguous ("You are assisting an authorized security engineer performing an internal pen test...").
-- **Don't rely on prompt injection or roleplay** to bypass the safeguard — 4.8 is less susceptible.
-
-### Fast Mode (New in 4.8)
-
-Fast mode (speed: "fast") delivers up to 2.5x higher output tokens per second from the same model at premium pricing. Available as a research preview on the Claude API.
-
-Prompt-authoring implications:
-- No prompt changes required — same model behavior, just faster output.
-- Useful for latency-sensitive interactive products where cost is secondary to speed.
-
-Source: https://platform.claude.com/docs/en/build-with-claude/fast-mode
+See [references/specialized-scenarios.md](references/specialized-scenarios.md) for the remaining specialized scenarios: interactive coding products, task budgets, the memory tool, high-resolution image support, computer use, cybersecurity safeguards, and fast mode.
 
 ## Prompt Migration Checklist
 
@@ -583,25 +454,19 @@ Source: https://platform.claude.com/docs/en/build-with-claude/fast-mode
 Apply the 4.7 migration steps first, then the 4.7->4.8 steps above:
 
 - [ ] Replace CRITICAL/MUST/ALWAYS/NEVER/REQUIRED/MANDATORY with calm, direct equivalents.
-- [ ] Remove anti-laziness prompts ("be thorough", "think carefully", "do not be lazy").
-- [ ] Remove explicit think-tool instructions and compensatory over-prompting for older models.
-- [ ] Replace "think" with "consider"/"evaluate"/"analyze" if adaptive thinking is off.
-- [ ] Add safety guardrails for destructive/irreversible actions.
-- [ ] Add scope constraints to prevent over-engineering.
+- [ ] Remove anti-laziness prompts ("be thorough", "think carefully", "do not be lazy"), explicit think-tool instructions, and compensatory over-prompting for older models.
+- [ ] Replace "think" with "consider"/"evaluate"/"analyze" if adaptive thinking is off; remove manual "step 1, 2, 3" reasoning plans — a short cue works better with adaptive thinking.
+- [ ] Add safety guardrails for destructive/irreversible actions and scope constraints to prevent over-engineering.
 - [ ] Add LaTeX opt-out if rendering target does not support it.
-- [ ] State scope explicitly where you previously relied on generalization.
-- [ ] Add verbosity guidance if product depends on a fixed response length.
+- [ ] State scope explicitly where you previously relied on generalization; add verbosity guidance if product depends on a fixed response length.
 - [ ] Flip subagent prompts from "limit use" to "encourage when appropriate" — 4.8 under-uses.
 - [ ] Re-tune voice prompts for a warmer tone — 4.8 defaults more direct.
 - [ ] Remove "summarize every N tool calls" scaffolding — native updates are better.
 - [ ] Code review: shift to coverage-at-finding-stage or state the bar concretely.
 - [ ] Frontend: specify concrete palettes or have model propose options.
 - [ ] Replace prefill-based shape enforcement with Structured Outputs or "respond with JSON only".
-- [ ] Remove manual "step 1, 2, 3" reasoning plans — a short cue works better with adaptive thinking.
-- [ ] Drop "scale coordinates" phrasing from image prompts — 4.8 reports 1:1 pixel coordinates.
-- [ ] Add explicit defensive-purpose framing to legitimate-security prompts that now refuse.
-- [ ] Switch from extended thinking (budget_tokens) to adaptive thinking + effort.
-- [ ] Remove sampling parameters (temperature, top_p, top_k) — rejected on 4.8.
+- [ ] Drop "scale coordinates" phrasing from image prompts (4.8 reports 1:1 pixel coordinates); add explicit defensive-purpose framing to legitimate-security prompts that now refuse.
+- [ ] Switch from extended thinking (budget_tokens) to adaptive thinking + effort; remove sampling parameters (temperature, top_p, top_k) — rejected on 4.8.
 
 ## Anti-Patterns
 
@@ -628,9 +493,6 @@ Apply the 4.7 migration steps first, then the 4.7->4.8 steps above:
 - Migration guide: https://platform.claude.com/docs/en/about-claude/models/migration-guide#migrating-from-claude-opus-47
 - Adaptive thinking: https://platform.claude.com/docs/en/build-with-claude/adaptive-thinking
 - Effort parameter: https://platform.claude.com/docs/en/build-with-claude/effort
-- Task budgets: https://platform.claude.com/docs/en/build-with-claude/task-budgets
 - Structured outputs: https://platform.claude.com/docs/en/build-with-claude/structured-outputs
-- Memory tool: https://platform.claude.com/docs/en/agents-and-tools/tool-use/memory-tool
 - Mid-conversation system messages: https://platform.claude.com/docs/en/build-with-claude/mid-conversation-system-messages
-- Fast mode: https://platform.claude.com/docs/en/build-with-claude/fast-mode
 - Models overview: https://platform.claude.com/docs/en/about-claude/models/overview

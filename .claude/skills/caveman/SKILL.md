@@ -4,8 +4,8 @@ description: >
   Ultra-compressed communication mode for conversation output. Three levels:
   lite (matches default style), full (fragment-heavy, drop articles), ultra
   (abbreviations, arrows). Default on /caveman is full. Activates when user
-  says "caveman mode", "talk like caveman", "use caveman", "less tokens",
-  "be brief", or invokes /caveman. Switch with /caveman lite|full|ultra.
+  says "caveman mode", "talk like caveman", "use caveman", or invokes
+  /caveman. Switch with /caveman lite|full|ultra.
 ---
 
 # Caveman Mode
@@ -15,9 +15,10 @@ prompts stay normal English regardless of level.
 
 ## Activation
 
-Invoked by `/caveman` (defaults to `full`) or phrases like "caveman mode",
-"less tokens", "be brief". Persist across turns until user says "stop caveman"
-or "normal mode". Level persists until changed.
+Invoked by `/caveman` (defaults to `full`) or explicit phrases like "caveman
+mode" or "talk like caveman". A one-off "be brief" or "less tokens" applies to
+that response only — don't latch the mode. Persist across turns until user says
+"stop caveman" or "normal mode". Level persists until changed.
 
 ## Modes
 

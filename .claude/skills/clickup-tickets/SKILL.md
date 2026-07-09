@@ -12,8 +12,8 @@ Apply alongside `ticket-writing` — that skill handles body content and title f
 - **Never put a structured attribute in the description when a native field exists.** Due dates → `due_date`, start dates → `start_date`, owners → `assignees`, priority → `priority`, blocked-by → dependency, relates-to → linked task, parent/epic → `parent`, effort → `time_estimate`. A date in prose is dead data; the same date in `due_date` drives reminders, Gantt, and filters.
 - **Never auto-fill values the user didn't specify.** Applies to every field: `priority`, `due_date`, `start_date`, `assignees`, `tags`, sprint membership, `time_estimate`, `parent`, `status`, custom fields, dependencies, linked tasks, attachments. If the user didn't say, ask. Don't infer "reasonable defaults" from context — the user can't tell guess from confirmed and ends up re-checking everything. Only exception: the user explicitly grants discretion ("use your judgment", "go ahead", "you decide").
 - **Never create a task without checking that a similar one isn't already in the list.** Duplicates fragment discussion, split assignments, and waste triage. Search the target list first via the search/filter MCP. Surface candidates to the user; let them decide: dedupe, link as relates-to or blocks, or proceed.
-- **Never create a task without at least one assignee** unless the user explicitly says "no assignee yet". A task with no owner drifts.
-- **Never set a tag that doesn't already exist in the Space.** ClickUp tags must preexist; creating with an unknown tag fails or silently drops it. Discover the Space's tags first.
+- **Never create a task without at least one assignee** unless the user explicitly says "no assignee yet". A task with no owner drifts. If the user didn't name an assignee, ask — don't pick one yourself.
+- **Never set a tag that doesn't already exist in the Space** — unless the user explicitly asks to create a new tag. ClickUp tags must preexist; creating with an unknown tag fails or silently drops it. Discover the Space's tags first.
 - **Never use `description` when the source contains Markdown.** Use `markdown_content` — it takes precedence over `description` when both are sent.
 - **Never overwrite an existing task's description on update.** Append with a timestamp marker (e.g., `--- update 2026-04-20 ---`). Overwriting loses context.
 - **Never confuse subtask, dependency, and linked task.** Subtask = structural (parent/child). Dependency = temporal (A must finish before B). Linked task = reference-only. Pick the one that matches the relationship.
@@ -69,7 +69,7 @@ Cost: 2–4 MCP calls per new list. Cache within the session.
 
 ## Field set
 
-Canonical ClickUp task fields (Create Task API).
+Task fields as exposed by the ClickUp MCP tools (names and formats are MCP conveniences and may differ from the raw REST API).
 
 | Field | Type | Notes |
 |-------|------|-------|
@@ -109,7 +109,7 @@ Dependencies (`blocks` / `waiting on`) are NOT set at create time — use the ad
 | Attachment | File upload call | URL pasted into prose |
 | Category / type | Custom task type or dropdown custom field | Description or tag |
 
-Rule: if it's searchable, filterable, sortable, or automatable, it belongs in a field. Description is for narrative only.
+Rule: if it's searchable, filterable, sortable, or automatable, it belongs in a field. Description is for narrative only. One deliberate exception: Bug severity has no native ClickUp field — it stays in the ticket body per `ticket-writing`, while priority maps to the native `priority` field.
 
 ## Dependency vs linked task vs subtask
 
@@ -153,7 +153,7 @@ Protocol:
 6. **Collect missing values by asking.** For every unspecified attribute — due date, priority, tags, parent, status, custom fields, time estimate — ask the user. Bundle related questions. Don't default. Skip this step only when the user grants discretion.
 7. **Create task** with a single call: `name`, `markdown_content`, `assignees`, `tags`, `priority`, `due_date`, `status`, `parent`, `custom_fields`, `check_required_custom_fields: true`, `notify_all: false`.
 8. **Attach relationships** separately: add-dependency for blocks/blocked-by, add-link for relates-to, attach-file for attachments.
-9. **Return the task URL** as `https://app.clickup.com/t/<task_id>`. Confirm the fields back to the user.
+9. **Return the task URL** — `https://app.clickup.com/t/<task_id>` is the default pattern for standard workspaces (enterprise custom domains differ). Confirm the fields back to the user.
 
 ## Update-vs-create
 

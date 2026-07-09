@@ -28,4 +28,4 @@ If the request is ambiguous about scope, implement the narrower interpretation.
 
 ## Quality
 
-Write code that passes `tsc --noEmit` for type checking, ESLint or Biome for linting, and Prettier for formatting. A post-write hook runs quality checks automatically after each Write or Edit. If no hook is configured, run `tsc --noEmit` on the affected project to verify types compile cleanly.
+Write code that passes `tsc --noEmit` for type checking, ESLint or Biome for linting, and Prettier for formatting. After editing, run `tsc --noEmit` on the affected project and the configured linter unless a project hook already does it.

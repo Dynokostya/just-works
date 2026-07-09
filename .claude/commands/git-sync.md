@@ -1,3 +1,8 @@
+---
+description: Sync the root repo and all submodules to their default branch and pull latest
+allowed-tools: Bash(git:*)
+---
+
 # Git Sync
 
 Switch all repositories (root and submodules) to the default branch and pull latest changes.

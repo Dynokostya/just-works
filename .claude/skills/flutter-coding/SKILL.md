@@ -5,7 +5,7 @@ description: Apply when writing or editing Flutter widgets in Dart (.dart) files
 
 # Flutter Coding
 
-Match the project's existing conventions. When uncertain, read 2-3 existing widgets to infer the local style. Check `pubspec.yaml` for Flutter/Dart version and dependencies, and the project's state-management package (Provider, Riverpod, Bloc, GetIt) before introducing a new pattern. These defaults apply only when the project has no established convention. For Dart language rules (null safety, async, records, patterns), see the `dart-coding` skill.
+Match the project's existing conventions. When uncertain, read 2-3 existing widgets to infer the local style. Check `pubspec.yaml` for Flutter/Dart version and dependencies, and the project's state-management package (Provider, Riverpod, Bloc) or service locator (GetIt) before introducing a new pattern. These defaults apply only when the project has no established convention. For Dart language rules (null safety, async, records, patterns), see the `dart-coding` skill.
 
 ## Never rules
 
@@ -140,7 +140,7 @@ class _FormState extends State<Form> {
 }
 ```
 
-- **Never use `Opacity`, `Transform`, or `Clip*` in animations or hot paths** -- they force expensive saveLayer calls. Use the cheap variants: `AnimatedOpacity`/`FadeTransition`, `FadeInImage`, the `opacity` parameter on `Image`, `borderRadius` on `BoxDecoration` instead of `ClipRRect`.
+- **Never animate `Opacity` or use saveLayer-backed clips (`Clip.antiAliasWithSaveLayer`, unnecessary `ClipPath`) in hot paths** -- they force expensive saveLayer calls every frame. Use the cheap variants: `AnimatedOpacity`/`FadeTransition`, `FadeInImage`, the `opacity` parameter on `Image`, `borderRadius` on `BoxDecoration` instead of `ClipRRect`. (`Transform` is a plain matrix op and fine to animate.)
 
 ```dart
 // Wrong: Opacity forces a saveLayer every frame of the animation
@@ -173,7 +173,7 @@ ListView(
 
 - **Never use `Navigator.pushNamed` or string-based routes for non-trivial apps** -- named routes are discouraged officially and lose type safety. Use `go_router` or an equivalent declarative router. Plain `Navigator.push(MaterialPageRoute(...))` is fine for tiny apps.
 
-- **Never use deprecated `WillPopScope`** -- it was replaced by `PopScope<T>` in Flutter 3.24+. The new API is async-safe and predicate-based.
+- **Never use deprecated `WillPopScope`** -- deprecated in Flutter 3.16 in favor of `PopScope`; since 3.24 use `PopScope<T>` with `onPopInvokedWithResult`. The new API is async-safe and predicate-based.
 
 - **Never mutate `Widget` fields after construction** -- widgets are immutable build configs. Mutate `State`, not `Widget`. If you need to react to incoming widget changes, use `didUpdateWidget`.
 
@@ -243,7 +243,7 @@ Built-ins (neutral, listed by scope):
 - `ChangeNotifier` + `InheritedNotifier` -- multi-field state shared in a subtree.
 - `InheritedWidget` / `InheritedModel` -- foundation primitives; rebuilds dependents on change.
 
-Packages (neutral, no recommendation): Provider, Riverpod, Bloc, GetIt. Pick by team and scale; do not mix patterns within a feature. Read existing code first.
+Packages (neutral, no recommendation): Provider, Riverpod, Bloc. GetIt is a service locator for dependency injection, not state management -- it pairs with any of them. Pick by team and scale; do not mix patterns within a feature. Read existing code first.
 
 Guidelines:
 
@@ -379,7 +379,7 @@ Widget build(BuildContext context) {
 
 - Use a declarative router (`go_router` or equivalent) for non-trivial apps. Plain `Navigator.push(MaterialPageRoute(...))` is fine for prototypes and tiny apps.
 - **Typed results.** `Navigator.pop<T>(context, value)` and `await Navigator.push<T>(...)` round-trip a typed value.
-- **`PopScope<T>`** (Flutter 3.24+) replaces `WillPopScope`. Use it to intercept back gestures; access the popped result via the `onPopInvokedWithResult` callback.
+- **`PopScope`** replaces `WillPopScope` (deprecated in Flutter 3.16); since 3.24 it is `PopScope<T>` with the `onPopInvokedWithResult` callback. Use it to intercept back gestures.
 - Page-backed routes deep-link cleanly; pageless routes (`showDialog`, `Navigator.push` outside the router) do not. Removing a page-backed route also drops the pageless routes attached to it.
 - After `await showDialog(...)` (or any awaited navigation call), gate context with `if (!context.mounted) return;`.
 
@@ -388,14 +388,6 @@ final result = await context.push<bool>('/confirm');
 if (!context.mounted) return;
 if (result ?? false) ScaffoldMessenger.of(context).showSnackBar(/* ... */);
 ```
-
-## Common antipatterns
-
-- **Logic or side effects in `build`.** No API calls, no `setState`, no `Future` allocation, no controller construction.
-- **Mutating widget fields after construction.** Widgets are immutable. Mutate `State`, not `Widget`.
-- **`findAncestorStateOfType` to call methods on a parent.** Couples to tree shape, no reactivity. Pass a callback down or expose state through `InheritedWidget`/`InheritedNotifier`.
-- **Missing keys when reordering stateful list children.** State follows position, not identity, without a key.
-- **Recreating controllers or futures per build.** Always own them on `State` and dispose them.
 
 ## Recent API drift
 

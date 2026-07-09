@@ -1,6 +1,6 @@
 ---
 name: typescript-coding
-description: Apply when writing or editing TypeScript (.ts) files. Behavioral corrections for error handling, async patterns, type system, module system, security defaults, and common antipatterns. Project conventions always override these defaults.
+description: Apply when writing or editing TypeScript (.ts and .tsx) files — language-level rules; React-specific patterns live in react-coding. Behavioral corrections for error handling, async patterns, type system, module system, security defaults, and common antipatterns. Project conventions always override these defaults.
 ---
 
 # TypeScript Coding
@@ -13,14 +13,12 @@ These are unconditional. They prevent bugs and vulnerabilities regardless of pro
 
 - **Never use `any`** — contagious type erasure that disables all downstream checking. Use `unknown` and narrow with type guards, or use generics with constraints.
 - **Never use `@ts-ignore`** — permanently suppresses errors with no feedback when conditions change. Use `@ts-expect-error` with a justification comment; it fails the build when the suppressed error disappears.
-- **Never use `==` for equality** — implicit type coercion produces unintuitive results (`0 == ''` is `true`). Use `===` and `!==`. The only acceptable exception is `x == null` to check both `null` and `undefined`.
 - **Never use `as` type assertions on external data** — zero runtime validation; the program continues with corrupted state until it crashes far from the source. Validate at system boundaries with Zod `safeParse` or equivalent runtime validators.
 - **Never use `!` non-null assertion without proof** — tells TypeScript a value is not `null` without any runtime check. Use nullish coalescing (`??`), optional chaining (`?.`), or explicit `if` checks.
-- **Never use `eval()` or `new Function()`** — executes arbitrary strings as code, enabling injection attacks. Use `JSON.parse` for data, lookup tables for dispatch, and proper parsers for expressions.
 - **Never leave a Promise floating** — unhandled rejections cause silent failures or process termination. Always `await`, chain `.catch()`, or prefix with `void` and add an error handler.
 - **Never mutate function parameters** — objects and arrays are passed by reference; mutation silently corrupts the caller's data. Spread or `structuredClone()` before mutating. Mark parameters `readonly`.
 - **Never use `delete` on typed objects** — violates the type contract, creating objects that no longer match their type. Destructure to omit properties (`const { removed, ...rest } = obj`). For arrays, use `splice()` or `filter()`.
-- **Never use `export *` in barrel files** — defeats tree-shaking, creates namespace collisions, and breaks "go to definition". Use explicit named re-exports.
+- **Never use `export *` in barrel files** — re-exported names collide silently across modules, and IDE navigation and refactoring degrade (go-to-definition lands on the barrel, renames miss consumers). Use explicit named re-exports.
 - **Never omit `type` on type-only imports** — retains unnecessary import statements in compiled output, bloats bundles, and breaks isolated transpilers. Use `import type { }` or inline `type` qualifiers. Enable `verbatimModuleSyntax`.
 - **Never use `enum`** — emits runtime IIFE code, introduces nominal typing friction, and numeric enums silently accept any number. Use `as const` objects with derived union types.
 - **Never trust array index access without `noUncheckedIndexedAccess`** — TypeScript types `items[0]` as `T` even when the array could be empty. Enable `noUncheckedIndexedAccess: true` in tsconfig.
@@ -29,7 +27,7 @@ These are unconditional. They prevent bugs and vulnerabilities regardless of pro
 
 ## Error handling
 
-Use custom error classes with the prototype fix for correct `instanceof` checks:
+Use custom error classes with a machine-readable `code` and `cause` support:
 
 ```typescript
 class AppError extends Error {
@@ -39,7 +37,6 @@ class AppError extends Error {
     options?: ErrorOptions,
   ) {
     super(message, options);
-    Object.setPrototypeOf(this, new.target.prototype);
   }
 }
 
@@ -118,18 +115,12 @@ function processData(): void {
 }
 ```
 
-`AbortController` / `AbortSignal` as universal cancellation token:
+`AbortSignal` as universal cancellation token — use `AbortSignal.timeout(ms)` instead of manual `AbortController` + `setTimeout` bookkeeping, and `AbortSignal.any([...])` to compose signals:
 
 ```typescript
-async function fetchWithTimeout(url: string, ms: number): Promise<Response> {
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), ms);
-
-  try {
-    return await fetch(url, { signal: controller.signal });
-  } finally {
-    clearTimeout(timeout);
-  }
+async function fetchWithTimeout(url: string, ms: number, signal?: AbortSignal): Promise<Response> {
+  const timeout = AbortSignal.timeout(ms);
+  return fetch(url, { signal: signal ? AbortSignal.any([signal, timeout]) : timeout });
 }
 ```
 
@@ -206,25 +197,29 @@ for await (const page of fetchPages<User>('/api/users', signal)) {
 }
 ```
 
-Concurrency limiting with a semaphore:
+Concurrency limiting — prefer `p-limit`; hand-rolled limiters routinely get ordering and rejection handling wrong (the common `results.push(...)` + floating `.finally()` version returns completion order and leaks unhandled rejections):
+
+```typescript
+import pLimit from 'p-limit';
+
+const limit = pLimit(5);
+const users = await Promise.all(ids.map((id) => limit(() => fetchUser(id))));
+```
+
+Dependency-free alternative — a fixed worker pool over a shared iterator. Indexed writes preserve input order; every worker promise is awaited, so no rejection floats:
 
 ```typescript
 async function mapConcurrent<T, R>(
-  items: T[],
-  limit: number,
+  items: readonly T[],
+  concurrency: number,
   fn: (item: T) => Promise<R>,
 ): Promise<R[]> {
-  const results: R[] = [];
-  const executing = new Set<Promise<void>>();
-
-  for (const item of items) {
-    const p = fn(item).then((r) => { results.push(r); });
-    executing.add(p);
-    p.finally(() => executing.delete(p));
-    if (executing.size >= limit) await Promise.race(executing);
-  }
-
-  await Promise.all(executing);
+  const results: R[] = new Array(items.length);
+  const queue = items.entries();
+  const workers = Array.from({ length: Math.min(concurrency, items.length) }, async () => {
+    for (const [i, item] of queue) results[i] = await fn(item);
+  });
+  await Promise.all(workers);
   return results;
 }
 ```
@@ -244,7 +239,7 @@ function merge<T extends Record<string, unknown>>(
 type ApiResponse<T, E = Error> = Result<T, E> & { statusCode: number };
 ```
 
-Discriminated unions with exhaustive checking via `never`:
+Discriminated unions:
 
 ```typescript
 type Event =
@@ -263,39 +258,7 @@ function handleEvent(event: Event): void {
     case 'deleted':
       onDelete(event.payload.id);
       break;
-    default: {
-      const _exhaustive: never = event;
-      throw new Error(`Unhandled event: ${_exhaustive}`);
-    }
   }
-}
-```
-
-Type narrowing — all forms:
-
-```typescript
-// typeof
-function format(value: string | number): string {
-  return typeof value === 'string' ? value : value.toFixed(2);
-}
-
-// instanceof
-if (error instanceof AppError) { /* error.code is available */ }
-
-// in
-if ('email' in user) { /* user has email property */ }
-
-// Custom type guard
-function isUser(value: unknown): value is User {
-  return (
-    typeof value === 'object' && value !== null &&
-    'id' in value && 'name' in value
-  );
-}
-
-// Assertion function
-function assertDefined<T>(value: T | null | undefined, msg: string): asserts value is T {
-  if (value == null) throw new Error(msg);
 }
 ```
 
@@ -346,6 +309,8 @@ const route = createRoute(['GET', 'POST']);
 | Immutable configuration | `as const` + `Readonly` | Compile-time literal types + immutability |
 | Entity with invariants and behavior | Class with private constructor | Constructor enforces rules |
 
+In classes, use `#private` fields for true runtime privacy — TypeScript's `private` keyword is compile-time only.
+
 Zod schema as single source of truth:
 
 ```typescript
@@ -353,7 +318,7 @@ import { z } from 'zod';
 
 const UserSchema = z.object({
   id: z.string(),
-  email: z.string().email(),
+  email: z.email(),
   name: z.string().min(1),
   createdAt: z.coerce.date(),
 });
@@ -376,7 +341,7 @@ type Status = (typeof Status)[keyof typeof Status];
 
 ## Pattern matching
 
-Discriminated unions with `switch` and exhaustive checking:
+Discriminated unions with `switch`:
 
 ```typescript
 type Shape =
@@ -389,10 +354,6 @@ function area(shape: Shape): number {
       return Math.PI * shape.radius ** 2;
     case 'rectangle':
       return shape.width * shape.height;
-    default: {
-      const _exhaustive: never = shape;
-      throw new Error(`Unexpected shape: ${_exhaustive}`);
-    }
   }
 }
 ```
@@ -408,18 +369,7 @@ const items = [1, null, 2, undefined, 3].filter(isNonNull);
 // items: number[]
 ```
 
-## Naming conventions
-
-| Element | Convention | Example |
-|---------|-----------|---------|
-| Files | kebab-case | `user-service.ts` |
-| Types / interfaces / classes | PascalCase, no `I` prefix | `UserService`, `Config` |
-| Variables / functions | camelCase | `fetchUser`, `isValid` |
-| Constants (primitives) | UPPER_SNAKE_CASE | `MAX_RETRIES` |
-| Constants (objects) | camelCase | `defaultConfig` |
-| Generics | `T` simple, `TDescriptive` complex | `T`, `TResponse` |
-| Booleans | `is`/`has`/`should`/`can` prefix | `isLoading`, `hasAccess` |
-| Private fields | `#` (runtime enforcement) | `#cache`, `#state` |
+`x == null` / `x != null` is the one sanctioned loose-equality idiom — it matches both `null` and `undefined` in a single check.
 
 ## Module system
 
@@ -430,7 +380,7 @@ import type { User, Config } from './types.js';
 import { fetchUser } from './api.js';
 ```
 
-Avoid deep barrel export chains — they defeat tree-shaking and slow IDE indexing. One level of barrel at package boundaries is acceptable:
+Avoid deep barrel export chains — they slow IDE indexing and obscure module boundaries. One level of barrel at package boundaries is acceptable:
 
 ```typescript
 // packages/auth/index.ts — acceptable
@@ -447,7 +397,7 @@ import { describe, it, expect, vi } from 'vitest';
 
 describe('UserService', () => {
   it('returns user when found', async () => {
-    const mockRepo = { findById: vi.fn<[string], Promise<User | null>>() };
+    const mockRepo = { findById: vi.fn<(id: string) => Promise<User | null>>() };
     mockRepo.findById.mockResolvedValue({ id: '1', name: 'Alice' });
 
     const service = new UserService(mockRepo);
@@ -460,5 +410,3 @@ describe('UserService', () => {
 ```
 
 Mock at boundaries (HTTP, DB, clock), test logic directly. Use the AAA pattern: Arrange (set up data and mocks), Act (call the function), Assert (verify the outcome). Type-safe mocking with `vi.fn()` and `vi.mocked()` — avoid untyped mocks that drift from the real interface.
-
-When to mock: external APIs with rate limits or costs, network-dependent behavior, error paths, timers. When to use real instances: pure logic, value types, in-memory implementations. Test behavior, not implementation — test what a function returns or what state it changes, not how it works internally.

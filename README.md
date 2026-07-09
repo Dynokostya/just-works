@@ -21,7 +21,7 @@ Just copy `.claude/` into any project — or install globally — and get pre-co
 
 **Skills** — coding standards (Python, TypeScript, React, Tailwind, shadcn/ui, Swift, C#, Dart/Flutter), architecture patterns (DDD, feature-driven), model-specific prompt engineering (Claude Opus 4.8 & Fable 5, GPT-5.5, Gemini 3), and behavioral modes (`minimal-coding` for least-code solutions). Applied automatically based on the file type you're editing.
 
-**Security** — `settings.json` blocks agent access to `.env`, `*.pem`, `*.key`, credentials, cloud configs, SSH keys, Terraform state, and databases.
+**Security** — `settings.json` blocks agent access to `*.pem`, `*.key`, credentials, cloud configs, SSH keys, Terraform state, and databases.
 
 ## Installation
 
@@ -40,7 +40,7 @@ Installs agents, skills, commands, and settings globally to `~/.claude/` and `~/
 | | Default | `--personal` (my config) |
 |---|---|---|
 | Permissions | prompts for everything | `bypassPermissions` + safe read-only allow-list |
-| Security deny-list | empty | blocks reads of `.env`, keys, credentials, lockfiles, build dirs |
+| Security deny-list | empty | blocks reads of keys, credentials, lockfiles, build dirs |
 | Model / effort | Claude Code defaults | `best` model + `max` effort (main agent & subagents) |
 | Output style | `default` | `Compressed` (fewer tokens) |
 | Codex | model + basic status line | `danger-full-access`, no approval prompts, MCP servers (Playwright, ClickUp) |

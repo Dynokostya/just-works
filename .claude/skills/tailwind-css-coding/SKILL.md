@@ -36,7 +36,7 @@ import { cn } from "@/lib/utils";
 className={cn("p-4", isLarge && "p-6")}
 ```
 
-- **Never use arbitrary values when a design token exists** -- `p-[16px]` is `p-4`. `bg-[#3b82f6]` is `bg-blue-500`. `w-[100%]` is `w-full`. `text-[14px]` is `text-sm`. Arbitrary values bypass the design system and create inconsistency.
+- **Never use arbitrary values when a design token exists** -- `p-[16px]` is `p-4`. `bg-[#3b82f6]` is `bg-blue-500`. `w-[100%]` is `w-full`. `text-[14px]` is `text-sm`. Arbitrary values bypass the design system and create inconsistency. Likewise, prefer semantic tokens over raw palette colors when the design system defines them (`bg-primary`, not `bg-blue-500`) -- see shadcn-ui-coding.
 
 - **Never omit interaction states on interactive elements** -- every button and link needs `hover:`, `focus-visible:`, and `disabled:` states. Add `transition-colors` for smooth feedback. In v4: add `cursor-pointer` explicitly -- Preflight no longer sets it on buttons.
 
@@ -52,7 +52,7 @@ className={cn("p-4", isLarge && "p-6")}
 
 - **Never use `@apply` for patterns extractable to components** -- extract a React/Vue/Svelte component instead. `@apply` is only for third-party library overrides, CMS/Markdown HTML, and non-component template languages.
 
-- **Never forget dark mode counterparts** -- every `bg-`, `text-`, and `border-` color needs a `dark:` variant, or use CSS variable theming to handle both modes in one declaration.
+- **Never leave colors unthemed when the project supports dark mode** -- prefer semantic tokens/CSS variables, which theme both modes in one declaration with no `dark:` variants needed (see Dark mode below); with raw palette utilities, every `bg-`, `text-`, and `border-` color needs a `dark:` counterpart. Projects without dark mode need neither.
 
 - **Never use `sm:` thinking it means "small screens"** -- `sm:` means 640px AND ABOVE. Unprefixed utilities apply to all screens (mobile-first). Write base styles for mobile, then layer breakpoints upward.
 
@@ -99,7 +99,7 @@ function Button({ size = "md", className, ...props }: ButtonProps) {
 
 For components with 2+ variant dimensions, consider `cva` from class-variance-authority.
 
-When the compiler must see classes that only appear in dynamic data (CMS content, database values), safelist them. In v4: `@source inline("bg-red-500 bg-blue-500")`. In v3: `safelist` array in `tailwind.config.js`.
+When the compiler must see classes that only appear in dynamic data (CMS content, database values), safelist them. In v4: `@source inline("bg-{red,blue}-500")` -- brace expansion generates each class; use one pattern per directive. In v3: `safelist` array in `tailwind.config.js`.
 
 ## Class composition
 
@@ -130,7 +130,7 @@ function Card({ className }: { className?: string }) {
 
 ## Responsive design
 
-Mobile-first: write base styles for the smallest screen, then add breakpoints upward. Always order breakpoints `sm:` -> `md:` -> `lg:` -> `xl:` -> `2xl:`. Never skip to `lg:` without considering the gap.
+Mobile-first: write base styles for the smallest screen, then add breakpoints upward. Write breakpoint variants in ascending order (`sm:` -> `md:` -> `lg:` -> `xl:` -> `2xl:`) -- a readability convention (what the Prettier plugin enforces); order within the class string has zero CSS effect. Never skip to `lg:` without considering the gap.
 
 ```html
 <!-- Single column on mobile, two on tablet, three on desktop -->
@@ -174,30 +174,17 @@ Then use `bg-surface text-on-surface` everywhere -- no `dark:` variants needed p
 
 ## Interaction states
 
-Minimum states for buttons: `hover:`, `focus-visible:`, `disabled:`, `transition-colors`. Minimum for inputs: `focus:`, `disabled:`, `placeholder:`. Minimum for links: `hover:`, `focus-visible:`.
+Minimum states for buttons: `hover:`, `focus-visible:`, `disabled:`, `transition-colors` -- full button example under Never rules. Minimum for inputs: `focus:`, `disabled:`, `placeholder:`. Minimum for links: `hover:`, `focus-visible:`.
 
-```tsx
-// Complete button pattern
-<button className={cn(
-  "px-4 py-2 rounded font-medium transition-colors",
-  "bg-blue-600 text-white",
-  "hover:bg-blue-700",
-  "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600",
-  "disabled:opacity-50 disabled:cursor-not-allowed",
-  "cursor-pointer" // v4: Preflight no longer sets cursor:pointer on buttons
-)}>
-```
-
-Complete input pattern:
+Complete input pattern (semantic tokens -- both modes themed with no `dark:` variants):
 
 ```tsx
 <input className={cn(
   "w-full rounded border px-3 py-2 transition-colors",
-  "border-gray-300 bg-white text-gray-900",
-  "dark:border-gray-600 dark:bg-gray-800 dark:text-white",
-  "placeholder:text-gray-400 dark:placeholder:text-gray-500",
-  "focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500",
-  "disabled:cursor-not-allowed disabled:bg-gray-100 disabled:opacity-50",
+  "border-input bg-background text-foreground",
+  "placeholder:text-muted-foreground",
+  "focus:border-ring focus:outline-none focus:ring-1 focus:ring-ring",
+  "disabled:cursor-not-allowed disabled:bg-muted disabled:opacity-50",
 )} />
 ```
 

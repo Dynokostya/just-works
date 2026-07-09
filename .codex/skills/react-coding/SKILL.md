@@ -48,13 +48,14 @@ useEffect(() => {
   fetch(`/api/users/${userId}`).then(r => r.json()).then(setUser);
 }, [userId]);
 
-// Correct: AbortController for cleanup
+// Correct: AbortController for cleanup, error captured in state
+// (rethrowing inside .catch would just create an unhandled rejection)
 useEffect(() => {
   const controller = new AbortController();
   fetch(`/api/users/${userId}`, { signal: controller.signal })
     .then(r => r.json())
     .then(setUser)
-    .catch(e => { if (e.name !== "AbortError") throw e; });
+    .catch(e => { if (e.name !== "AbortError") setError(e); });
   return () => controller.abort();
 }, [userId]);
 
@@ -69,31 +70,14 @@ const { data: user } = useQuery({
 
 - **Never mutate state directly** -- React detects changes by reference. `array.push()` and `obj.prop = x` won't trigger re-renders. Use spread, `structuredClone`, or non-mutating methods like `.toSorted()` (not `.sort()` which mutates).
 
-```tsx
-// Wrong: mutates existing array, React sees same reference
-items.push(newItem);
-setItems(items);
-
-// Correct: new array reference, non-mutating sort
-setItems([...items, newItem].toSorted((a, b) => a.name.localeCompare(b.name)));
-```
-
 - **Never use array index as `key` for dynamic lists** -- index keys cause React to reuse DOM nodes incorrectly when items are reordered, inserted, or removed, corrupting component state. Use stable unique IDs.
-
-```tsx
-// Wrong: index key breaks on reorder/insert/delete
-{items.map((item, i) => <ListItem key={i} item={item} />)}
-
-// Correct: stable unique ID
-{items.map(item => <ListItem key={item.id} item={item} />)}
-```
 
 - **Never add `"use client"` by default** -- in Next.js App Router, components are Server Components by default. Adding `"use client"` unnecessarily pushes components and their entire subtree to the client bundle, losing server-side rendering, data fetching, and streaming benefits. Only add it when the component uses hooks (`useState`, `useEffect`), event handlers, or browser APIs. Place the boundary as low in the tree as possible.
 
-- **Never use `forwardRef` in React 19+** -- `ref` is a regular prop in React 19+. `forwardRef` is deprecated. In React 18, `forwardRef` is still required.
+- **Never use `forwardRef` in React 19+ code** -- `ref` is a regular prop since React 19, so `forwardRef` is unnecessary (formal deprecation announced, not yet removed). In React 18, `forwardRef` is still required.
 
 ```tsx
-// Wrong (React 19): forwardRef is deprecated
+// Wrong (React 19): unnecessary forwardRef wrapper
 const Input = forwardRef<HTMLInputElement, InputProps>((props, ref) => (
   <input ref={ref} {...props} />
 ));
@@ -158,15 +142,6 @@ function Profile({ userId }: { userId: string }) {
 
 - **Never use `dangerouslySetInnerHTML` without sanitization** -- renders raw HTML, enabling XSS attacks. Always sanitize with DOMPurify or similar. Prefer React's built-in escaping over raw HTML injection entirely.
 
-```tsx
-// Wrong: unsanitized HTML injection
-<div dangerouslySetInnerHTML={{ __html: userContent }} />
-
-// Correct: sanitize first
-import DOMPurify from "dompurify";
-<div dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(userContent) }} />
-```
-
 - **Never use `React.lazy` without a `<Suspense>` boundary** -- lazy components suspend during loading. Without `<Suspense>`, the thrown promise is unhandled and crashes the app. Wrap with `<Suspense>` and an error boundary.
 
 ```tsx
@@ -208,9 +183,6 @@ function Parent() {
 
 ## React 19 APIs
 
-- **Document metadata.** Render `<title>`, `<meta>`, and `<link>` anywhere in the tree — React hoists them to `<head>`. Skip framework-specific `<Head>` helpers for simple cases.
-- **Stylesheet precedence.** `<link rel="stylesheet" href="..." precedence="default" />` lets React manage insertion order.
-- **Resource preloading from `react-dom`.** `preinit`, `preload`, `prefetchDNS`, `preconnect` — call at module scope or in event handlers to prime the browser before navigation.
 - **Ref cleanup.** Return a cleanup function from a ref callback: `ref={(node) => { attach(node); return () => detach(node); }}`. React calls it on unmount.
 - **`<Context>` as provider.** `<ThemeContext value="dark">...</ThemeContext>` — no more `.Provider`.
 
@@ -272,7 +244,7 @@ Don't roll your own `isSubmitting` state — `useActionState` and `useFormStatus
 
 ## Component typing
 
-**Prefer typed function declarations over `React.FC`.** `React.FC` is no longer broken (implicit `children` was removed in React 18 types), but plain function declarations are clearer, support generics naturally, and are the community standard.
+**Prefer function declarations over `React.FC`.**
 
 ```tsx
 interface UserCardProps {

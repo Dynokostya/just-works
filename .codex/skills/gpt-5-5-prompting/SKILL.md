@@ -1,9 +1,16 @@
 ---
 name: gpt-5-5-prompting
-description: Apply when creating or editing prompts targeting GPT-5.5. Covers outcome-first prompting, reasoning-effort calibration, verbosity tuning, long-context handling, ambiguity management, tool persistence and validation, preamble and phase patterns, retrieval budgets, structured extraction, citation discipline, personality and collaboration style, coding autonomy, frontend prompting, and migration from GPT-5.4 or older GPT models.
+description: Apply when creating or editing prompts targeting GPT-5.5. Covers outcome-first prompting, reasoning-effort calibration, verbosity tuning, long-context handling, ambiguity management, tool persistence and validation, preamble and phase patterns, retrieval budgets, structured extraction, citation discipline, personality and collaboration style, coding autonomy, frontend prompting, and migration from GPT-5.4, GPT-5.3-Codex, or older GPT models.
 ---
 
 # GPT-5.5 Prompt Writing Guidelines
+
+## When to Use
+
+- Creating or editing prompts targeting GPT-5.5
+- Calibrating reasoning effort, verbosity, and tool persistence for GPT-5.5 workloads
+- Migrating prompt text from GPT-5.4, GPT-5.3-Codex, or older GPT models
+- Diagnosing 5.5-specific behaviors (literal interpretation, `medium` default reasoning, concise default style, commentary vs. final-answer phases)
 
 ## Overview
 
@@ -121,7 +128,7 @@ For plain conversational surfaces, instruct the model to use plain paragraphs as
 
 For editing / rewriting / polishing tasks, tell the model to preserve the requested artifact, length, structure, and genre first; improve clarity and correctness quietly without adding new claims or a more promotional tone.
 
-Quantitative constraints ("3-6 sentences", "under 400 words") outperform qualitative ones ("be concise").
+Quantitative constraints ("3-6 sentences", "under 400 words") outperform qualitative ones ("be concise") — standard pattern, unchanged from 5.4.
 
 ## Scope and Design Constraints
 
@@ -146,18 +153,7 @@ For extraction and data tasks, scope is schema adherence: follow the schema exac
 
 ## Long-Context Handling
 
-GPT-5.5 supports a 1M-token context window. Coherence over long sessions is strong, but grounding instructions still improve accuracy on inputs over ~10k tokens:
-
-```
-<long_context_handling>
-- For inputs longer than ~10k tokens (multi-chapter docs, long threads, multiple PDFs):
-  - Produce a short internal outline of key sections relevant to the request.
-  - Re-state the user's constraints explicitly before answering.
-  - Anchor claims to sections rather than speaking generically.
-- If the answer depends on fine details (dates, thresholds, clauses), quote
-  or paraphrase them.
-</long_context_handling>
-```
+GPT-5.5 supports a 1M-token context window. Coherence over long sessions is strong, but grounding instructions still improve accuracy on inputs over ~10k tokens. The standard `<long_context_handling>` block carries over unchanged from 5.4: internally outline the relevant sections, re-state the user's constraints before answering, anchor claims to sections, and quote or paraphrase fine details (dates, thresholds, clauses).
 
 For the largest contexts (>500k tokens), prefer targeted retrieval into the working window over stuffing the entire corpus; retrieval budgets and per-document IDs stay useful even when the window allows the full payload.
 
@@ -178,19 +174,7 @@ Set an explicit follow-through policy so the model proceeds on clear low-risk re
 </default_follow_through>
 ```
 
-For genuine ambiguity and hallucination mitigation:
-
-```
-<uncertainty_and_ambiguity>
-- If the question is ambiguous or underspecified, explicitly call this out and:
-  - Ask up to 1-3 precise clarifying questions, OR
-  - Present 2-3 plausible interpretations with clearly labeled assumptions.
-- When external facts may have changed recently and no tools are available:
-  - Answer in general terms and state that details may have changed.
-- Never fabricate exact figures, line numbers, or external references when uncertain.
-- When unsure, prefer language like "Based on the provided context..." instead of absolute claims.
-</uncertainty_and_ambiguity>
-```
+For genuine ambiguity, set this preference order in an `<uncertainty_and_ambiguity>` block: by default, present 2-3 plausible interpretations with clearly labeled assumptions; ask 1-3 precise blocking questions only when picking the wrong branch would be costly. Standard hallucination mitigations are unchanged from 5.4: never fabricate figures, line numbers, or external references, and prefer "Based on the provided context..." over absolute claims when unsure.
 
 For high-stakes domains (legal, finance, compliance, safety), add a self-check before finalizing: re-scan the answer for unstated assumptions, specific numbers not grounded in context, and overly strong language ("always", "guaranteed"); soften or qualify and explicitly state assumptions.
 
@@ -292,15 +276,7 @@ details, or support wording that can safely be made more generic.
 </retrieval_budget>
 ```
 
-```
-<empty_result_recovery>
-If a lookup returns empty, partial, or suspiciously narrow results:
-- do not immediately conclude that no results exist,
-- try at least one or two fallback strategies (alternate query wording,
-  broader filters, a prerequisite lookup, or an alternate source or tool),
-- Only then report that no results were found, along with what you tried.
-</empty_result_recovery>
-```
+Empty-result recovery is a standard pattern, unchanged from 5.4: in an `<empty_result_recovery>` block, require one or two fallback strategies on empty or suspiciously narrow results (alternate query wording, broader filters, a prerequisite lookup, an alternate source or tool) before reporting "no results" along with what was tried.
 
 ## Agentic Updates
 
@@ -371,7 +347,7 @@ For multi-source research, use a 3-pass structure paired with a retrieval budget
 
 ### Citation Discipline
 
-Lock citations to retrieved sources. If the host renders inline citation markers (e.g., Unicode markers like `​cite​`, `​start​`, `​end​`), emit one marker per source rather than combining sources:
+Lock citations to retrieved sources. If the host renders inline citation markers (e.g., Unicode markers like `<ZWSP>cite<ZWSP>`, `<ZWSP>start<ZWSP>`, `<ZWSP>end<ZWSP>`), emit one marker per source rather than combining sources. Here `<ZWSP>` stands for U+200B ZERO WIDTH SPACE — the real marker characters are invisible, so this file writes them as a visible placeholder:
 
 ```
 <citation_rules>
@@ -514,7 +490,7 @@ When migrating prompts to GPT-5.5:
 - **Carrying over every legacy instruction** — GPT-5.5 punishes process-heavy stacks with mechanical answers. Prune.
 - **Using `ALWAYS` / `NEVER` / `must` / `only` for judgment calls** — reserve for true invariants (safety, required fields). Use decision rules for search/ask/iterate choices.
 - **Step-by-step scripts where outcome-first would work** — define the destination; let the model pick the path.
-- **Asking clarifying questions when you can cover plausible intents** — instruct the model to present interpretations instead.
+- **Asking blocking clarifying questions when you can cover plausible intents** — default to presenting 2-3 labeled interpretations; reserve questions for when the wrong branch would be costly.
 - **Expanding task scope beyond user request** — implement only what was asked.
 - **Inventing exact figures, citations, or external references when uncertain** — instruct to hedge, lock to retrieved sources, or verify via tools.
 - **Rephrasing user requests unless semantics change** — preserve the user's language.
@@ -530,21 +506,12 @@ When migrating prompts to GPT-5.5:
 
 ## Quality Checklist
 
-- [ ] Prompt uses the 7-section structure for complex tasks
-- [ ] Personality and Collaboration style are separate blocks if both apply
-- [ ] Reasoning effort chosen deliberately; not defaulted to `xhigh`
-- [ ] Verbosity set where the host supports it; length contracts per section otherwise
-- [ ] Scope constraints defined for code and UI tasks
-- [ ] Long-context grounding added for inputs over 10k tokens
-- [ ] Default follow-through policy set for agentic prompts
-- [ ] Uncertainty handling specified for the domain's risk level
-- [ ] Preamble pattern set for streaming / multi-step tasks
+The easy-to-forget items:
+
+- [ ] Reasoning effort pinned deliberately — matched to the source model on migration, not silently inherited from the new `medium` default, and not defaulted to `xhigh`
+- [ ] Personality and Collaboration style kept as separate blocks if both apply
 - [ ] Commentary vs. final-answer phases kept distinct in prompt instructions
-- [ ] Tool persistence, completeness contract, and validation block set for agents
+- [ ] Tool persistence, completeness contract, and validation block set for agentic prompts
 - [ ] Retrieval budget and empty-result recovery set for search-enabled flows
-- [ ] Tool descriptions crisp (1-2 sentences each); initial tool set small
-- [ ] Strict schema relied on where available; otherwise structured-output contract in the prompt
-- [ ] Extraction tasks include exact JSON schema with null handling; research prompts specify 3-pass structure, retrieval budget, and citation rules
-- [ ] Creative-drafting guardrails set for slides/copy/summaries
-- [ ] `<autonomy_and_persistence>` set for coding tasks with concrete validation commands
-- [ ] Prompt tested without changes after model migration; reasoning effort pinned to source value on first pass
+- [ ] Extraction tasks include the exact JSON schema inline, with missing fields set to null rather than guessed
+- [ ] Prompt tested without changes after model migration, before any re-engineering

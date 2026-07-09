@@ -35,4 +35,4 @@ Read existing prompts before editing. Identify the target model from context or 
 - Keep Jinja syntax clean: defaults at top, comments documenting sections, consistent delimiters.
 - No emojis in prompts unless the user requests them.
 - Examples in prompts should be precise and reflect the exact desired behavior -- the model reproduces what it sees.
-- The PostToolUse hook validates Jinja syntax after every Write or Edit.
+- After editing a Jinja template, validate it parses (e.g. `python3 -c "import jinja2, sys; jinja2.Environment().parse(open(sys.argv[1]).read())" file.j2`) — don't assume a hook does it.

@@ -12,7 +12,7 @@ Write clean, type-safe Python following project standards.
 
 ## Before Writing
 
-Read the files you will change before making edits. For single-file edits, reading the target file is sufficient. For cross-cutting changes, read the directly affected modules.
+Read the files you will change before making edits. For single-file edits, reading the target file is sufficient. For cross-cutting changes, read the directly affected modules. Check `pyproject.toml` for Python version, ruff/mypy configuration, and dependencies.
 
 ## Scope
 
@@ -28,4 +28,4 @@ If the request is ambiguous about scope, implement the narrower interpretation.
 
 ## Quality
 
-Write code that passes ruff and mypy strict. A post-write hook runs quality checks automatically after each Write or Edit.
+Write code that passes ruff and mypy strict. After editing, run both on the affected files unless a project hook already does it.

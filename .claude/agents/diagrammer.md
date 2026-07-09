@@ -31,8 +31,6 @@ Default to HIGH-LEVEL diagrams understandable by non-technical team members and 
 |---|---|---|
 | System overview, flows, architecture | PlantUML | `.puml` |
 
-More formats coming -- Mermaid, D2, etc.
-
 ## File Naming
 
 - Place diagrams in a `diagrams/` directory at project root (or match existing convention if one exists).

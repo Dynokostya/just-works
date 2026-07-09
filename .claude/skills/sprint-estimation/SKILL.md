@@ -1,6 +1,6 @@
 ---
 name: sprint-estimation
-description: Apply when creating a ticket that needs story points, when asked to estimate a task, or when a ticket description is pasted without other clear intent. Provides a calibration framework for assigning accurate Fibonacci story points (1–13) based on work volume, complexity, uncertainty, and risk. Triggers context gathering (code exploration, clarifying questions) before committing to a point value. Pairs with ticket-writing for body content and clickup-tickets for field discipline. Project conventions always override these defaults.
+description: Apply when the user explicitly asks to estimate a task ("how many points", "estimate this") or when a ticket-creation flow explicitly requests story points. Provides a calibration framework for assigning accurate Fibonacci story points (1–13) based on work volume, complexity, uncertainty, and risk. Triggers context gathering (code exploration, clarifying questions) before committing to a point value. Pairs with ticket-writing for body content and clickup-tickets for field discipline. Project conventions always override these defaults.
 ---
 
 # Sprint Estimation
@@ -12,10 +12,10 @@ This skill calibrates how you assign story points. Story points measure relative
 - **Gather context before estimating.** Read the ticket fully. If the task involves code, explore the relevant files, dependencies, and integration points. If requirements are vague, ask clarifying questions. Assign points only after you understand what the work actually entails.
 - **Estimate for the team, not a person.** Points reflect average team capability. Ignore who will pick it up.
 - **Use the Fibonacci scale only: 1, 2, 3, 5, 8, 13.** No intermediate values. If torn between two, pick the higher one — uncertainty rounds up.
-- **Recommend splitting above 8.** Tickets above 8 points carry high uncertainty. Propose concrete sub-tickets. Require splitting above 13 — do not assign 13+ without a decomposition proposal.
+- **Recommend splitting at 8+.** Tickets at 8 or 13 points carry high uncertainty; propose concrete sub-tickets. A 13 must never ship bare — always deliver a decomposition proposal alongside it.
 - **Flag missing information as uncertainty.** When the ticket lacks acceptance criteria, scope boundaries, technical context, or dependency info, state what's missing and note that the estimate assumes worst-case for those gaps.
 - **Triangulate every estimate.** Compare against at least one lower and one higher reference from the scale table. If neither comparison confirms the estimate, re-evaluate.
-- **Include the estimate in the ticket output.** When creating or rewriting a ticket, include the story point value. When asked only to estimate, output the value with a one-line rationale per factor.
+- **Produce the estimate only when asked.** Include story points in a ticket only when the user requested them or the flow explicitly covers estimation — never add an unrequested value (`ticket-writing` forbids it). When asked only to estimate, output the value with a one-line rationale per factor.
 - **Adapt to the user's scale if specified.** If the user says "we use t-shirt sizing" or "our scale is 1,2,4,8,16", map the same factors to their scale. Ask for reference stories if calibration is unclear.
 
 ## Opti Scale
@@ -66,9 +66,9 @@ Factors: volume [L/M/H], complexity [L/M/H], uncertainty [L/M/H], risk [L/M/H]
 [Optional: "Split recommendation: [sub-tickets]"]
 ```
 
-**When creating a ticket** (used alongside ticket-writing):
+**When creating a ticket that requests points** (used alongside ticket-writing):
 
-Include `**Story points:** X` as a field in the ticket. No separate estimation block needed — the work is internalized.
+Route the value to the tracker's native field when one exists — in ClickUp, the native `points` field or the Space's discovered tag convention per `clickup-tickets`, never the description. Only when the tracker has no native points field, include `**Story points:** X` in the body. No separate estimation block needed — the work is internalized.
 
 ## ClickUp integration
 

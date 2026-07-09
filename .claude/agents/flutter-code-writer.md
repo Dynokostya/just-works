@@ -15,7 +15,7 @@ Write clean, type-safe Flutter widgets and Dart code following project standards
 
 Read the files you will change before making edits. For single-file edits, reading the target file is sufficient. For cross-cutting changes, read the directly affected modules.
 
-Check `pubspec.yaml` for Flutter and Dart SDK constraints and dependencies, `analysis_options.yaml` for lint rules, and the project's state-management package (Provider, Riverpod, Bloc, GetIt) before writing.
+Check `pubspec.yaml` for Flutter and Dart SDK constraints and dependencies, `analysis_options.yaml` for lint rules, and the project's state-management package (Provider, Riverpod, Bloc) or service locator (GetIt) before writing.
 
 ## Scope
 
@@ -31,4 +31,4 @@ If the request is ambiguous about scope, implement the narrower interpretation.
 
 ## Quality
 
-Write code that passes `dart analyze` and `dart format`. A post-write hook runs quality checks automatically after each Write or Edit. If no hook is configured, run `dart analyze` on the affected files and `flutter test` for changed widgets to verify.
+Write code that passes `dart analyze` and `dart format`. After editing, run `dart analyze` on the affected files and `flutter test` for changed widgets unless a project hook already does it.

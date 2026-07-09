@@ -1,6 +1,6 @@
 ---
 name: ddd-architecture-python
-description: Apply when implementing Domain-Driven Design patterns in Python (.py) files. Covers tactical patterns (entities, value objects, aggregates, domain events, repositories), layered architecture with dependency inversion, persistence strategies, validation boundaries, and common DDD anti-patterns. Best suited for projects with complex business rules spanning multiple entities.
+description: Apply when implementing Domain-Driven Design patterns in Python (.py) files. Covers tactical patterns (entities, value objects, aggregates, domain events, repositories), layered architecture with dependency inversion, persistence strategies, validation boundaries, and common DDD anti-patterns. Best suited for projects with complex business rules spanning multiple entities. For top-level project layout by business capability see feature-driven-architecture-python; this skill governs the internals of slices with complex invariants.
 ---
 
 # Domain-Driven Design in Python
@@ -32,9 +32,13 @@ These are unconditional. They prevent structural defects regardless of project s
 | **Application Service** | Orchestrates repositories, domain objects, UoW | Use case coordination | Don't mix with domain logic |
 | **Factory** | `@classmethod` on entity or aggregate | Complex construction with invariants | Simple `__init__` suffices |
 
+Caveat: drop `slots=True` on entities mapped imperatively with SQLAlchemy -- ORM instrumentation needs instance `__dict__`.
+
 ### Value object
 
 ```python
+from __future__ import annotations  # lets Money methods reference Money (required on Python <= 3.13)
+
 @dataclass(frozen=True, slots=True)
 class Money:
     amount: Decimal
@@ -116,7 +120,7 @@ Start with Strategy A. Move to Strategy B when you need to unit-test domain logi
 
 ```python
 # domain/model.py -- pure Python, no SQLAlchemy imports
-@dataclass(eq=False, slots=True)
+@dataclass(eq=False)  # no slots=True -- map_imperatively needs instance __dict__
 class Product:
     id: int
     sku: str
@@ -174,7 +178,7 @@ class ConfirmOrderHandler:
             await self._bus.publish(event)
 ```
 
-Wrong -- generic repository with leaked ORM abstractions:
+Wrong -- generic repository with leaked ORM abstractions (the generic `Repository[T]` shape itself is fine -- the leak is exposing ORM query surface and models through it):
 
 ```python
 # WRONG: this is a leaked ORM, not a domain repository

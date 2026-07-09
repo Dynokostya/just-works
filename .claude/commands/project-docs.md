@@ -1,3 +1,7 @@
+---
+description: Generate or update docs/mission.md, docs/tech-stack.md, and docs/architecture.md from evidence-gated codebase exploration
+---
+
 # Project Documentation
 
 Generate or update project documentation in `docs/`. Produces three files:
@@ -34,7 +38,7 @@ Announce the per-file status table and commit count to the user before continuin
 
 ## Phase 2: Explore
 
-Launch three parallel Explore agents using the Task tool (`subagent_type: "Explore"`). All three are independent — launch them in a single message, never sequentially. Specify `thoroughness: "very thorough"` in each prompt.
+Launch three parallel Explore agents using the Agent tool (`subagent_type: "Explore"`). All three are independent — launch them in a single message, never sequentially. Specify search breadth "very thorough" in each prompt.
 
 Every agent prompt must include:
 - The git context gathered in Phase 1 (last 30 commit subjects + contributor summary)

@@ -32,4 +32,4 @@ If the request is ambiguous about scope, implement the narrower interpretation.
 
 ## Quality
 
-Write code that passes the project's linter and formatter. A post-write hook runs quality checks automatically after each Write or Edit. If no hook is configured, discover the linter from project config (ESLint, Biome, or similar) and run it manually after changes.
+Write code that passes the project's linter and formatter. After editing, discover the linter from project config (ESLint, Biome, or similar) and run it unless a project hook already does it.

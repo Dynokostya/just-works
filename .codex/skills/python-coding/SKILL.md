@@ -15,14 +15,11 @@ These are unconditional. They prevent bugs and vulnerabilities regardless of pro
 - **Never `datetime.now()` or `datetime.utcnow()`** -- both produce naive datetimes that lose timezone info. Naive datetimes cause subtle bugs when code crosses timezone boundaries (servers, users, DST). Use `datetime.now(tz=timezone.utc)`. Use `zoneinfo.ZoneInfo` for other timezones, not `pytz`.
 - **Never `random` for security** -- `random` uses a predictable PRNG; an attacker who observes a few outputs can predict future ones. Use `secrets.token_hex()`, `secrets.token_urlsafe()`, or `secrets.token_bytes()` for tokens, keys, session IDs.
 - **Never `shell=True` in `subprocess`** -- shell interpretation enables command injection if any argument contains user input. Use argument lists: `subprocess.run(["cmd", arg1, arg2])`.
-- **Never string formatting in SQL** -- SQL injection is one of the most exploited vulnerabilities. Use parameterized queries only. `f"SELECT * FROM users WHERE id = {uid}"` is always a defect.
-- **Never `yaml.load()`** without `SafeLoader` -- use `yaml.safe_load()`. Unsafe YAML loading deserializes arbitrary Python objects, enabling remote code execution from a crafted YAML file.
-- **Never `pickle.load()` on untrusted data** -- pickle executes arbitrary code during deserialization by design. Use JSON, MessagePack, or Protocol Buffers for data interchange.
-- **Never `eval()` or `exec()` on external input** -- use `ast.literal_eval()` for safe evaluation of literals.
-- **Never mutable default arguments** -- `def f(items=[])` shares one list across all calls. Appending in one call mutates the default for every subsequent call. Use `None` sentinel: `def f(items: list[str] | None = None)` then `items = items or []`.
+- **Never interpolate or unsafely deserialize external input** -- no string-formatted SQL (parameterized queries only), no `yaml.load()` (use `yaml.safe_load()`), no `pickle.load()` on untrusted data (use JSON/MessagePack), no `eval()`/`exec()` (use `ast.literal_eval()` for literals). All are injection or remote-code-execution vectors.
+- **Never mutable default arguments** -- `def f(items=[])` shares one list across all calls. Appending in one call mutates the default for every subsequent call. Use `None` sentinel: `def f(items: list[str] | None = None)` then `if items is None: items = []` (not `items = items or []`, which also replaces a caller's passed-in empty list).
 - **Never shadow builtins** -- don't use `list`, `dict`, `id`, `type`, `input`, `hash`, `map`, `set`, `filter` as variable names. Shadowing causes confusing errors when you later need the builtin in the same scope.
 - **Never blocking calls in async** -- no `time.sleep()`, bare `open()`, or `requests.get()` inside `async def`. These block the entire event loop, freezing all concurrent tasks. Use `asyncio.sleep()`, `aiofiles`, `httpx`.
-- **Never `+=` string concatenation in loops** -- use `"".join(parts)`. Python strings are immutable, so each `+=` allocates a new string and copies all previous content — O(n²) at scale. At 10k iterations this turns milliseconds into seconds.
+- **Never `+=` string concatenation in loops** -- use `"".join(parts)`. Strings are immutable, so repeated `+=` is quadratic in the general case; CPython has a narrow in-place optimization that often masks it, but it is implementation-specific and easily defeated. `join` is reliably linear everywhere.
 
 ## Error handling
 
@@ -75,8 +72,9 @@ Use context managers for anything that needs cleanup -- clients, connections, fi
 For managing multiple async resources, use `AsyncExitStack`:
 
 ```python
-from contextlib import AsyncExitStack
+from contextlib import AsyncExitStack, asynccontextmanager
 
+@asynccontextmanager
 async def setup_resources() -> AsyncIterator[Resources]:
     async with AsyncExitStack() as stack:
         db = await stack.enter_async_context(create_pool(dsn))
@@ -146,7 +144,7 @@ class Repository[T]:
 
 **Use `object` instead of `Any`** when you mean "accepts anything." `Any` silently disables type checking -- it's a hole in type safety. Reserve `Any` for when the type system genuinely cannot express something.
 
-**Covariant inputs, concrete outputs.** Function parameters should accept abstract types (`Sequence`, `Mapping`, `Iterable`); return types should be concrete (`list`, `dict`):
+**Accept abstract, return concrete.** Function parameters should accept abstract types (`Sequence`, `Mapping`, `Iterable`); return types should be concrete (`list`, `dict`):
 
 ```python
 from collections.abc import Sequence, Mapping
@@ -217,17 +215,6 @@ class CacheKey:
     id: str
 ```
 
-## Dependency injection
-
-Constructor injection. Dependencies are explicit, testable, and swappable.
-
-```python
-class UserService:
-    def __init__(self, repository: UserRepository, email_client: EmailClient) -> None:
-        self._repository = repository
-        self._email_client = email_client
-```
-
 ## Protocol
 
 Use Protocol for structural interfaces -- duck typing with full type safety, no inheritance required.
@@ -260,21 +247,26 @@ Import order: standard library, third-party, local. Define `__all__` if the proj
 
 ## Retry logic
 
-Use tenacity for transient errors: network failures, rate limits, 5xx responses. Let 4xx errors propagate -- they indicate a request problem, not a transient failure.
+Use tenacity for transient errors: network failures, rate limits (429), 5xx responses. Let other 4xx errors propagate -- they indicate a request problem, not a transient failure.
 
 ```python
+def _is_transient(e: BaseException) -> bool:
+    if isinstance(e, httpx.HTTPStatusError):
+        return e.response.status_code >= 500 or e.response.status_code == 429
+    return isinstance(e, httpx.RequestError)
+
 @retry(
-    retry=retry_if_exception_type((httpx.RequestError, httpx.HTTPStatusError)),
+    retry=retry_if_exception(_is_transient),
     stop=stop_after_attempt(3),
     wait=wait_exponential(multiplier=1, min=2, max=10),
     before_sleep=before_sleep_log(logger, logging.WARNING),
     reraise=True,
 )
-async def fetch_with_retry(url: str) -> dict[str, Any]:
-    async with httpx.AsyncClient() as client:
-        response = await client.get(url, timeout=30.0)
-        response.raise_for_status()
-        return response.json()
+async def fetch_with_retry(client: httpx.AsyncClient, url: str) -> dict[str, Any]:
+    # takes the shared client -- creating one per attempt defeats connection pooling
+    response = await client.get(url)
+    response.raise_for_status()
+    return response.json()
 ```
 
 ## Logging
@@ -289,5 +281,3 @@ logger.info("User created", extra={"user_id": user.id})
 ## Testing
 
 Match the project's test runner and async plugin. Check for `pytest-asyncio` `mode = "auto"` (no manual `@pytest.mark.asyncio` needed) or `anyio`-based setup.
-
-When to mock: external APIs with rate limits/costs, error paths, deterministic results. When to use real services: verifying actual integration behavior, sandbox/test modes available. Test behavior, not implementation -- test what a function returns, not how it does it internally.

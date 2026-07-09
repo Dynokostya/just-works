@@ -9,8 +9,9 @@
 | `<\|--` | Extension/inheritance | "is a" relationship |
 | `*--` | Composition | Part cannot exist without whole |
 | `o--` | Aggregation | Part can exist independently |
-| `-->` | Dependency | Uses temporarily |
+| `-->` | Directed association | Navigable "has a / uses" link |
 | `--` | Association | General relationship |
+| `..>` | Dependency | Uses temporarily (parameter, local variable) |
 | `..\|>` | Implements | Realizes an interface |
 
 ## Example

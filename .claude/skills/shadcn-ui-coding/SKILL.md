@@ -1,6 +1,6 @@
 ---
 name: shadcn-ui-coding
-description: Apply when generating shadcn/ui code. Covers the copy-paste component model, Radix UI compound components, theming with CSS variables, Form/DataTable integrations, and CLI conventions. Does NOT cover general React or Tailwind CSS patterns.
+description: Apply when generating shadcn/ui code — signaled by components.json in the project root and components under components/ui/. Covers the copy-paste component model, Radix UI compound components, theming with CSS variables, Form/DataTable integrations, and CLI conventions. Does NOT cover general React or Tailwind CSS patterns.
 ---
 
 # shadcn/ui coding
@@ -58,26 +58,9 @@ import { Button } from "@/components/ui/button";
 </DialogTrigger>
 ```
 
-- **Never use hardcoded colors** -- use CSS variable tokens. Hardcoded values bypass dark mode and break theme consistency.
+- **Never use hardcoded colors** -- use semantic tokens (`bg-primary text-primary-foreground`, not `bg-blue-500 text-white`); full theming rules in the tailwind-css-coding skill.
 
-```tsx
-// Wrong: hardcoded color, breaks in dark mode
-<div className="bg-blue-500 text-white">
-
-// Correct: CSS variable tokens, theme-aware
-<div className="bg-primary text-primary-foreground">
-```
-
-- **Never compose classNames with template literals** -- use `cn()` (clsx + tailwind-merge). Template literals can't resolve Tailwind class conflicts.
-
-```tsx
-// Wrong: conflicting classes not resolved
-<div className={`px-2 ${className}`}>
-
-// Correct: tailwind-merge resolves conflicts, last wins
-import { cn } from "@/lib/utils";
-<div className={cn("px-2", className)}>
-```
+- **Never compose classNames with template literals** -- use `cn()` (clsx + tailwind-merge); class-composition rules in the tailwind-css-coding skill.
 
 - **Never spread `{...field}` on Select, Checkbox, or Switch** -- these use `onValueChange`/`onCheckedChange`, not `onChange`. Spreading `field` binds `onChange`, which is silently ignored.
 
@@ -193,7 +176,7 @@ Format depends on Tailwind version:
 
 ### Dark mode
 
-**Tailwind v4:** Use `@custom-variant` with `:where()` (not `:is()`) and include both `.dark` and `.dark *`:
+**Tailwind v4:** Use `@custom-variant` covering both `.dark` and `.dark *` -- `:where()` keeps specificity at zero for easier overrides (shadcn's shipped preset uses `:is()`, which also works):
 
 ```css
 @custom-variant dark (&:where(.dark, .dark *));
@@ -201,7 +184,7 @@ Format depends on Tailwind version:
 
 **Tailwind v3:** `darkMode: "class"` in `tailwind.config.ts`.
 
-Use `next-themes` for the theme provider. Never implement manual dark mode toggling.
+In Next.js projects, use `next-themes` as the theme provider -- don't hand-roll toggle state there. In other frameworks, use the framework's equivalent (e.g., `remix-themes`) or a minimal provider that toggles the `.dark` class and persists the preference.
 
 ### Adding custom colors
 
@@ -372,110 +355,9 @@ You handle: `FormLabel` association with inputs (via FormField), visible focus r
 
 shadcn ships an MCP server that exposes the component registry to LLM tools. Configure in your Claude Code MCP config to let the agent list, search, view, and add components via MCP calls rather than CLI subprocess. This avoids the permissions prompt loop on each `add`.
 
-## CLI and configuration
+## References
 
-### Commands
+Operational detail lives in `references/`:
 
-```bash
-npx shadcn@latest init                # initialize project, creates components.json
-npx shadcn@latest init --pointer      # init with cursor-pointer on buttons (Apr 2026+)
-npx shadcn@latest add button          # add a component
-npx shadcn@latest add button --diff   # show upstream changes (replaces the old diff command)
-npx shadcn@latest add sonner          # add sonner (toast replacement)
-npx shadcn@latest search <query>      # search items across registries
-npx shadcn@latest view <item>         # preview a registry item before install
-npx shadcn@latest apply <preset>      # apply a preset (theme/fonts) to existing project
-npx shadcn@latest apply <preset> --only=theme  # partial preset apply
-npx shadcn@latest migrate radix       # run a built-in migration
-npx shadcn@latest build               # build your own registry JSON
-npx shadcn@latest info                # display project info
-npx shadcn@latest docs <component>    # retrieve component documentation
-npx shadcn@latest create              # scaffold a new registry block
-```
-
-### components.json
-
-Key settings:
-
-| Field | Effect |
-|---|---|
-| `style` | `"new-york"` or `"sera"` (Apr 2026+). `"default"` is deprecated. |
-| `rsc` | `true` adds `"use client"` to components automatically |
-| `aliases.components` | Import path prefix (e.g., `@/components`) |
-| `aliases.utils` | Path to `cn()` utility (e.g., `@/lib/utils`) |
-
-### Deprecations and migrations
-
-| Deprecated | Replacement |
-|---|---|
-| `shadcn-ui` CLI package | `shadcn` (use `npx shadcn@latest`) |
-| `"default"` style | `"new-york"` style |
-| Toast component | Sonner |
-| `tailwindcss-animate` | `tw-animate-css` |
-| Individual `@radix-ui/react-*` | Unified `radix-ui` package |
-
-## Decision tables
-
-### Overlay selection
-
-| Need | Component | Key Trait |
-|---|---|---|
-| Confirm destructive action | AlertDialog | Blocks interaction, requires explicit response |
-| Form or complex content | Dialog | Focus-trapped modal, closes on overlay click |
-| Side panel (filters, nav, detail) | Sheet | Slides from edge, good for secondary content |
-| Mobile-friendly bottom panel | Drawer | Touch-friendly, swipe to dismiss (uses vaul) |
-| Anchored to trigger, lightweight | Popover | Positioned relative to trigger, no overlay |
-| Brief hint on hover | Tooltip | Hover/focus only, no interactive content |
-| Rich preview on hover | HoverCard | Hover card with delay, supports interactive content |
-| Action list from trigger | DropdownMenu | Click to open, keyboard-navigable menu |
-| Action list from right-click | ContextMenu | Right-click triggered, same API as DropdownMenu |
-
-### Selection component
-
-| Need | Component |
-|---|---|
-| Fixed list, <10 items | Select |
-| Searchable list | Combobox (popover + command) |
-| Searchable with groups/actions | Command (standalone) |
-| Multi-select from small set | ToggleGroup |
-
-### Customization approach
-
-| Situation | Approach |
-|---|---|
-| Global style change (border radius, colors) | Edit `components/ui/` directly |
-| App-specific defaults (icon + label combos) | Wrapper in `components/app/` |
-| One-off layout composition | Inline composition in the page/feature |
-
-## Testing
-
-### Portal rendering
-
-Dialog, Popover, Sheet, Select, and DropdownMenu content render into a portal at `document.body`. Query by role, not by DOM hierarchy:
-
-```tsx
-// Wrong: content is not inside the trigger's DOM subtree
-const content = within(triggerParent).getByText("Option A");
-
-// Correct: query from screen (portaled to body)
-const content = screen.getByRole("option", { name: "Option A" });
-```
-
-### User events
-
-Radix components listen on `pointerdown`, not `click`. Use `userEvent.setup()` (not `fireEvent`):
-
-```tsx
-import userEvent from "@testing-library/user-event";
-
-it("opens the dialog", async () => {
-  const user = userEvent.setup();
-  render(<MyDialog />);
-  await user.click(screen.getByRole("button", { name: "Open" }));
-  expect(screen.getByRole("dialog")).toBeInTheDocument();
-});
-```
-
-### JSDOM limitations
-
-JSDOM does not implement `pointerdown` or `resize` observers fully. For components that rely on these (Sheet, Drawer, Resizable), test in a real browser environment (Playwright) or mock the specific Radix primitive.
+- `references/cli-and-tables.md` -- CLI commands, `components.json` settings, deprecations and migrations, plus decision tables for overlay selection, selection components, and customization approach.
+- `references/testing.md` -- testing portaled Radix components: query by role from `screen`, `userEvent` vs `fireEvent`, JSDOM limitations.

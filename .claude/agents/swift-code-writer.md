@@ -28,4 +28,4 @@ If the request is ambiguous about scope, implement the narrower interpretation.
 
 ## Quality
 
-Write code that passes SwiftLint and SwiftFormat if configured, and compiles cleanly with `swift build` or `xcodebuild`. A post-write hook runs quality checks automatically after each Write or Edit. If no hook is configured, run `swift build` on the affected package or target to verify compilation.
+Write code that passes SwiftLint and SwiftFormat if configured, and compiles cleanly with `swift build` or `xcodebuild`. After editing, run `swift build` on the affected package or target unless a project hook already does it.

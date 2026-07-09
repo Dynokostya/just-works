@@ -11,7 +11,7 @@ Match the project's existing conventions. When uncertain, read 2-3 existing file
 
 These are unconditional. They prevent bugs and crashes regardless of project style.
 
-- **Never null-check a non-`final` field directly** — Dart's flow analysis only promotes `final`, local, or private variables. After the check, the field could still change between the test and the use. Copy to a local first.
+- **Never rely on a field null-check for promotion unless the field qualifies** — flow analysis promotes locals and, since Dart 3.2, private `final` fields. Public `final` fields and private mutable fields are never promoted — the value could change between the test and the use. Copy to a local first.
 
 ```dart
 // Wrong: _temp is mutable; not promoted to non-null
@@ -141,22 +141,20 @@ Avoid `FutureOr<T>` as a return type — callers cannot tell whether to `await`.
 
 For broadcast vs single-subscription streams: HTTP responses, file reads, and most platform streams are single-subscription. Convert with `.asBroadcastStream()` only when multiple consumers need the same events.
 
-Always cancel subscriptions in `dispose`/cleanup:
+Always cancel subscriptions in `dispose`/cleanup paths:
 
 ```dart
-class _MyState extends State<MyWidget> {
-  StreamSubscription<Event>? _sub;
-
-  @override
-  void initState() {
-    super.initState();
-    _sub = service.events.listen(_handle);
+class PriceMonitor {
+  PriceMonitor(Stream<Price> prices) {
+    _sub = prices.listen(_onPrice);
   }
 
-  @override
-  void dispose() {
-    _sub?.cancel();
-    super.dispose();
+  late final StreamSubscription<Price> _sub;
+
+  void _onPrice(Price price) { /* ... */ }
+
+  Future<void> close() async {
+    await _sub.cancel();
   }
 }
 ```
@@ -167,7 +165,7 @@ Prefer literals over constructors. Literals are clearer, allow inference, and su
 
 ```dart
 // Wrong
-final xs = List<Point>();
+final xs = List<Point>.empty(growable: true);
 final m = Map<String, int>();
 
 // Correct
@@ -266,33 +264,7 @@ try {
 
 ## Style
 
-Naming follows the official guidelines:
-
-| Element | Style | Example |
-|---------|-------|---------|
-| Types, extensions, typedefs, enums | `UpperCamelCase` | `HttpClient`, `Iterable` |
-| Members, parameters, locals, constants | `lowerCamelCase` | `itemCount`, `defaultTimeout` |
-| Libraries, files, directories, prefixes | `lowercase_with_underscores` | `user_profile.dart` |
-
-Acronyms: capitalize only the first letter for 3+ letters (`Http`, `Uri`, `Id`); two-letter acronyms stay fully capitalized (`IO`, `IP`, `OS`).
-
-Use cascade `..` for sequential operations on the same target:
-
-```dart
-// Wrong
-final btn = Button();
-btn.text = 'Save';
-btn.onTap = save;
-btn.enabled = true;
-
-// Correct
-final btn = Button()
-  ..text = 'Save'
-  ..onTap = save
-  ..enabled = true;
-```
-
-Trailing commas drive multi-line `dart format` output — add them in argument lists, parameter lists, and collection literals when you want each item on its own line.
+On Dart 3.7+ the tall-style formatter adds and removes trailing commas itself — don't fight it. Only pre-3.7 SDKs need manual trailing commas to force multi-line `dart format` output.
 
 Naming signals aliasing: `to___()` returns a snapshot (independent copy), `as___()` returns a view that reflects future changes. Pick the prefix that matches what the method actually returns.
 
@@ -321,14 +293,16 @@ Item? x = null;
 Item? x;
 ```
 
-- **Avoid positional `bool` parameters** — call sites read as `spawn(fn, args, false)` with no clue what `false` means. Use named parameters:
+- **Avoid positional `bool` parameters** — call sites read as `createUser('Alice', true)` with no clue what `true` means. Use named parameters:
 
 ```dart
-// Wrong
-Isolate.spawn(work, args, false);
+// Wrong: what does `true` mean at the call site?
+void createUser(String name, bool isAdmin) { /* ... */ }
+createUser('Alice', true);
 
-// Correct
-Isolate.spawn(work, args, paused: false);
+// Correct: the call site documents itself
+void createUser(String name, {bool isAdmin = false}) { /* ... */ }
+createUser('Alice', isAdmin: true);
 ```
 
 - **A setter without a matching getter is broken** — `+=`, `??=`, and similar compound operators read before they write, so they fail. Either pair the setter with a getter or expose a regular method.

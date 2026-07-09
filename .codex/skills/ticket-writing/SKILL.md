@@ -26,9 +26,6 @@ These are unconditional. They prevent ambiguity, lost provenance, and wasted tri
 
 ## Vocabulary
 
-- **KISS** — shortest wording that still lands the point.
-- **MECE** — mutually exclusive, collectively exhaustive. Sections cover the problem without overlap and without gaps.
-- **Pareto** — 80% of value in 20% of words. Cut sentences that don't move the reader toward a decision.
 - **PBI** — Product Backlog Item. A shippable user-facing feature, improvement, or experiment. Uses **Acceptance criteria**.
 - **Bug** — defect in existing behavior. Uses **Steps to reproduce / Actual / Expected / Environment**.
 - **Spike** — timeboxed technical investigation. Output is a decision, not shipped code. Uses **Goal / Method / Evidence / Conclusions**.
@@ -62,7 +59,7 @@ Aim for under ~70 characters when possible — that's the width where titles sta
 - **Header punctuation** — end the header with `:` when it introduces a list, a single-value line below, or a definition (`Steps to reproduce:`, `Severity:`, `Acceptance criteria:`). Omit the colon when the header opens a prose paragraph (`Summary`, `Problem`, `Proposed change`) or a labelled link (`Source`).
 - **Single-value sections** — for one-line values like `Severity`, `Priority`, or `Timebox`, put the header on its own line and the value on the next line. Don't inline the value next to the header.
 - **No horizontal rules** (`---`). Sections separate themselves through bold headers.
-- **No em dashes as separators.** Use commas, periods, or semicolons. Em dashes inside prose are fine.
+- **No em dashes as separators** — never to join a label or value to its explanation in a field list (`Major — no workaround`), never between sections. Use a period, comma, or colon instead. Em dashes inside prose sentences are fine.
 - **No blank line between a header and its first line of content.** Each section opens immediately.
 - **Numbered and bulleted lists** — no blank lines between items. Each item ends with a period.
 - **Inline code with backticks** — wrap technical identifiers in backticks: field names (`due_date`, `postId`), enum values (`high`, `urgent`), env var names (`OPENROUTER_API_KEY`), file paths (`src/api/auth.ts`), id expressions (`postId = 69c2c683039c4ad6d45387bcb7ede`). Keep plain URLs and product-path references (`Settings → Account → Transactions`) unformatted.
@@ -111,19 +108,19 @@ Default to bullets. Switch to Given-When-Then only when:
 
 ```
 Plain bullets (default):
-- A Download CSV button appears in Settings → Account → Transactions for signed-in users
-- Clicking the button downloads a CSV with header row: date, amount, merchant, category, status
-- The CSV covers the currently selected date range
-- An empty range produces a CSV with header row only
-- Download starts within 2 seconds for ranges up to 10,000 rows
+- A Download CSV button appears in Settings → Account → Transactions for signed-in users.
+- Clicking the button downloads a CSV with header row: date, amount, merchant, category, status.
+- The CSV covers the currently selected date range.
+- An empty range produces a CSV with header row only.
+- Download starts within 2 seconds for ranges up to 10,000 rows.
 
 Given-When-Then (only when logic branches):
 - Given a signed-in user on the Transactions page with a date range selected
   When the user clicks Download CSV and the range contains fewer than 10,000 rows
-  Then a CSV downloads within 2 seconds with columns: date, amount, merchant, category, status
+  Then a CSV downloads within 2 seconds with columns: date, amount, merchant, category, status.
 - Given a signed-in user with a date range selected
   When the range contains more than 10,000 rows
-  Then the user is prompted to narrow the range before download proceeds
+  Then the user is prompted to narrow the range before download proceeds.
 ```
 
 Keep Gherkin scenarios independent — no shared state between scenarios. If two scenarios share setup, extract it into a Background block or fold them into one scenario.
@@ -159,22 +156,11 @@ Enough detail to reproduce:
 - Account tier or role if relevant
 - Feature flags or toggles if relevant
 
-**Severity** — technical impact of the defect:
+**Severity** — technical impact of the defect: Blocker (system unusable, no workaround) / Critical (core flow fails, no acceptable workaround) / Major (significant flow fails, workaround exists) / Minor (annoying, non-blocking) / Trivial (cosmetic, no functional impact).
 
-- **Blocker** — system unusable, no workaround
-- **Critical** — a core flow fails, no acceptable workaround
-- **Major** — a significant flow fails, but a workaround exists
-- **Minor** — annoying but non-blocking defect
-- **Trivial** — cosmetic issue with no functional impact
+**Priority** — business urgency to fix: Urgent (before other work) / High (current sprint) / Medium (next sprint or two) / Low (when convenient).
 
-**Priority** — business urgency to fix:
-
-- **Urgent** — fix immediately, before other work
-- **High** — fix in the current sprint
-- **Medium** — fix in the next sprint or two
-- **Low** — fix when convenient
-
-Severity and priority are independent. A homepage typo during a product launch is Trivial severity + Urgent priority. A crash in a dev-only admin tool is Blocker severity + Low priority.
+Severity and priority are independent. A homepage typo during a product launch is Trivial severity + Urgent priority. A crash in a dev-only admin tool is Blocker severity + Low priority. Severity has no native tracker field and stays in the body; priority, when the tracker has a native field (see `clickup-tickets`), is set there rather than duplicated in the body.
 
 **Attachments** (when relevant)
 Screenshot, screen recording, log excerpt, HAR file. Redact PII before attaching.
@@ -285,7 +271,7 @@ Skip formal DoR if refinement conversations already cover these items. The check
 - **Gherkin for every ticket** — adds overhead on simple changes. Plain bullets by default.
 - **Mixing user roles in one story** — "As a user and admin, I want..." Split the story.
 - **Product manager as proxy user** — describe the real end user, not the PM's guess of what the user wants.
-- **More than 4–5 acceptance criteria** — usually means the story is too big. Consider splitting.
+- **More than 3–5 acceptance criteria** — usually means the story is too big. Consider splitting.
 - **Scope creep in comments** — new requirements added after creation without updating the body. Either update the ticket and note the change, or create a follow-up.
 - **Estimates in the title** — "Fix login bug (2h)". Estimates belong in the estimate field, not the title.
 - **Placeholders surviving to closure** — `[TBD]`, `[paste link]`. See Workflow.
@@ -296,6 +282,8 @@ Skip formal DoR if refinement conversations already cover these items. The check
 - **Inventing values to look complete** — filling Severity, Priority, Timebox, Out of scope, or any other field with a guess so the ticket "feels finished". The user can't tell guess from confirmed and ends up re-checking everything. Ask, or omit.
 
 ## Rewrite examples
+
+One full example inline; `references/rewrite-examples.md` has the PBI and Spike before/after pairs.
 
 ### Bug — before
 
@@ -329,81 +317,13 @@ An error banner appears above the form: "Invalid email or password." Form fields
 Chrome 125.0.6422.76, Windows 11 23H2, Stage, web client v2.18.0. Reproduced on two accounts.
 
 **Severity:**
-Major — blocks user feedback for every failed login on the affected platform.
+Major. Failed logins give no feedback on the affected platform; the workaround is retrying credentials or the password-reset flow.
 
 **Priority:**
-High — affects every user on Chrome / Windows hitting an auth failure.
+High. Affects every user on Chrome / Windows hitting an auth failure.
 
 **Attachments**
-`login-failure.mp4` — screen recording of the failure.
+`login-failure.mp4`, a screen recording of the failure.
 
 **Source**
 Support ticket #4812 (17 Apr): https://support.example.com/t/4812
-
-### PBI — before
-
-Title: Add that export thing we discussed
-
-### PBI — after
-
-Title: **Export transaction history to CSV from account settings**
-
-Body:
-
-**Problem**
-Finance-facing users currently export transactions by copying rows out of the web table — about 15 minutes per account per month. Reported by the ops team and two customer support tickets (see Source).
-
-**Proposed change**
-Add a Download CSV button in Settings → Account → Transactions. The file covers the currently selected date range and includes date, amount, merchant, category, and status.
-
-**Acceptance criteria:**
-- A Download CSV button appears in Settings → Account → Transactions for signed-in users.
-- Clicking the button downloads a CSV with header row: `date, amount, merchant, category, status`.
-- The CSV covers the currently selected date range.
-- An empty range produces a CSV with header row only.
-- Download starts within 2 seconds for ranges up to 10,000 rows.
-
-**Out of scope**
-Excel export, email delivery, scheduled exports. These are separate tickets if demand appears.
-
-**Links:**
-Parent: ACCT-410 — Self-service reporting epic.
-
-**Source**
-Ops team Slack thread (18 Apr): https://example.slack.com/archives/C01/p1713456789
-
-### Spike — before
-
-Title: Look at PDF libraries
-
-Body:
-
-> We need PDFs. See what's out there.
-
-### Spike — after
-
-Title: **Pick a PDF generation library for invoice exports**
-
-Body:
-
-**Goal**
-Recommend one PDF library to generate styled invoice PDFs from our existing HTML templates. Decision criteria: render fidelity vs the current Chrome reference, bundle size, license compatibility (commercial distribution), active maintenance.
-
-**Timebox:**
-2 days.
-
-**Method:**
-1. Shortlist three libraries based on current industry usage: Puppeteer (headless Chrome), wkhtmltopdf, and Playwright print-to-PDF.
-2. Render the current invoice template through each and diff against the Chrome reference.
-3. Record output fidelity, render time on a representative sample of 100 invoices, bundle impact, and license terms.
-4. Write a one-page recommendation with the tradeoffs.
-
-**Expected output**
-A comparison table, a recommendation with reasoning, and three sample PDFs (one per library) attached to this ticket.
-
-**Open questions:**
-1. Are we constrained to run this in-process, or can it run as a side-car service?
-2. Is the commercial license for wkhtmltopdf a blocker given our distribution model?
-
-**Source**
-Engineering sync (14 Apr): https://example.atlassian.net/wiki/spaces/ENG/pages/1234

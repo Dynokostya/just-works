@@ -1,32 +1,12 @@
 # Sequence Diagrams
 
-Sequence diagrams are the most common type. They show how components interact over time.
+Deep-dive syntax. The basic flow example lives in SKILL.md; this file covers what it omits.
 
-## Participants
+## Participant types
 
-Declare all participants at the top in display order. Use the right stereotype for each:
+Declare all participants at the top in display order (full example in SKILL.md). Pick the right stereotype for each:
 
-```plantuml
-@startuml
-title Order Placement Flow
-
-actor Customer as C
-participant "Web App" as Web
-participant "Order Service" as Orders
-database "Order Database" as DB
-queue "Event Bus" as Events
-
-C -> Web: Places order
-Web -> Orders: Create order request
-Orders -> DB: Store order
-Orders -> Events: Publish "Order Created"
-Orders --> Web: Order confirmation
-Web --> C: Display confirmation
-
-@enduml
-```
-
-**Participant types:** `actor` (human user), `participant` (generic service), `boundary` (system edge/API gateway), `control` (orchestrator/coordinator), `entity` (domain object/data), `database` (data store), `queue` (message broker), `collections` (grouped instances).
+`actor` (human user), `participant` (generic service), `boundary` (system edge/API gateway), `control` (orchestrator/coordinator), `entity` (domain object/data), `database` (data store), `queue` (message broker), `collections` (grouped instances).
 
 ## Arrows
 

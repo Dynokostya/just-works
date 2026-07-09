@@ -19,7 +19,6 @@ Deep-dive material lives alongside this file. Load the reference only when you n
 - `references/other-diagram-types.md` -- use case, mindmap, gantt, WBS, ER, JSON/YAML visualization.
 - `references/styling.md` -- modern `<style>` blocks, built-in themes, color formats, layout direction.
 - `references/preprocessing.md` -- `!include`, `!procedure`, `!function`, variables, conditionals, loops.
-- `references/anti-patterns.md` -- soft smells that need contextual judgment.
 
 ## Never rules
 
@@ -31,7 +30,7 @@ These are unconditional. They prevent broken or unreadable diagrams regardless o
 
 - **Never create diagrams with more than ~15 elements without grouping/nesting** -- overcrowded diagrams defeat the purpose. Use `package`, `rectangle`, `node`, `cloud`, or `together` to group related elements. If you cannot group meaningfully, split into multiple diagrams.
 
-- **Never use legacy `skinparam` when `<style>` blocks achieve the same result** -- `skinparam` is deprecated. Use CSS-like `<style>` blocks for all visual customization. The only exception: edge cases where `<style>` does not yet support a specific property.
+- **Never use legacy `skinparam` when `<style>` blocks achieve the same result** -- `skinparam` is deprecated. Use CSS-like `<style>` blocks for all visual customization. The only exception: edge cases where `<style>` does not yet support a specific property -- activity-diagram stereotype coloring (`skinparam activity { BackgroundColor<<x>> ... }`, see `references/activity-diagrams.md`) is the documented one.
 
 - **Never hardcode colors inline on individual elements** -- use stereotype-based `skinparam` or `<style>` blocks for consistency. Inline colors (`#FF0000` or `#CCFFCC` after `;`) on individual elements create maintenance nightmares, visual inconsistency, and often cause syntax errors in activity diagrams.
 
@@ -39,7 +38,7 @@ These are unconditional. They prevent broken or unreadable diagrams regardless o
 
 - **Never use `autonumber` without explicit format** -- bare `autonumber` produces plain integers that add visual noise without aiding comprehension. Use a format string: `autonumber "<b>[000]"` or `autonumber 1 10 "<b>[00]"`.
 
-- **Never omit participant declarations in sequence diagrams** -- undeclared participants render in source-order, which produces unpredictable layouts. Declare all participants at the top in the order you want them displayed.
+- **Never omit participant declarations in sequence diagrams** -- undeclared participants render in first-use order, which is deterministic but unstable: adding or reordering a message silently reshuffles the layout. Declare all participants at the top in the order you want them displayed.
 
 - **Never write diagrams without a `title`** -- every diagram needs context for the reader. A diagram without a title is a screenshot without a caption.
 
@@ -178,7 +177,7 @@ Order --> OrderStatus: has
 @enduml
 ```
 
-See `references/class-diagrams.md` for the full relationships table (`<|--`, `*--`, `o--`, `-->`, `--`, `..|>`), complete example with visibility modifiers, stereotypes, and packaging.
+See `references/class-diagrams.md` for the full relationships table (`<|--`, `*--`, `o--`, `-->`, `--`, `..>`, `..|>`), complete example with visibility modifiers, stereotypes, and packaging.
 
 ## State diagrams
 
@@ -244,6 +243,10 @@ See `references/preprocessing.md` for the full preprocessor syntax with examples
 
 ## Anti-patterns
 
-Soft smells that need contextual judgment (distinct from the unconditional Never rules above). The most common are overcrowded diagrams without grouping, technical jargon in business-level diagrams, mixed styling approaches, deep nesting beyond 3 levels, missing titles/legends, and duplicating content instead of using `!include`.
+Soft smells that need contextual judgment (distinct from the unconditional Never rules above):
 
-See `references/anti-patterns.md` for the full list with rationale.
+- **Technical jargon in business-level diagrams** -- `POST /api/v2/orders` belongs in API docs, not in a diagram for stakeholders. Use "Creates order" instead.
+- **Mixing styling approaches** -- combining inline colors (`#Red`), `skinparam`, and `<style>` blocks in one file creates conflicting rules and unpredictable rendering. Pick one approach per file; prefer `<style>`.
+- **Deep nesting beyond 3 levels in component diagrams** -- deeply nested `package` blocks produce tiny, illegible boxes. Flatten the hierarchy or split into separate diagrams.
+- **Using class diagrams when a simpler type suffices** -- showing `Order -> PaymentService` as a class relationship when a component or sequence diagram communicates the same thing more clearly. Choose the simplest diagram type that conveys the information.
+- **Duplicating diagram content instead of using `!include`** -- copy-pasted participant declarations and styles across multiple files drift out of sync. Extract shared definitions into include files.

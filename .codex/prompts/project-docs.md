@@ -21,7 +21,7 @@ Classify each file independently:
 
 A file with only whitespace or markdown headers with no content counts as **create**, not update.
 
-**Git context gathering.** If `.git` exists, run these two commands via Bash and include the output as background context for all Explore agents in Phase 2:
+**Git context gathering.** If `.git` exists, run these two commands via shell and include the output as background context for all explorer agents in Phase 2:
 
 ```bash
 git log --oneline -30
@@ -34,7 +34,7 @@ Announce the per-file status table and commit count to the user before continuin
 
 ## Phase 2: Explore
 
-Launch three parallel Explore agents using the Task tool (`subagent_type: "Explore"`). All three are independent — launch them in a single message, never sequentially. Specify `thoroughness: "very thorough"` in each prompt.
+Launch three parallel read-only `explorer` agents via `spawn_agent`. All three are independent — spawn them together, never sequentially. Instruct each to explore very thoroughly.
 
 Every agent prompt must include:
 - The git context gathered in Phase 1 (last 30 commit subjects + contributor summary)
@@ -109,7 +109,7 @@ Rules for questions:
 - Do NOT ask about things the code clearly answers. Every question must address a genuine gap where the trigger condition was met.
 - When exploration found relevant evidence, provide 2-4 concrete options derived from findings.
 - When exploration found nothing relevant (common for "target user" or "deployment target" in early projects), ask as a free-text question without forced options.
-- The AskUserQuestion tool automatically provides an "Other" free-text option — do not add one manually.
+- Present options inline as a numbered list and always include an explicit "other — describe" option (Codex has no structured question tool).
 - If no trigger conditions are met, skip questions entirely. It is acceptable to have zero questions.
 
 After gaps are resolved, present the planned content for each **create** file and ask the user to approve before writing.
@@ -284,4 +284,4 @@ These apply to all phases:
 - **No padding.** If a section has nothing to say, omit it. Do not write filler content.
 - **Terse language.** These docs are reference material for engineers. Factual, direct, no marketing tone.
 - **Respect the templates.** Do not add sections beyond what the templates define unless the user explicitly requests them.
-- **Evidence required.** Explore agents must cite file paths. The synthesis phase must cite file paths. The change summary must cite file paths. Uncited claims are removed during verification.
+- **Evidence required.** Explorer agents must cite file paths. The synthesis phase must cite file paths. The change summary must cite file paths. Uncited claims are removed during verification.

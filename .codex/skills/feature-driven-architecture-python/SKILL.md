@@ -1,6 +1,6 @@
 ---
 name: feature-driven-architecture-python
-description: Apply when structuring Python projects by business capability (vertical slices). Covers directory layout, feature boundaries, inter-feature communication, database model ownership, migration strategies, boundary enforcement, testing across features, and migration from layered architectures. Best suited for FastAPI and Flask projects with 5+ distinct features.
+description: Apply when structuring or restructuring a Python backend by business capability (vertical slices) — laying out a new project, reorganizing a layered codebase, or drawing feature boundaries. Governs top-level layout; for the internals of a complex slice see ddd-architecture-python. Covers directory layout, feature boundaries, inter-feature communication, database model ownership, migration strategies, boundary enforcement, testing across features, and migration from layered architectures. FastAPI-focused; the layout patterns port to Flask. Best suited for projects with 5+ distinct features.
 ---
 
 # Feature-Driven Architecture
@@ -88,7 +88,11 @@ async def list_invoices_with_users() -> list[InvoiceDetail]:
     invoices = await get_invoices()
     users_map = await get_users_by_ids(list({inv.user_id for inv in invoices}))
     return [
-        InvoiceDetail(invoice=inv, user_name=users_map[inv.user_id].name)
+        InvoiceDetail(
+            invoice=inv,
+            # .get() because cross-feature IDs have no FK integrity — the user may be deleted
+            user_name=user.name if (user := users_map.get(inv.user_id)) else "deleted user",
+        )
         for inv in invoices
     ]
 ```

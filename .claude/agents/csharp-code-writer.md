@@ -28,4 +28,4 @@ If the request is ambiguous about scope, implement the narrower interpretation.
 
 ## Quality
 
-Write code that passes dotnet build compile checks, dotnet format if configured, and Roslyn analyzers. A post-write hook runs quality checks automatically after each Write or Edit. If no hook is configured, run `dotnet build` on the affected project to verify compilation.
+Write code that passes dotnet build compile checks, dotnet format if configured, and Roslyn analyzers. After editing, run `dotnet build` on the affected project unless a project hook already does it.

@@ -17,10 +17,10 @@ These are unconditional. They prevent bugs and vulnerabilities regardless of pro
 - **Never `[weak self]` without checking for nil** — accessing self after capture without `guard let self` leads to silent no-ops or partial execution. Half-completed operations are worse than failures because they corrupt state without raising errors.
 - **Never mutable global or static state** — shared mutable state causes data races. Use actors, `@MainActor`, or dependency injection. The Swift 6 concurrency model will flag these as compile errors, so fix them now.
 - **Never blocking calls on MainActor** — no `Thread.sleep()`, synchronous network calls, or heavy computation on the main thread. Use `Task`, `async`/`await`, or dispatch to a background context. Blocking main freezes the UI and triggers watchdog kills on iOS.
-- **Never `+` string concatenation in loops** — use string interpolation or array `joined(separator:)`. Swift strings are value types; repeated concatenation copies the entire buffer each time — O(n^2) at scale.
-- **Never `Random.default` for security** — not cryptographically secure. Use `SecRandomCopyBytes` or `CryptoKit` for tokens, keys, session IDs. An attacker who observes outputs can predict future ones.
+- **Never `x = x + y` to build strings in loops** — use `+=` or `append(contentsOf:)`, which grow the buffer in place (amortized, via copy-on-write), or `joined(separator:)` for collections. `x = x + y` allocates and copies a fresh string every iteration.
+- **Never hand-roll cryptographic key material** — use CryptoKit (`SymmetricKey(size:)`) or `SecRandomCopyBytes` for keys, tokens, and session IDs. For general randomness, `Int.random(in:)` and `SystemRandomNumberGenerator` are fine — the system RNG is cryptographically secure.
 - **Never `print()` in production code** — use `os.Logger` or `OSLog`. `print` is not filterable, not structured, and persists in release builds. It cannot be searched in Console.app and adds noise to device logs.
-- **Never `class` when `struct` suffices** — default to value types. Use `class` only when you need reference semantics, inheritance, or identity. Structs are stack-allocated, thread-safe by default, and avoid retain/release overhead.
+- **Never `class` when `struct` suffices** — default to value types. Use `class` only when you need reference semantics, inheritance, or identity. Value types avoid retain/release overhead and are safe to copy across threads — though closure captures, existential boxes, and CoW buffers can still put struct storage on the heap.
 - **Never retain cycles in closures** — escaping closures capturing `self` in classes must use `[weak self]` or `[unowned self]`. Retain cycles cause silent memory leaks that accumulate over app lifetime, eventually triggering OOM kills.
 - **Never `Any` or `AnyObject` when a protocol or generic suffices** — type erasure disables compile-time checking. Use generics, `some`, or `any` with specific protocols. A runtime cast failure is always worse than a compile error.
 
@@ -135,7 +135,7 @@ final class ViewModel {
 }
 ```
 
-`Sendable` conformance is required for values crossing actor boundaries. Structs and enums with all-Sendable stored properties conform automatically. For classes, mark as `final class: Sendable` with only immutable (`let`) properties or use `@unchecked Sendable` with internal synchronization.
+`Sendable` conformance is required for values crossing actor boundaries. Structs and enums with all-Sendable stored properties conform automatically. For classes, use a `final class` with only `let` stored properties, declared `Sendable` — or `@unchecked Sendable` with internal synchronization.
 
 `sending` parameters and returns (Swift 6.0+) let you pass a non-Sendable value across isolation boundaries exactly once. Use when you need ownership transfer without requiring `Sendable`:
 
@@ -160,49 +160,7 @@ When to use structured vs unstructured concurrency: use `async let` and `TaskGro
 
 ## Type system
 
-`some` (opaque types) returns a specific concrete type hidden from the caller — use it when you want to hide implementation details while preserving type identity. `any` (existentials) is a type-erased box — use it when you need heterogeneous collections or dynamic dispatch:
-
-```swift
-// Opaque: caller gets one concrete type, compiler optimizes
-func makeSequence() -> some Sequence<Int> {
-    [1, 2, 3].lazy.filter { $0 > 1 }
-}
-
-// Existential: heterogeneous collection of different types
-func allValidators() -> [any Validator] {
-    [EmailValidator(), LengthValidator(min: 3)]
-}
-```
-
-Protocols with associated types:
-
-```swift
-protocol Repository {
-    associatedtype Entity: Identifiable
-    func find(by id: Entity.ID) async throws -> Entity?
-    func save(_ entity: Entity) async throws
-}
-
-struct UserRepository: Repository {
-    typealias Entity = User
-    func find(by id: User.ID) async throws -> User? { /* ... */ }
-    func save(_ entity: User) async throws { /* ... */ }
-}
-```
-
-Generic functions with constraints:
-
-```swift
-func merge<T: Decodable & Sendable>(_ items: [T], with others: [T]) -> [T]
-    where T: Equatable
-{
-    var result = items
-    for item in others where !result.contains(item) {
-        result.append(item)
-    }
-    return result
-}
-```
+`some` (opaque) returns one concrete type hidden from the caller — preserves type identity and compiler optimization. `any` (existential) is a type-erased box — reserve it for heterogeneous collections or genuinely dynamic dispatch; it costs boxing and blocks specialization.
 
 ## Value vs reference types
 
@@ -210,6 +168,7 @@ Default to structs. Use classes when you need reference semantics (shared mutabl
 
 ```swift
 enum API {
+    // Force unwrap is safe: hard-coded literal is a valid URL, so failure is a programmer error
     static let baseURL = URL(string: "https://api.example.com")!
     static let timeout: TimeInterval = 30
 }
@@ -219,51 +178,7 @@ Collections use copy-on-write — passing an array to a function does not copy u
 
 ## Data modeling
 
-| Use Case | Choice | Reason |
-|----------|--------|--------|
-| API response/request | `Codable` struct | Serialization, immutable |
-| Configuration | struct with defaults | Value semantics |
-| Domain entity with identity | class or actor | Reference semantics, shared state |
-| Simple value objects | struct | Stack-allocated, value equality |
-| Fixed set of states | enum with associated values | Exhaustive switch, type-safe |
-| UI state (SwiftUI) | `@Observable` class | Observation framework |
-
-Codable at system boundaries:
-
-```swift
-struct UserResponse: Codable, Sendable {
-    let id: Int
-    let email: String
-    let name: String
-    let createdAt: Date
-
-    enum CodingKeys: String, CodingKey {
-        case id, email, name
-        case createdAt = "created_at"
-    }
-}
-```
-
-Enums with associated values for domain states:
-
-```swift
-enum PaymentResult {
-    case success(transactionId: String, amount: Decimal)
-    case declined(reason: String)
-    case requiresVerification(url: URL)
-}
-
-func handle(_ result: PaymentResult) {
-    switch result {
-    case .success(let id, let amount):
-        log.info("Payment \(id) completed: \(amount)")
-    case .declined(let reason):
-        showError("Payment declined: \(reason)")
-    case .requiresVerification(let url):
-        openVerification(url)
-    }
-}
-```
+Choose by semantics: `Codable` structs for API payloads (declare them `Sendable` — they cross concurrency boundaries in async networking), enums with associated values for fixed sets of states, `@Observable` classes for SwiftUI UI state, and class or actor only where identity or shared mutable state is the point.
 
 ## Observation (SwiftUI)
 
@@ -300,15 +215,19 @@ Delegate pattern with `weak`:
 
 ```swift
 protocol DownloadDelegate: AnyObject {
-    func downloadDidFinish(_ data: Data)
+    func downloadDidFinish(_ result: Result<Data, Error>)
 }
 
 class Downloader {
     weak var delegate: DownloadDelegate?
 
     func start() async {
-        let data = try? await fetchData()
-        delegate?.downloadDidFinish(data ?? Data())
+        do {
+            let data = try await fetchData()
+            delegate?.downloadDidFinish(.success(data))
+        } catch {
+            delegate?.downloadDidFinish(.failure(error))
+        }
     }
 }
 ```
@@ -334,58 +253,15 @@ Task { [currentCount] in
 
 ## Pattern matching
 
-`switch` must be exhaustive — the compiler enforces this for enums. Use `@unknown default` when switching on enums from external modules to catch future cases:
-
-```swift
-switch status {
-case .pending:
-    showSpinner()
-case .completed(let result):
-    display(result)
-case .failed(let error) where error is NetworkError:
-    retryButton.isHidden = false
-case .failed:
-    showGenericError()
-@unknown default:
-    showGenericError()
-}
-```
-
-`if case let` and `guard case let` for single-pattern extraction:
-
-```swift
-if case .success(let user) = result {
-    greet(user)
-}
-
-guard case .authenticated(let token) = session else {
-    throw AuthError.notAuthenticated
-}
-```
-
-Tuple patterns for combining conditions:
-
-```swift
-switch (isLoggedIn, hasPermission) {
-case (true, true):  proceed()
-case (true, false): requestPermission()
-case (false, _):    showLogin()
-}
-```
+Enum switches are compiler-enforced exhaustive. Add `@unknown default` when switching on enums from external modules — the switch stays exhaustive today and the compiler warns when a future SDK version adds a case.
 
 ## Naming conventions
 
-Follow the [Swift API Design Guidelines](https://www.swift.org/documentation/api-design-guidelines/). Types and protocols use UpperCamelCase. Properties, methods, variables, and arguments use lowerCamelCase.
-
-Booleans read as assertions: `isEmpty`, `hasPermission`, `canFly`, `shouldRefresh`. Mutating/nonmutating pairs: `sort()`/`sorted()`, `append()`/`appending()`, `formUnion()`/`union()`.
-
-Argument labels form prepositional phrases with the method name: `move(to: position)`, `remove(at: index)`, `fade(from: color, to: color)`. Omit the label when the argument is the direct object of the verb: `print(value)`, `contains(element)`.
-
-Protocols that describe what something is use nouns: `Collection`, `Sequence`, `Error`. Protocols that describe a capability use `-able`/`-ible`: `Codable`, `Sendable`, `Identifiable`.
+Follow the [Swift API Design Guidelines](https://www.swift.org/documentation/api-design-guidelines/): argument labels form grammatical phrases at the call site (`move(to:)`, `remove(at:)` — omit the label for direct objects), booleans read as assertions (`isEmpty`, `canFly`), and mutating/nonmutating pairs follow `sort()`/`sorted()`, `formUnion()`/`union()`.
 
 ## Testing
 
-Use Swift Testing (`@Test`, `#expect`, `#require`, `@Suite`) for new tests. Use XCTest for UI tests and when the project is already standardized on it.
+Use Swift Testing (`@Test`, `#expect`, `#require`, `@Suite`) for new tests; use XCTest for UI tests and when the project is already standardized on it. `#expect` replaces the `XCTAssert*` family, `#require` replaces `XCTUnwrap`, and `arguments:` gives parameterized tests.
 
 ```swift
 @Suite("UserService")
@@ -404,21 +280,8 @@ struct UserServiceTests {
             try await service.getUser(id: 999)
         }
     }
-
-    @Test("Validates email formats", arguments: [
-        ("alice@example.com", true),
-        ("not-an-email", false),
-        ("", false),
-    ])
-    func emailValidation(email: String, isValid: Bool) {
-        #expect(EmailValidator.isValid(email) == isValid)
-    }
 }
 ```
-
-Swift Testing provides parameterized tests via `arguments`, tags for organizing, and traits for configuring behavior. `#expect` replaces `XCTAssertEqual` with a single macro that captures the expression. `#require` unwraps optionals or throws on failure, replacing `XCTUnwrap`.
-
-When to mock: external APIs with rate limits or costs, network-dependent behavior, error paths. When to use real instances: pure logic, value types, in-memory implementations. Test behavior, not implementation — test what a function returns or what state it changes, not how it works internally.
 
 ## Concurrency migration (Swift 6)
 

@@ -67,11 +67,11 @@ stop
 @enduml
 ```
 
-**Key syntax:** `start`/`stop`, `:action;`, `if (condition?) then (yes) else (no) endif`, `fork`/`fork again`/`end fork`, `|Swimlane|`, floating notes with `floating note right: text`.
+**Key syntax:** `start`/`stop`, `:action;`, `if (condition?) then (yes) else (no) endif`, `fork`/`fork again`/`end fork`, `|Swimlane|`, floating notes with `floating note right: text`. `elseif` always requires `then` — omitting it causes syntax errors downstream.
 
 ## Coloring activity steps with stereotypes
 
-To highlight specific paths (e.g., desired flow, error paths, regeneration vs new), use **stereotypes with skinparam**. Do NOT use inline `#color` after `;` — it causes syntax errors in activity diagrams.
+To highlight specific paths (e.g., desired flow, error paths, regeneration vs new), use **stereotypes with skinparam**. Activity stereotype coloring is a known `<style>` gap — this is the documented exception to the "never use legacy `skinparam`" rule in SKILL.md. Do NOT use inline `#color` after `;` — it causes syntax errors in activity diagrams.
 
 ```plantuml
 @startuml
@@ -111,4 +111,3 @@ endlegend
 - Apply with `<<stereotype>>` after the `;` on the activity line
 - Use a color legend table to explain meanings
 - Common stereotypes: `<<desired>>`, `<<error>>`, `<<regen>>`, `<<newgen>>`, `<<fallback>>`
-- `elseif` always requires `then` — omitting it causes syntax errors downstream

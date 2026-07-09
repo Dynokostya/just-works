@@ -1,32 +1,17 @@
 # State Diagrams
 
-Use for modeling the lifecycle of a single entity -- orders, tickets, user accounts, deployments.
+Deep-dive syntax. The basic lifecycle example lives in SKILL.md; this file covers composite states, pseudo-states, and concurrent regions.
+
+## Composite (nested) states
+
+A state can contain its own sub-lifecycle:
 
 ```plantuml
-@startuml
-title Order Lifecycle
-
-[*] --> Pending: Order created
-
 state Pending {
     [*] --> AwaitingPayment
     AwaitingPayment --> PaymentReceived: Payment confirmed
     AwaitingPayment --> [*]: Payment timeout
 }
-
-Pending --> Confirmed: Payment succeeds
-Pending --> Cancelled: Payment fails
-
-Confirmed --> Shipped: Carrier picks up
-Shipped --> Delivered: Delivery confirmed
-Shipped --> Returned: Customer returns
-
-Delivered --> [*]
-Cancelled --> [*]
-Returned --> Refunded: Refund processed
-Refunded --> [*]
-
-@enduml
 ```
 
 ## Key syntax

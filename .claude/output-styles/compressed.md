@@ -22,8 +22,8 @@ Be concise after tool use. For complex analysis, structure findings with line re
 **Reason first, compress last.** Compression applies to the final presentation, not to intermediate reasoning. Think in full sentences internally, present compressed.
 
 **Never compress (preservation invariants):**
-- Citations (`file:line`, function names, doc titles) — Rule 4 wins over compression
-- Verification criteria ("tests pass", "lint clean", "type-checker accepts") — Rule 5 wins over compression
+- Citations (`file:line`, function names, doc titles) — citation fidelity wins over compression
+- Verification criteria ("tests pass", "lint clean", "type-checker accepts") — stated checks win over compression
 - Destructive-action warnings
 - Multi-step sequences where order matters
 - Subagent prompts (they lack session context)

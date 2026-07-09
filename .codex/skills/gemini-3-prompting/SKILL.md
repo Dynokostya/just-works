@@ -1,6 +1,6 @@
 ---
 name: gemini-3-prompting
-description: Apply when creating or editing prompts targeting Gemini 3. Covers prompt layering (system instruction + context + task), thinking_level tuning, structured output prompting, function calling guidance, grounding prompt wording, few-shot examples, long-context patterns, persona/constraint alignment, prompt decomposition, agentic workflows, and migration from Gemini 2.5.
+description: Apply when creating or editing prompts targeting the Gemini 3 family (3.0, 3.1 Pro, 3 Flash, 3.1 Flash-Lite). Covers prompt layering (system instruction + context + task), thinking_level tuning, structured output prompting, function calling guidance, grounding prompt wording, few-shot examples, long-context patterns, persona/constraint alignment, prompt decomposition, agentic workflows, and migration from Gemini 2.5.
 ---
 
 # Gemini 3 Prompting
@@ -24,7 +24,7 @@ Key characteristics to design around (all cited from ai.google.dev/gemini-api/do
 - **Conciseness Over Verbosity**: "Be concise in your input prompts. Gemini 3 responds best to direct, clear instructions." Remove filler.
 - **Context Before Task**: "When providing large amounts of context (e.g., documents, code), supply all the context first. Place your specific instructions or questions at the very end of the prompt."
 - **Constraints + Persona at the Beginning**: "Place essential behavioral constraints, role definitions (persona), and output format requirements in the System Instruction or at the very beginning of the user prompt."
-- **Native Thinking**: `thinking_level` (values: `minimal` / `low` / `medium` / `high`; default `high`, dynamic) replaces manual CoT prompting -- do not write "Let's think step by step." `minimal` is not accepted on Gemini 3.1 Pro.
+- **Native Thinking**: `thinking_level` (values: `minimal` / `low` / `medium` / `high`; default `high`, dynamic) replaces manual CoT prompting -- do not write "Let's think step by step." Availability varies by model -- see the thinking-level table.
 - **Temperature at 1.0**: "We strongly recommend keeping the `temperature` at its default value of 1.0." Setting it below may cause "looping or degraded performance."
 - **Persona + Constraint Alignment**: Persona and other constraints belong together in the System Instruction. Ensure they do not contradict each other.
 - **Default Directness**: "By default, Gemini 3 models provide direct and efficient answers." Request conversational tone explicitly if needed.
@@ -92,7 +92,7 @@ The `thinking_level` parameter controls how deeply the model reasons. It replace
 | `low` | All Gemini 3 models | Simple instruction following, chat, high throughput |
 | `minimal` | Flash, Flash-Lite only (not Pro) | Chat, quick Q&A; does not guarantee thinking is off |
 
-Parameter name note: `thinking_level` in Python (snake_case) / `thinkingLevel` in JS/REST (camelCase). Cannot disable thinking for Gemini 3.1 Pro -- `minimal` is not accepted there.
+Parameter name note: `thinking_level` in Python (snake_case) / `thinkingLevel` in JS/REST (camelCase).
 
 **Prompt implications:**
 
@@ -103,7 +103,7 @@ Parameter name note: `thinking_level` in Python (snake_case) / `thinkingLevel` i
 Analyze this data. Show your reasoning step by step, then provide your final answer.
 ```
 
-- For lower latency on Flash models, target `thinking_level: low` or `minimal`. Pro does not accept `minimal`. Do not add manual "think silently" instructions -- rely on the parameter.
+- For lower latency on Flash models, target `thinking_level: low` or `minimal` (see the availability table above). Do not add manual "think silently" instructions -- rely on the parameter.
 
 ## Constraint Writing
 
@@ -147,7 +147,7 @@ Better:  "List exactly 5 examples."
 
 ## Few-Shot Examples
 
-Google recommends **always including** few-shot examples in Gemini 3 prompts: "Prompts without few-shot examples are likely to be less effective." (Source: ai.google.dev/gemini-api/docs/prompting-strategies) The model reproduces patterns it sees -- every example should reflect exactly the behaviour you want.
+For pattern-following tasks (classification, extraction, formatting), include few-shot examples: "Prompts without few-shot examples are likely to be less effective." (Source: ai.google.dev/gemini-api/docs/prompting-strategies) Reasoning tasks are the exception -- they can run zero-shot, relying on `thinking_level` (see the Reasoning Task pattern below). The model reproduces patterns it sees -- every example should reflect exactly the behaviour you want.
 
 - Include 2-5 diverse examples demonstrating the desired pattern
 - Use consistent semantic prefixes (Input:, Output:)
@@ -405,7 +405,7 @@ Question: {{ user_query }}
 
 ## Gemini 3 Pro vs Flash (prompt-design choices)
 
-- **Gemini 3.1 Pro**: complex reasoning, multimodal tasks, long deliberation. Default `thinking_level: high` (dynamic). Does NOT accept `thinking_level: minimal`. Target Pro when the prompt demands multi-step reasoning, synthesis across many sources, or high-stakes analysis.
+- **Gemini 3.1 Pro**: complex reasoning, multimodal tasks, long deliberation. Default `thinking_level: high` (dynamic); for `minimal` support, see the thinking-level table. Target Pro when the prompt demands multi-step reasoning, synthesis across many sources, or high-stakes analysis.
 - **Gemini 3 Flash / 3.1 Flash-Lite**: high-throughput, latency-sensitive, chat, structured extraction. Accept all `thinking_level` values including `minimal`. Target Flash for classification, extraction, routing, and conversational tasks where latency matters more than depth.
 
 Flash-specific prompting: include "current day accuracy" context and explicit knowledge-cutoff statements for time-sensitive tasks. (Source: ai.google.dev/gemini-api/docs/prompting-strategies, Gemini 3 Flash strategies section)
@@ -493,10 +493,10 @@ Prompt-level changes when migrating from Gemini 2.5 to Gemini 3 (Source: ai.goog
 - [ ] Specific question or task is placed at the END of the user prompt.
 - [ ] One delimiter style (XML OR Markdown) is used consistently.
 - [ ] Response format is explicitly defined; when structured output is active, the prompt states the task in prose without duplicating the schema.
-- [ ] Few-shot examples are included (Google: "always include" -- 2-5 diverse examples).
+- [ ] Few-shot examples (2-5, diverse) are included for pattern-following tasks (classification, extraction, formatting); reasoning tasks may run zero-shot on `thinking_level`.
 - [ ] Examples show only correct patterns, not anti-patterns.
 - [ ] No manual CoT instructions -- rely on `thinking_level`.
-- [ ] `thinking_level` target respects model support (`minimal` is not accepted on Gemini 3.1 Pro).
+- [ ] `thinking_level` target respects model support (see the thinking-level availability table).
 - [ ] Prompt does not assume temperature below 1.0.
 - [ ] Negative constraints match the task type (strict for extraction, specific for reasoning).
 - [ ] Persona does not contradict output-format or length constraints.
