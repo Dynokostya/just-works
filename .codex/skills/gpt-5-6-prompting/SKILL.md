@@ -84,7 +84,7 @@ Do not force every heading into simple prompts. A direct paragraph or short list
 
 ## Runtime recommendations
 
-When recommending current GPT-5.6 API settings or making claims about official guidance, verify the live official OpenAI documentation when web access is available, because model aliases, parameters, and billing can change.
+Consult [references/openai-gpt-5-6-guidance.md](references/openai-gpt-5-6-guidance.md) when recommending current GPT-5.6 API settings or making claims about official guidance. Verify the live official OpenAI documentation when web access is available because model aliases, parameters, and billing can change.
 
 Apply these defaults unless the workload indicates otherwise:
 
@@ -133,3 +133,7 @@ Compare the original and candidate prompt on representative tasks. Measure:
 - Unnecessary calls, repeated validation, and permission checks.
 
 Prefer the smallest prompt that meets the same quality bar. Fewer tokens or calls are not improvements when the final answer becomes incomplete.
+
+## Reference patterns
+
+Load [references/prompt-patterns.md](references/prompt-patterns.md) when the user needs reusable templates, concrete before/after examples, or an evaluation checklist.
