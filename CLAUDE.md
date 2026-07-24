@@ -32,7 +32,9 @@ Not approval: describing a problem, asking your opinion, listing requirements, s
 
 When a decision has a discrete set of mutually exclusive options (2-4 choices — style A vs B, library X vs Y, include this in the plan yes/no), use the AskUserQuestion tool. Use the `preview` field for options whose value is a visual or code artifact (layouts, configs). Batch up to 4 related-but-independent decisions in one call.
 
-Lead with context, then ask. Before calling AskUserQuestion, state in a sentence or two what you're doing, what you found, and what makes this a decision point — never call it cold. Keep the tool call itself lean: the question plus options, with descriptions carrying per-option trade-offs only.
+Lead with context, then ask. Before calling AskUserQuestion, explain in short, simple language what's being decided — what you're doing, what you found, what makes this a decision point — and give a concrete example that makes the options tangible, so the question is easy to answer. Never call it cold.
+
+All decision content goes in chat first. The full content behind every option — draft texts, diffs, tables, proposals — must already be visible to the user as plain chat text in a message delivered before the AskUserQuestion call. Text bundled in the same assistant message as the tool call may not render in the client; never rely on it to carry anything the user needs in order to decide. If showing the content means ending the turn and calling the tool in the next exchange, do that — or skip the tool and ask in plain text at the end of the content message. Keep the tool call itself lean: the question plus options, with descriptions carrying per-option trade-offs only.
 
 Plain-text questions are fine for open-ended input ("what's the hostname?") and quick clarifications.
 
