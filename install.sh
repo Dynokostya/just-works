@@ -19,6 +19,7 @@ SKIP_STATUSLINE=false
 SKIP_SKILLS_CLAUDE=false
 SKIP_SKILLS_CODEX=false
 DO_BACKUP=true
+PRUNE=false
 
 # Colors
 if [[ -t 1 ]]; then
@@ -53,6 +54,9 @@ Options:
   --codex-only    Install only Codex files (~/.codex/, ~/.agents/)
   --dry-run       Show what would be installed without making changes
   --no-backup     Skip backup prompt, disable backups (for CI/non-interactive)
+  --prune         Remove files in the destination that no longer exist in the
+                  source. Without it, files deleted from this repo survive in
+                  the install target. Extra entries are listed either way.
   -h, --help      Show this help message
 
 What gets installed:
@@ -91,6 +95,7 @@ while [[ $# -gt 0 ]]; do
         --skip-skills-claude) SKIP_SKILLS_CLAUDE=true; shift ;;
         --skip-skills-codex)  SKIP_SKILLS_CODEX=true; shift ;;
         --no-backup)   DO_BACKUP=false; shift ;;
+        --prune)       PRUNE=true; shift ;;
         -h|--help)     usage ;;
         *) error "Unknown option: $1"; usage ;;
     esac
@@ -101,12 +106,22 @@ if $CLAUDE_ONLY && $CODEX_ONLY; then
     exit 1
 fi
 
-# Choose copy method
+# Choose copy method.
+# copy_dir is additive and is what backup_target uses — it must never delete.
+# sync_dir is the install path and honours --prune.
 if command -v rsync &>/dev/null; then
     copy_dir() { rsync -a "$1/" "$2/"; }
+    sync_dir() {
+        if $PRUNE; then rsync -a --delete "$1/" "$2/"; else rsync -a "$1/" "$2/"; fi
+    }
 else
     warn "rsync not found — falling back to cp (existing files may be overwritten)"
     copy_dir() { cp -r "$1/." "$2/"; }
+    sync_dir() { cp -r "$1/." "$2/"; }
+    if $PRUNE; then
+        warn "--prune requires rsync; files removed from the source will be kept"
+        PRUNE=false
+    fi
 fi
 
 echo -e "${BOLD}just-works installer${NC}"
@@ -169,18 +184,34 @@ prepare_target() {
     fi
 }
 
+# Entries in the destination that no longer exist in the source. Reported on
+# every run so drift stays visible even when --prune is not used.
+report_extras() {
+    local src="$1" dest="$2"
+    [[ -d "$dest" ]] || return 0
+    local extras
+    extras="$(comm -13 <(ls "$src" 2>/dev/null | sort) <(ls "$dest" 2>/dev/null | sort) | tr '\n' ' ')"
+    [[ -n "${extras// /}" ]] || return 0
+    if $PRUNE; then
+        warn "Pruning from ${dest}: ${extras}"
+    else
+        warn "Not in source, kept (use --prune to remove) in ${dest}: ${extras}"
+    fi
+}
+
 install_dir() {
     local src="$1" dest="$2" label="$3"
     if [[ ! -d "$src" ]]; then
         warn "Source not found, skipping: $src"
         return
     fi
+    report_extras "$src" "$dest"
     prepare_target "$dest"
     if $DRY_RUN; then
         info "Would copy: $src/ -> $dest/"
     else
         mkdir -p "$dest"
-        copy_dir "$src" "$dest"
+        sync_dir "$src" "$dest"
         info "Installed: $label -> $dest/"
     fi
 }
