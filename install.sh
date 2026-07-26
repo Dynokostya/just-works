@@ -20,6 +20,7 @@ SKIP_SKILLS_CLAUDE=false
 SKIP_SKILLS_CODEX=false
 DO_BACKUP=true
 PRUNE=false
+REPLACE_CONFIG=false
 
 # Ownership manifest: records every entry this installer has placed into a
 # destination, so --prune can distinguish "we shipped this and it is now gone
@@ -67,6 +68,10 @@ Options:
                   in the destination and that no longer exist in the source
                   (tracked in ~/.just-works-manifest). Entries the installer
                   never shipped are always kept and listed, never deleted.
+  --replace-config  Overwrite an existing settings.json / config.toml /
+                  hooks.json (with backup). By default existing config files
+                  are kept, since live configs accumulate machine-local state
+                  (otel, plugin disables, agent defaults) the repo cannot know.
   -h, --help      Show this help message
 
 What gets installed:
@@ -106,6 +111,7 @@ while [[ $# -gt 0 ]]; do
         --skip-skills-codex)  SKIP_SKILLS_CODEX=true; shift ;;
         --no-backup)   DO_BACKUP=false; shift ;;
         --prune)       PRUNE=true; shift ;;
+        --replace-config) REPLACE_CONFIG=true; shift ;;
         -h|--help)     usage ;;
         *) error "Unknown option: $1"; usage ;;
     esac
@@ -248,6 +254,18 @@ install_dir() {
     done < <(ls "$src" 2>/dev/null)
 }
 
+# Config files are kept once they exist: live configs accumulate machine-local
+# state (otel routing, plugin disables, subagent defaults) that a repo template
+# cannot know about. --replace-config restores the old overwrite behaviour.
+install_config_file() {
+    local src="$1" dest="$2" label="$3"
+    if [[ -f "$dest" ]] && ! $REPLACE_CONFIG; then
+        info "Kept existing: $dest (use --replace-config to overwrite)"
+        return
+    fi
+    install_file "$src" "$dest" "$label"
+}
+
 install_file() {
     local src="$1" dest="$2" label="$3"
     if [[ ! -f "$src" ]]; then
@@ -281,9 +299,9 @@ if ! $CODEX_ONLY; then
 
     if ! $SKIP_CONFIG; then
         if $PERSONAL; then
-            install_file "${SCRIPT_DIR}/.claude/settings.json" "${CLAUDE_HOME}/settings.json" "settings.json (personal)"
+            install_config_file "${SCRIPT_DIR}/.claude/settings.json" "${CLAUDE_HOME}/settings.json" "settings.json (personal)"
         else
-            install_file "${SCRIPT_DIR}/.claude/settings.json.default" "${CLAUDE_HOME}/settings.json" "settings.json (default)"
+            install_config_file "${SCRIPT_DIR}/.claude/settings.json.default" "${CLAUDE_HOME}/settings.json" "settings.json (default)"
         fi
     else
         info "Skipping settings.json (--skip-config)"
@@ -314,21 +332,21 @@ if ! $CLAUDE_ONLY; then
     if ! $SKIP_CONFIG; then
         if $AZURE; then
             if $PERSONAL; then
-                install_file "${SCRIPT_DIR}/.codex/config/azure/config.toml" "${CODEX_HOME}/config.toml" "config.toml (azure, personal)"
+                install_config_file "${SCRIPT_DIR}/.codex/config/azure/config.toml" "${CODEX_HOME}/config.toml" "config.toml (azure, personal)"
             else
-                install_file "${SCRIPT_DIR}/.codex/config/azure/config.toml.default" "${CODEX_HOME}/config.toml" "config.toml (azure, default)"
+                install_config_file "${SCRIPT_DIR}/.codex/config/azure/config.toml.default" "${CODEX_HOME}/config.toml" "config.toml (azure, default)"
             fi
         else
             if $PERSONAL; then
-                install_file "${SCRIPT_DIR}/.codex/config.toml" "${CODEX_HOME}/config.toml" "config.toml (personal)"
+                install_config_file "${SCRIPT_DIR}/.codex/config.toml" "${CODEX_HOME}/config.toml" "config.toml (personal)"
             else
-                install_file "${SCRIPT_DIR}/.codex/config.toml.default" "${CODEX_HOME}/config.toml" "config.toml (default)"
+                install_config_file "${SCRIPT_DIR}/.codex/config.toml.default" "${CODEX_HOME}/config.toml" "config.toml (default)"
             fi
         fi
         if $PERSONAL; then
-            install_file "${SCRIPT_DIR}/.codex/hooks.json" "${CODEX_HOME}/hooks.json" "hooks.json (personal)"
+            install_config_file "${SCRIPT_DIR}/.codex/hooks.json" "${CODEX_HOME}/hooks.json" "hooks.json (personal)"
         else
-            install_file "${SCRIPT_DIR}/.codex/hooks.json.default" "${CODEX_HOME}/hooks.json" "hooks.json (default)"
+            install_config_file "${SCRIPT_DIR}/.codex/hooks.json.default" "${CODEX_HOME}/hooks.json" "hooks.json (default)"
         fi
     else
         info "Skipping config.toml and hooks.json (--skip-config)"
