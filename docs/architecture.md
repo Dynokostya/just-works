@@ -22,7 +22,7 @@ Two parallel provider directories plus distribution scaffolding:
 - `diagrammer` (PlantUML)
 - `ticket-creator` (ClickUp MCP)
 
-**Skills** (`.claude/skills/`, `.codex/skills/`) — 22 mirrored skill directories: coding standards per language, architecture patterns (DDD, feature-driven), model-specific prompting (`fable-5-prompting`, `opus-4-8-prompting`, `gpt-5-5-prompting`, `gemini-3-prompting`), domain skills (`ticket-writing`, `clickup-tickets`, `sprint-estimation`, `plantuml-diagramming`, `rest-api`), and behavioral modes (`caveman`, `minimal-coding`).
+**Skills** (`.claude/skills/`, `.codex/skills/`) — 22 mirrored skill directories: coding standards per language, architecture patterns (DDD, feature-driven), model-specific prompting (`fable-5-prompting`, `opus-5-prompting`, `gpt-5-5-prompting`, `gemini-3-prompting`), domain skills (`ticket-writing`, `clickup-tickets`, `sprint-estimation`, `plantuml-diagramming`, `rest-api`), and behavioral modes (`caveman`, `minimal-coding`).
 
 **Commands** (`.claude/commands/`, `.codex/prompts/`) — multi-phase workflows:
 - `project-docs` — 5-phase documentation pipeline (Detect → Explore → Synthesize → Write → Verify)

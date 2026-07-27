@@ -262,7 +262,7 @@ Add this tool whenever your UX depends on delivering content or direct user inte
 
 ## Carried-Over Fundamentals
 
-Cross-model practices that still apply on Fable 5 — condensed; full treatment in the prompting best-practices doc and `opus-4-8-prompting`:
+Cross-model practices that still apply on Fable 5 — condensed; full treatment in the prompting best-practices doc and `opus-5-prompting`:
 
 - **Explicit instructions with motivation.** State scope explicitly; a rule with a reason is followed more consistently.
 - **XML tags** for unambiguous separation of instructions, context, examples, and inputs. 3-5 precise examples; every example is a pattern the model may reproduce.
@@ -314,7 +314,7 @@ Source: https://platform.claude.com/docs/en/build-with-claude/refusals-and-fallb
 
 ### From Opus 4.7 or older
 
-Apply the migration checklists in `opus-4-8-prompting` first (adaptive thinking, sampling-parameter removal, prefill replacement, aggressive-language softening), then the Fable 5 steps above.
+Apply the "From Opus 4.7 or older" checklist in `opus-5-prompting` first (parameter-level thinking, sampling-parameter removal, prefill replacement, aggressive-language softening), then the Fable 5 steps above.
 
 ## Anti-Patterns
 
