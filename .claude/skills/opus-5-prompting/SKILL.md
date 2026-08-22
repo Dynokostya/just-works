@@ -245,7 +245,7 @@ XML tags help Claude parse prompts that mix instructions, context, examples, and
 **Principles:**
 - Use consistent, descriptive tag names across your prompts.
 - Nest when content has natural hierarchy (`<documents>` -> `<document index="n">` -> `<document_content>` + `<source>`).
-- Wrap multiple examples in `<examples>` with each in `<example>`; 3-5 examples is Anthropic's recommended range.
+- Prefer expressive interfaces (tool parameter design, schemas, rubrics) over usage examples — on Claude 5-generation models, examples constrain exploration. Where examples are needed to pin an output format, wrap them in `<examples>` with each in `<example>`; 3-5 precise ones.
 
 **Commonly used in Anthropic's own examples:** `<documents>`/`<document>` (with `<source>`, `<document_content>`), `<context>`, `<instructions>`, `<task>`, `<examples>`/`<example>` (with `<input>`, `<output>`), `<format>`, `<output_format>`, `<quotes>`, and named behavioral-steering tags (`<use_parallel_tool_calls>`, `<default_to_action>`, `<do_not_act_before_instructions>`, `<investigate_before_answering>`, `<frontend_aesthetics>`, `<avoid_excessive_markdown_and_bullet_points>`, `<scope_constraints>`, `<action_safety>`, `<subagent_guidance>`, `<tone_preference>`).
 
@@ -397,6 +397,7 @@ Instructions that call out thinking tags by name are less effective than the gen
 - [ ] Re-baseline effort per route rather than carrying over 4.8's `xhigh`-for-coding default; `low` and `medium` are the primary cost controls.
 - [ ] Re-validate vision workarounds tuned for prior models; prefer giving crop/analysis tools over raising effort.
 - [ ] Re-baseline frontend counter-prompting — the 4.8 house-style palette is not documented for Opus 5.
+- [ ] Rightsize context: convert worst-case guardrails to principles, state each instruction once across system prompt / tool descriptions / CLAUDE.md, and move detail into selectively loaded skills. Anthropic removed over 80% of Claude Code's system prompt for Claude 5-generation models with no measured eval loss; `/doctor` in Claude Code rightsizes CLAUDE.md and skills.
 
 ### From Opus 4.7 or older
 
@@ -428,6 +429,7 @@ Apply these first, then the 4.8 -> 5 steps above:
 - **Conflicting instructions** ("concise but very detailed") — pick one or separate by context.
 - **Ambiguous examples** — every example is a pattern the model may reproduce. Be precise.
 - **Duplicating structured-output shape in the prompt** — with a schema in place, state intent only.
+- **Repeating an instruction across system prompt, tool descriptions, and CLAUDE.md** — Claude 5-generation models internalize an instruction stated once; consolidate it where it belongs (usually the tool description).
 
 ## Reference
 
@@ -435,3 +437,4 @@ Apply these first, then the 4.8 -> 5 steps above:
 - Prompting best practices: https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices
 - What's new in Opus 5: https://platform.claude.com/docs/en/about-claude/models/whats-new-opus-5
 - Migration guide: https://platform.claude.com/docs/en/about-claude/models/migration-guide#migrating-from-claude-opus-4-8-to-claude-opus-5
+- Context engineering for Claude 5-generation models: https://claude.com/blog/the-new-rules-of-context-engineering-for-claude-5-generation-models

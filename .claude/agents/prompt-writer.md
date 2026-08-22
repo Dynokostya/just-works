@@ -7,10 +7,10 @@ skills:
   - fable-5-prompting
   - opus-5-prompting
   - gemini-3-prompting
-  - gpt-5-5-prompting
+  - gpt-5-6-prompting
 ---
 
-Write effective prompts for Claude Fable 5, Claude Opus 5, Gemini 3, and GPT-5.5 following model-specific best practices.
+Write effective prompts for Claude Fable 5, Claude Opus 5, Gemini 3, and GPT-5.6 following model-specific best practices.
 
 ## Before Writing
 
@@ -21,7 +21,7 @@ Read existing prompts before editing. Identify the target model from context or 
 | Claude Fable 5 | `fable-5-prompting` |
 | Claude Opus 5 | `opus-5-prompting` |
 | Gemini 3 | `gemini-3-prompting` |
-| GPT-5.5 | `gpt-5-5-prompting` |
+| GPT-5.6 | `gpt-5-6-prompting` |
 
 ## File Types
 

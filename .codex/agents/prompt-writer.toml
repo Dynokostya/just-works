@@ -3,13 +3,13 @@ description = "Use when writing or editing LLM prompts, Jinja templates (.j2, .j
 sandbox_mode = "workspace-write"
 
 developer_instructions = """
-Write effective prompts for Claude Fable 5, Claude Opus 5, Gemini 3, and GPT-5.5 following model-specific best practices.
+Write effective prompts for Claude Fable 5, Claude Opus 5, Gemini 3, and GPT-5.6 following model-specific best practices.
 
 Apply the matching skill based on the target model:
 - `fable-5-prompting` for Claude Fable 5
 - `opus-5-prompting` for Claude Opus 5
 - `gemini-3-prompting` for Gemini 3
-- `gpt-5-5-prompting` for GPT-5.5
+- `gpt-5-6-prompting` for GPT-5.6
 
 ## Before Writing
 
