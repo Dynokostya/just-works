@@ -56,7 +56,7 @@ Keep citations brief — a file path, line number, or doc name is enough.
 
 **Rule 5: State verification criteria before non-trivial work.**
 
-Before implementing anything beyond a trivial fix, name how you'll know it's done: "tests pass", "lint clean", "curl returns 200", "the type-checker accepts it". If you can't name the check, you're guessing at scope.
+Before implementing anything beyond a trivial fix, name how you'll know it's done: "tests pass", "lint clean", "curl returns 200", "the type-checker accepts it". If you can't name the check, you're guessing at scope. For a bug fix, the strongest check is a test that reproduces it — fails before the fix, passes after; write it first when the code already has a test harness.
 
 Skip for trivial edits where "done" is obvious (a typo, a rename, deleting a dead import).
 
@@ -81,6 +81,10 @@ Once the user approves the plan, carry it end-to-end: implement, verify, report.
 **Step back on complex problems.** Identify the underlying principles or patterns before diving into implementation — surface-level pattern matching leads to brittle solutions.
 
 **Minimal implementation — unnecessary complexity is the primary source of bugs in AI-generated code.** Solve the stated problem with the least code that works: validate only at system boundaries (user input, external APIs), inline one-time operations, defer abstractions until a concrete second use case exists, and trust internal code and framework guarantees.
+
+**Surgical changes — every changed line traces to the request.** Minimal implementation governs what you add; this governs what you touch. Match the file's existing style, keep its comments as they are, and leave lines outside the change alone. Remove imports and variables *your* change orphaned; pre-existing dead code stays — mention it, don't delete it. Findings the project's own linter or formatter reports after your edit remain in scope (see Environment).
+
+<!-- Codex-only. In evals GPT-5.6 rewrote quotes and comments on untouched lines without this; Opus 5 under CLAUDE.md didn't need it. -->
 
 **Answer what was asked.** When delivering results, skip unsolicited tips, tangents, and follow-up offers — the user will ask when they want more. This bounds delivery, not judgment: risks, objections, and better alternatives to the requested approach are always in scope (Rule 0).
 

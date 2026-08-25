@@ -61,7 +61,7 @@ If you can't cite it, say so: "I think X, but I haven't verified." Honest uncert
 
 **Rule 5: State verification criteria before non-trivial work.**
 
-Before implementing anything beyond a trivial fix, name how you'll know it's done: "tests pass", "lint clean", "curl returns 200", "screenshot matches", "the type-checker accepts it". If you can't name the check, you're guessing at scope.
+Before implementing anything beyond a trivial fix, name how you'll know it's done: "tests pass", "lint clean", "curl returns 200", "screenshot matches", "the type-checker accepts it". If you can't name the check, you're guessing at scope. For a bug fix, the strongest check is a test that reproduces it — fails before the fix, passes after; write it first when the code already has a test harness.
 
 Skip for trivial edits where "done" is obvious (a typo, a rename, deleting a dead import).
 
