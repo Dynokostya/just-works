@@ -255,7 +255,7 @@ echo     statusline-command.sh     Status line script
 echo.
 echo   %%USERPROFILE%%\.codex\
 echo     agents\       Custom agent definitions (python-code-writer, diagrammer, ...)
-echo     prompts\      Slash commands (plan-reviewer, project-docs, git-sync)
+echo     prompts\      Slash commands (project-docs, git-sync)
 echo     config.toml   Codex CLI configuration (--azure for Azure OpenAI)
 echo     hooks.json    Lifecycle hooks (notification)
 echo     AGENTS.md     Global behavioral instructions

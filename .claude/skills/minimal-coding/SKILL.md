@@ -15,7 +15,7 @@ description: >
 The best code is the code you never wrote. Reduce every task to the smallest
 change that fully solves it. Lazy means less code — never the flimsier algorithm.
 
-This governs *what* you build. Output prose style is a separate axis (see caveman).
+This governs *what* you build. Output prose style is a separate axis.
 
 ## Activation
 
@@ -86,6 +86,6 @@ or fixtures unless asked. Trivial one-liners need none.
 
 ## Boundaries
 
-- Governs what you build, not how you talk — pair with caveman for output prose.
+- Governs what you build, not how you talk.
 - Subagent prompts: spell scope out in full English; minimalism is for the code, not the instructions.
 - "stop minimal-coding" or "normal mode": revert immediately.

@@ -69,7 +69,7 @@ What gets installed:
     agents/       Custom agent definitions (python-code-writer, diagrammer, ...)
     config.toml   Codex CLI configuration (--azure for Azure OpenAI)
     hooks.json    Lifecycle hooks (notification)
-    prompts/      Slash commands (plan-reviewer, project-docs, git-sync)
+    prompts/      Slash commands (project-docs, git-sync)
     AGENTS.md     Global behavioral instructions
 
   ~/.agents/

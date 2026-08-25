@@ -22,14 +22,13 @@ Two parallel provider directories plus distribution scaffolding:
 - `diagrammer` (PlantUML)
 - `ticket-creator` (ClickUp MCP)
 
-**Skills** (`.claude/skills/`, `.codex/skills/`) — 22 mirrored skill directories: coding standards per language, architecture patterns (DDD, feature-driven), model-specific prompting (`fable-5-prompting`, `opus-5-prompting`, `gpt-5-6-prompting`, `gemini-3-prompting`), domain skills (`ticket-writing`, `clickup-tickets`, `sprint-estimation`, `plantuml-diagramming`, `rest-api`), and behavioral modes (`caveman`, `minimal-coding`).
+**Skills** (`.claude/skills/`, `.codex/skills/`) — 19 mirrored skill directories: coding standards per language, architecture patterns (DDD, feature-driven), model-specific prompting (`fable-5-prompting`, `opus-5-prompting`, `gpt-5-6-prompting`, `gemini-3-prompting`), domain skills (`ticket-writing`, `plantuml-diagramming`, `rest-api`), and behavioral modes (`minimal-coding`).
 
 **Commands** (`.claude/commands/`, `.codex/prompts/`) — multi-phase workflows:
 - `project-docs` — 5-phase documentation pipeline (Detect → Explore → Synthesize → Write → Verify)
 - `git-sync` — sync repos and submodules to default branch
-- `plan-reviewer` — Codex-only, reviews plans authored by Claude Opus
 
-Dependency direction: Agents → Skills (declared in agent frontmatter). Commands → Agents and Skills (referenced in command prompts). Skills may compose (`clickup-tickets` pairs with `ticket-writing`). No reverse dependencies.
+Dependency direction: Agents → Skills (declared in agent frontmatter). Commands → Agents and Skills (referenced in command prompts). No reverse dependencies.
 
 ## Data Flow
 
@@ -56,7 +55,6 @@ Commands orchestrate multi-phase work: `project-docs` spawns three parallel `Exp
 - `install.sh`, `install.bat` — clone-and-run installers
 - `.claude/commands/project-docs.md` — documentation pipeline
 - `.claude/commands/git-sync.md` — multi-repo branch sync
-- `.codex/prompts/plan-reviewer.md` — Codex plan review
 - `.claude/agents/*.md`, `.codex/agents/*.toml` — 9 specialized agents per provider
 - `src/evals/` — pytest harness for skill validation via OpenRouter
 

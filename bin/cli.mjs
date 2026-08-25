@@ -59,7 +59,7 @@ What gets installed:
 
   ~/.codex/
     agents/       Custom agent definitions (python-code-writer, diagrammer, ...)
-    prompts/      Slash commands (plan-reviewer, project-docs, git-sync)
+    prompts/      Slash commands (project-docs, git-sync)
     config.toml   Codex CLI configuration (--azure for Azure OpenAI)
     hooks.json    Lifecycle hooks (notification)
     AGENTS.md     Global behavioral instructions

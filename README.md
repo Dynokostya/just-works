@@ -10,14 +10,14 @@ Just copy `.claude/` into any project — or install globally — and get pre-co
 
 ## What's Inside
 
-**Lean by default** — `caveman` and the `compressed` output style trim response tokens (filler, hedging, emojis); `minimal-coding` forces least-code solutions. Less context burned, lower cost.
+**Lean by default** — the `compressed` output style trims response tokens (filler, hedging, emojis); `minimal-coding` forces least-code solutions. Less context burned, lower cost.
 
 **Full Claude Code fluency** — uses the whole toolset by default: `AskUserQuestion` for structured choices, rich markdown, `TaskCreate` progress tracking, and parallel tool calls — not plain-text walls.
 
 **Context-isolating subagents** — delegates file-type work (`python`, `react`, `swift`, …) to subagents that carry their own context, so the main thread stays lean and focused.
 
 **Agents** — file-type-triggered writers (`python`, `typescript`, `swift`, `csharp`, `react`), plus `prompt-writer`, `diagrammer`, and `ticket-creator`. 9 per provider.
-**Commands** — `project-docs` and `git-sync` (Claude & Codex), `plan-reviewer` (Codex).
+**Commands** — `project-docs` and `git-sync` (Claude & Codex).
 
 **Skills** — coding standards (Python, TypeScript, React, Tailwind, shadcn/ui, Swift, C#, Dart/Flutter), architecture patterns (DDD, feature-driven), model-specific prompt engineering (Claude Opus 5 & Fable 5, GPT-5.6, Gemini 3), and behavioral modes (`minimal-coding` for least-code solutions). Applied automatically based on the file type you're editing.
 
@@ -146,7 +146,7 @@ Requires `npx` (Node.js) in your PATH.
   settings.json     # Permissions, hooks, env, MCP toggles
 .codex/
   agents/           # Codex custom agent definitions (TOML)
-  prompts/          # Codex slash commands (plan-reviewer, ...)
+  prompts/          # Codex slash commands (project-docs, git-sync)
   skills/           # Same standards, mirrored for Codex
   config/azure/     # config.toml.default + config.toml
   hooks.json        # Lifecycle hooks (notification)

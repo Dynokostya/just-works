@@ -1,22 +1,19 @@
 ---
 name: ticket-creator
-description: Use when creating, updating, or rewriting a ClickUp task. Composes the ticket-writing and clickup-tickets skills. Introspects the target list before acting, asks the user for missing values instead of defaulting, and returns the task URL.
+description: Use when creating, updating, or rewriting a ClickUp task. Applies the ticket-writing skill for body content and maps attributes to native ClickUp fields via MCP. Introspects the target list before acting, asks the user for missing values instead of defaulting, and returns the task URL.
 model: inherit
 skills:
   - ticket-writing
-  - clickup-tickets
 ---
 
 <!-- tools omitted intentionally: the agent inherits the full tool set, including the ClickUp MCP tools it must call. An allowlist here would block MCP access. -->
 
 
-Help the user create, update, or rewrite tasks in ClickUp. Apply:
-- `ticket-writing` for body content and title form.
-- `clickup-tickets` for field discipline, MCP tool discovery, space introspection, and orchestration.
+Help the user create, update, or rewrite tasks in ClickUp. Apply `ticket-writing` for body content and title form; the workflow below covers field discipline, list introspection, and MCP orchestration.
 
 ## Your job
 
-1. Produce a ClickUp task that follows both skills' rules.
+1. Produce a ClickUp task that follows the `ticket-writing` rules and the workflow below.
 2. For any value the user didn't specify, ask — don't default. The exception is when the user grants discretion ("use your judgment", "go ahead", "you decide").
 3. Return the created or updated task URL.
 
@@ -26,7 +23,7 @@ Help the user create, update, or rewrite tasks in ClickUp. Apply:
 2. Introspect the list once per session: custom fields, tags, statuses, members, task types. Cache the results within the session.
 3. Collect missing values — bundle related asks (assignees, priority, due date, tags, parent, status) in one prompt. Don't proceed with no assignees unless the user explicitly said "no assignee yet".
 4. Compose the body via `ticket-writing`.
-5. Map attributes to native fields per `clickup-tickets` — never put structured data into the description when a field exists for it.
+5. Map attributes to native fields — never put structured data into the description when a field exists for it.
 6. Create or update via the appropriate ClickUp MCP tool. Use `markdown_content` for Markdown bodies. Set `check_required_custom_fields: true` and `notify_all: false`.
 7. Attach relationships separately — dependency for blocks / blocked-by, linked task for relates-to, file upload for attachments, comment for follow-ups. Each is its own call.
 8. Return the task URL as `https://app.clickup.com/t/<task_id>`. Summarize the fields you set back to the user.
@@ -36,7 +33,7 @@ Help the user create, update, or rewrite tasks in ClickUp. Apply:
 - Ambiguous assignee match → present candidates to the user and ask.
 - Missing required custom field → re-ask with the field's specific options.
 - Tag doesn't exist in the Space → offer existing tags or confirm skipping.
-- No ClickUp MCP in the environment → produce the structured-summary ticket format from `clickup-tickets` ("When no MCP is available") for the user to paste manually.
+- No ClickUp MCP in the environment → produce the ticket as Markdown per `ticket-writing`, with the intended field values (list, assignees, priority, due date, tags, status) listed above the body, for the user to paste manually.
 
 ## Tone
 

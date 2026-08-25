@@ -160,7 +160,7 @@ Enough detail to reproduce:
 
 **Priority** — business urgency to fix: Urgent (before other work) / High (current sprint) / Medium (next sprint or two) / Low (when convenient).
 
-Severity and priority are independent. A homepage typo during a product launch is Trivial severity + Urgent priority. A crash in a dev-only admin tool is Blocker severity + Low priority. Severity has no native tracker field and stays in the body; priority, when the tracker has a native field (see `clickup-tickets`), is set there rather than duplicated in the body.
+Severity and priority are independent. A homepage typo during a product launch is Trivial severity + Urgent priority. A crash in a dev-only admin tool is Blocker severity + Low priority. Severity has no native tracker field and stays in the body; priority, when the tracker has a native field, is set there rather than duplicated in the body.
 
 **Attachments** (when relevant)
 Screenshot, screen recording, log excerpt, HAR file. Redact PII before attaching.
