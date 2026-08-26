@@ -51,21 +51,23 @@
       "Read(**/target/**)",
       "Read(**/coverage/**)",
       "Read(**/*.min.js)",
-      "Read(**/*.map)"
+      "Read(**/*.map)",
+      "Read(~/.ssh/**)",
+      "Read(~/.aws/**)",
+      "Read(~/.gcp/**)",
+      "Read(~/.azure/**)",
+      "Read(~/.gnupg/**)",
+      "Read(~/.netrc)",
+      "Read(~/.pgpass)"
     ],
     "defaultMode": "bypassPermissions"
   },
   "model": "best",
   "enableAllProjectMcpServers": true,
   "cleanupPeriodDays": 180,
-  "maxTerminalOutputChars": 200000,
-  "maxFileReadTokens": 50000,
-  "autoCompactPercentageOverride": 80,
   "autoMemoryEnabled": false,
-  "skipDangerousModePermissionPrompt": true,
   "plansDirectory": "./.claude/plans",
   "outputStyle": "Compressed",
-  "spinnerTipsEnabled": true,
   "attribution": {
     "commit": "",
     "pr": ""
@@ -74,7 +76,6 @@
   "skillListingBudgetFraction": 0.05,
   "skillListingMaxDescChars": 2048,
   "env": {
-    "ENABLE_TOOL_SEARCH": "true",
     "CLAUDE_CODE_SUBAGENT_MODEL": "best",
     "CLAUDE_CODE_EFFORT_LEVEL": "max",
     "DISABLE_ERROR_REPORTING": "1",
@@ -83,7 +84,8 @@
     "BASH_MAX_OUTPUT_LENGTH": "150000",
     "CLAUDE_CODE_MAX_OUTPUT_TOKENS": "128000",
     "CLAUDE_STREAM_IDLE_TIMEOUT_MS": "1800000",
-    "API_TIMEOUT_MS": "1800000"
+    "API_TIMEOUT_MS": "1800000",
+    "CLAUDE_AUTOCOMPACT_PCT_OVERRIDE": "80"
   },
   "hooks": {
     "PreToolUse": [
