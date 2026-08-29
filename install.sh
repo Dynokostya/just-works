@@ -19,6 +19,17 @@ SKIP_STATUSLINE=false
 SKIP_SKILLS_CLAUDE=false
 SKIP_SKILLS_CODEX=false
 DO_BACKUP=true
+PRUNE=false
+REPLACE_CONFIG=false
+
+# Ownership manifest: records every entry this installer has placed into a
+# destination, so --prune can distinguish "we shipped this and it is now gone
+# from the source" from "the user put this here". Entries never recorded are
+# never deleted.
+MANIFEST_FILE="${HOME}/.just-works-manifest"
+MANIFEST_NEW="$(mktemp)"
+MANIFEST_DESTS="$(mktemp)"
+trap 'rm -f "$MANIFEST_NEW" "$MANIFEST_DESTS"' EXIT
 
 # Colors
 if [[ -t 1 ]]; then
@@ -53,6 +64,14 @@ Options:
   --codex-only    Install only Codex files (~/.codex/, ~/.agents/)
   --dry-run       Show what would be installed without making changes
   --no-backup     Skip backup prompt, disable backups (for CI/non-interactive)
+  --prune         Delete entries that a previous run of this installer placed
+                  in the destination and that no longer exist in the source
+                  (tracked in ~/.just-works-manifest). Entries the installer
+                  never shipped are always kept and listed, never deleted.
+  --replace-config  Overwrite an existing settings.json / config.toml /
+                  hooks.json (with backup). By default existing config files
+                  are kept, since live configs accumulate machine-local state
+                  (otel, plugin disables, agent defaults) the repo cannot know.
   -h, --help      Show this help message
 
 What gets installed:
@@ -91,6 +110,8 @@ while [[ $# -gt 0 ]]; do
         --skip-skills-claude) SKIP_SKILLS_CLAUDE=true; shift ;;
         --skip-skills-codex)  SKIP_SKILLS_CODEX=true; shift ;;
         --no-backup)   DO_BACKUP=false; shift ;;
+        --prune)       PRUNE=true; shift ;;
+        --replace-config) REPLACE_CONFIG=true; shift ;;
         -h|--help)     usage ;;
         *) error "Unknown option: $1"; usage ;;
     esac
@@ -101,7 +122,8 @@ if $CLAUDE_ONLY && $CODEX_ONLY; then
     exit 1
 fi
 
-# Choose copy method
+# Choose copy method. Copies are always additive; deletion happens only through
+# the manifest-scoped prune in install_dir, so --prune no longer needs rsync.
 if command -v rsync &>/dev/null; then
     copy_dir() { rsync -a "$1/" "$2/"; }
 else
@@ -159,12 +181,15 @@ clean_target() {
     fi
 }
 
-# Prepare a target: backup or clean depending on user choice
+# Prepare a target: backup or clean depending on user choice.
+# Directories are never wholesale-removed: destinations legitimately contain
+# user-owned entries (local skills, personal agents) alongside installed ones,
+# and staleness is handled per-entry by the manifest prune instead.
 prepare_target() {
     local target="$1"
     if $DO_BACKUP; then
         backup_target "$target"
-    else
+    elif [[ -f "$target" ]]; then
         clean_target "$target"
     fi
 }
@@ -175,7 +200,45 @@ install_dir() {
         warn "Source not found, skipping: $src"
         return
     fi
+    echo "$dest" >> "$MANIFEST_DESTS"
+
+    # Split destination extras into ours-but-stale (in the manifest, gone from
+    # the source) and user-owned (never shipped by us). Only the former is ever
+    # a prune candidate.
+    local owned="" stale="" extras="" entry
+    if [[ -f "$MANIFEST_FILE" ]]; then
+        owned="$(awk -v d="${dest}/" 'index($0, d) == 1 { print substr($0, length(d) + 1) }' "$MANIFEST_FILE")"
+    fi
+    if [[ -d "$dest" ]]; then
+        while IFS= read -r entry; do
+            [[ -n "$entry" ]] || continue
+            [[ -e "${src}/${entry}" ]] && continue
+            if printf '%s\n' "$owned" | grep -Fxq "$entry"; then
+                stale="${stale}${entry} "
+            else
+                extras="${extras}${entry} "
+            fi
+        done < <(ls "$dest" 2>/dev/null)
+    fi
+    [[ -n "$extras" ]] && warn "Not managed by this installer, kept in ${dest}: ${extras}"
+    if [[ -n "$stale" ]]; then
+        if ! $PRUNE; then
+            warn "Stale (installed by a previous run, gone from source; use --prune) in ${dest}: ${stale}"
+        elif $DRY_RUN; then
+            warn "Would prune from ${dest}: ${stale}"
+        fi
+    fi
+
     prepare_target "$dest"
+
+    # Prune after the backup so removed entries are still recoverable.
+    if $PRUNE && ! $DRY_RUN && [[ -n "$stale" ]]; then
+        for entry in $stale; do
+            rm -rf "${dest:?}/${entry}"
+        done
+        warn "Pruned from ${dest}: ${stale}"
+    fi
+
     if $DRY_RUN; then
         info "Would copy: $src/ -> $dest/"
     else
@@ -183,6 +246,24 @@ install_dir() {
         copy_dir "$src" "$dest"
         info "Installed: $label -> $dest/"
     fi
+
+    # Claim ownership of everything we ship, whether or not this run is dry:
+    # only a real run rewrites the manifest (guarded at the end of the script).
+    while IFS= read -r entry; do
+        [[ -n "$entry" ]] && echo "${dest}/${entry}" >> "$MANIFEST_NEW"
+    done < <(ls "$src" 2>/dev/null)
+}
+
+# Config files are kept once they exist: live configs accumulate machine-local
+# state (otel routing, plugin disables, subagent defaults) that a repo template
+# cannot know about. --replace-config restores the old overwrite behaviour.
+install_config_file() {
+    local src="$1" dest="$2" label="$3"
+    if [[ -f "$dest" ]] && ! $REPLACE_CONFIG; then
+        info "Kept existing: $dest (use --replace-config to overwrite)"
+        return
+    fi
+    install_file "$src" "$dest" "$label"
 }
 
 install_file() {
@@ -218,9 +299,9 @@ if ! $CODEX_ONLY; then
 
     if ! $SKIP_CONFIG; then
         if $PERSONAL; then
-            install_file "${SCRIPT_DIR}/.claude/settings.json" "${CLAUDE_HOME}/settings.json" "settings.json (personal)"
+            install_config_file "${SCRIPT_DIR}/.claude/settings.json" "${CLAUDE_HOME}/settings.json" "settings.json (personal)"
         else
-            install_file "${SCRIPT_DIR}/.claude/settings.json.default" "${CLAUDE_HOME}/settings.json" "settings.json (default)"
+            install_config_file "${SCRIPT_DIR}/.claude/settings.json.default" "${CLAUDE_HOME}/settings.json" "settings.json (default)"
         fi
     else
         info "Skipping settings.json (--skip-config)"
@@ -251,21 +332,21 @@ if ! $CLAUDE_ONLY; then
     if ! $SKIP_CONFIG; then
         if $AZURE; then
             if $PERSONAL; then
-                install_file "${SCRIPT_DIR}/.codex/config/azure/config.toml" "${CODEX_HOME}/config.toml" "config.toml (azure, personal)"
+                install_config_file "${SCRIPT_DIR}/.codex/config/azure/config.toml" "${CODEX_HOME}/config.toml" "config.toml (azure, personal)"
             else
-                install_file "${SCRIPT_DIR}/.codex/config/azure/config.toml.default" "${CODEX_HOME}/config.toml" "config.toml (azure, default)"
+                install_config_file "${SCRIPT_DIR}/.codex/config/azure/config.toml.default" "${CODEX_HOME}/config.toml" "config.toml (azure, default)"
             fi
         else
             if $PERSONAL; then
-                install_file "${SCRIPT_DIR}/.codex/config.toml" "${CODEX_HOME}/config.toml" "config.toml (personal)"
+                install_config_file "${SCRIPT_DIR}/.codex/config.toml" "${CODEX_HOME}/config.toml" "config.toml (personal)"
             else
-                install_file "${SCRIPT_DIR}/.codex/config.toml.default" "${CODEX_HOME}/config.toml" "config.toml (default)"
+                install_config_file "${SCRIPT_DIR}/.codex/config.toml.default" "${CODEX_HOME}/config.toml" "config.toml (default)"
             fi
         fi
         if $PERSONAL; then
-            install_file "${SCRIPT_DIR}/.codex/hooks.json" "${CODEX_HOME}/hooks.json" "hooks.json (personal)"
+            install_config_file "${SCRIPT_DIR}/.codex/hooks.json" "${CODEX_HOME}/hooks.json" "hooks.json (personal)"
         else
-            install_file "${SCRIPT_DIR}/.codex/hooks.json.default" "${CODEX_HOME}/hooks.json" "hooks.json (default)"
+            install_config_file "${SCRIPT_DIR}/.codex/hooks.json.default" "${CODEX_HOME}/hooks.json" "hooks.json (default)"
         fi
     else
         info "Skipping config.toml and hooks.json (--skip-config)"
@@ -273,6 +354,20 @@ if ! $CLAUDE_ONLY; then
 
     install_file "${SCRIPT_DIR}/AGENTS.md"        "${CODEX_HOME}/AGENTS.md" "AGENTS.md"
     echo ""
+fi
+
+# --- Manifest rebuild ---
+# Keep old entries for destinations this run did not touch (e.g. a --claude-only
+# run must not orphan the codex side), replace entries for destinations it did.
+if ! $DRY_RUN && [[ -s "$MANIFEST_DESTS" ]]; then
+    {
+        if [[ -f "$MANIFEST_FILE" ]]; then
+            awk 'FNR == NR { d[$0]; next }
+                 { for (x in d) if (index($0, x "/") == 1) next; print }' \
+                "$MANIFEST_DESTS" "$MANIFEST_FILE"
+        fi
+        cat "$MANIFEST_NEW"
+    } | sort -u > "${MANIFEST_FILE}.tmp" && mv "${MANIFEST_FILE}.tmp" "$MANIFEST_FILE"
 fi
 
 # --- Summary ---
