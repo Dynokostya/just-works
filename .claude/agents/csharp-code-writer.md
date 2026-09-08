@@ -2,7 +2,6 @@
 name: csharp-code-writer
 description: Use proactively when writing or editing C# (.cs) files. Applies project C# standards and runs quality checks.
 tools: Write, Read, Edit, Bash, Glob, Grep
-model: inherit
 skills:
   - csharp-coding
   - minimal-coding

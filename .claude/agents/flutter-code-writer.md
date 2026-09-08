@@ -2,7 +2,6 @@
 name: flutter-code-writer
 description: Use proactively when writing or editing Flutter / Dart (.dart) files. Applies project Dart and Flutter standards and runs quality checks.
 tools: Write, Read, Edit, Bash, Glob, Grep
-model: inherit
 skills:
   - dart-coding
   - flutter-coding

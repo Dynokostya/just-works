@@ -76,7 +76,8 @@
   "skillListingBudgetFraction": 0.05,
   "skillListingMaxDescChars": 2048,
   "env": {
-    "CLAUDE_CODE_SUBAGENT_MODEL": "best",
+    "CLAUDE_CODE_SUBAGENT_MODEL": "opus",
+    "CLAUDE_CODE_SUBAGENT_MODEL_FORCE": "1",
     "CLAUDE_CODE_EFFORT_LEVEL": "max",
     "DISABLE_ERROR_REPORTING": "1",
     "DISABLE_FEEDBACK_COMMAND": "1",

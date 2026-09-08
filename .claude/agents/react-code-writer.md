@@ -2,7 +2,6 @@
 name: react-code-writer
 description: Use proactively when writing or editing React (.tsx/.jsx) files, Tailwind CSS classes, or shadcn/ui components. Applies project React standards and runs quality checks.
 tools: Write, Read, Edit, Bash, Glob, Grep
-model: inherit
 skills:
   - react-coding
   - tailwind-css-coding

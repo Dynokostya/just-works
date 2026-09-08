@@ -2,7 +2,6 @@
 name: python-code-writer
 description: Use proactively when writing or editing Python (.py) files. Applies project python standards and runs quality checks.
 tools: Write, Read, Edit, Bash, Glob, Grep
-model: inherit
 skills:
   - python-coding
   - minimal-coding

@@ -1,7 +1,6 @@
 ---
 name: ticket-creator
 description: Use when creating, updating, or rewriting a ClickUp task. Applies the ticket-writing skill for body content and maps attributes to native ClickUp fields via MCP. Introspects the target list before acting, asks the user for missing values instead of defaulting, and returns the task URL.
-model: inherit
 skills:
   - ticket-writing
 ---

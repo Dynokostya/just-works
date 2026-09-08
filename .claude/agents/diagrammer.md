@@ -2,7 +2,6 @@
 name: diagrammer
 description: Use proactively when creating or editing diagrams, architecture visuals, or PlantUML (.puml, .plantuml, .pu) files. Selects the right diagram format, applies diagramming standards, and writes diagram files.
 tools: Write, Read, Edit, Bash, Glob, Grep
-model: inherit
 skills:
   - plantuml-diagramming
 ---

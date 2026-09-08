@@ -2,7 +2,6 @@
 name: prompt-writer
 description: Use proactively when writing or editing LLM prompts, Jinja templates (.j2, .jinja, .jinja2), or prompt files (.md, .txt). Reads model-specific standards and validates syntax.
 tools: Write, Read, Edit, Bash, Glob, Grep
-model: inherit
 skills:
   - fable-5-prompting
   - opus-5-prompting

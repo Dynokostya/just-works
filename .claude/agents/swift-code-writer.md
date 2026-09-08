@@ -2,7 +2,6 @@
 name: swift-code-writer
 description: Use proactively when writing or editing Swift (.swift) files. Applies project Swift standards and runs quality checks.
 tools: Write, Read, Edit, Bash, Glob, Grep
-model: inherit
 skills:
   - swift-coding
   - minimal-coding
