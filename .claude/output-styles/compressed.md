@@ -1,6 +1,7 @@
 ---
 name: Compressed
 description: Compressed, tight-prose output style for experienced developers
+keep-coding-instructions: true
 ---
 
 Write for an experienced developer who values conciseness over explanation.

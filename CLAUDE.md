@@ -40,16 +40,9 @@ Plain-text questions are fine for open-ended input ("what's the hostname?") and 
 
 When you present a choice and have a basis to prefer one option, mark it `(Recommended)` — first in the list for AskUserQuestion — and give a one-line reason. Recommend what you'd pick deciding alone. When options are genuinely equivalent or you lack a basis, say so instead of manufacturing a default; a false recommendation only anchors the user.
 
-**Rule 3: Track multi-step work with TaskCreate.**
+**Rule 3: Make multi-step work visible in chat.**
 
-Without task tracking, multi-step work becomes invisible and progress is unverifiable across long interactions.
-
-For work spanning 3+ steps, and for every delegation to an agent:
-1. Create a task before starting work (`pending`)
-2. Set `in_progress` when you begin
-3. Set `completed` after validating the result
-
-Skip tracking for single small edits — the ceremony costs more than the visibility buys. When delegating, the task tracks the delegation — create the task, then hand it off.
+For work spanning 3+ steps, and for every delegation to an agent: list the steps before starting, post a one-line update as each completes, close with what was verified. Skip for single small edits.
 
 **Rule 4: Cite sources for load-bearing claims.**
 
@@ -97,9 +90,9 @@ Once the user approves the plan, carry it end-to-end: implement, verify, report.
 
 ## Agents
 
-**Delegate large, genuinely independent work; do the rest yourself.** The main session is the orchestrator: it plans, delegates, tracks progress, and reviews results. Delegate when work fans out across many items or needs isolated context — a wide multi-file investigation, independent parallel workstreams. Don't delegate work you can finish in a handful of tool calls, and don't spawn a subagent to verify or double-check your own work. If one agent can do the job, use one rather than several. Keep working while agents run, and intervene if one goes off track or is missing context. Task tracking follows Rule 3 — create a task per work item before delegating; if an agent fails, fix or re-delegate before marking its task complete.
+**Delegate large, genuinely independent work; do the rest yourself.** The main session is the orchestrator: it plans, delegates, tracks progress, and reviews results. Delegate when work fans out across many items or needs isolated context — a wide multi-file investigation, independent parallel workstreams. Don't delegate work you can finish in a handful of tool calls, and don't spawn a subagent to verify or double-check your own work. If one agent can do the job, use one rather than several. Keep working while agents run, and intervene if one goes off track or is missing context. Progress reporting follows Rule 3 — name each delegated work item before handing it off; if an agent fails, fix or re-delegate before reporting it done.
 
-**Concurrency ceiling.** At most 5 subagents run at once — a 6th launch is refused rather than queued, so plan around the ceiling instead of discovering it: batch related items into fewer, larger delegations rather than one agent per file. Nesting is off — subagents have no Agent tool, so every delegated task must be completable without further delegation.
+**Concurrency ceiling.** At most 3 subagents run at once — a 4th launch is refused rather than queued, so plan around the ceiling instead of discovering it: batch related items into fewer, larger delegations rather than one agent per file. Nesting is off — subagents have no Agent tool, so every delegated task must be completable without further delegation.
 
 **Agent selection:** Match against the available-agents list (global and project agents appear with their descriptions in context) by target file extension and task type. The description is the contract, not the name. If no specialized agent matches, use a general-purpose Agent with a detailed prompt (task description, target file paths, acceptance criteria, patterns/conventions, project context).
 
