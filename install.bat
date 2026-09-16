@@ -70,7 +70,6 @@ if "%SKIP_SKILLS_CLAUDE%"=="1" (
 )
 call :install_dir "%SCRIPT_DIR%.claude\commands"  "%CLAUDE_HOME%\commands" "commands"
 call :install_dir "%SCRIPT_DIR%.claude\output-styles"  "%CLAUDE_HOME%\output-styles" "output-styles"
-if "%PERSONAL%"=="1" call :install_dir "%SCRIPT_DIR%.claude\hooks"     "%CLAUDE_HOME%\hooks"    "hooks"
 
 if "%SKIP_CONFIG%"=="1" (
     echo [+] Skipping settings.json (--skip-config)

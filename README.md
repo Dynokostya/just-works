@@ -48,7 +48,7 @@ Installs agents, skills, commands, and settings globally to `~/.claude/` and `~/
 
 **Two `--personal` hooks need extra setup to work:**
 
-- **`rtk` Bash rewriting** (`.claude/hooks/rtk-rewrite.sh`) rewrites commands to save tokens, but needs [`rtk`](https://github.com/rtk-ai/rtk) ≥ 0.23.0 and `jq` installed. Without them it prints a warning on every Bash call and does nothing — install `rtk`, or delete the `PreToolUse` hook from `settings.json`.
+- **`rtk` Bash rewriting** (`rtk hook claude`) rewrites commands to save tokens, but needs [`rtk`](https://github.com/rtk-ai/rtk) ≥ 0.37.0 installed. Without it every Bash call shows a non-blocking hook error and runs unchanged — install `rtk`, or delete the `PreToolUse` hook from `settings.json`. Upgrading from an older just-works install? Run `rtk init -g --hook-only --auto-patch` once to delete the leftover `~/.claude/hooks/rtk-rewrite.sh`.
 - **Completion sounds** use `afplay` + `/System/Library/Sounds/Glass.aiff`, which are **macOS-only**. On Linux/Windows the notification hooks fail silently (no sound) — swap `afplay` for your player (`paplay`/`aplay` on Linux), or remove the hook.
 
 ### Quick install (recommended)
@@ -142,7 +142,6 @@ Requires `npx` (Node.js) in your PATH.
   skills/           # Coding and prompting standards
   commands/         # Multi-step workflows (project-docs, git-sync)
   output-styles/    # Selectable output styles (compressed)
-  hooks/            # PreToolUse / notification hooks (--personal)
   settings.json     # Permissions, hooks, env, MCP toggles
 .codex/
   agents/           # Codex custom agent definitions (TOML)

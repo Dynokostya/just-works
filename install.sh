@@ -212,9 +212,6 @@ if ! $CODEX_ONLY; then
     fi
     install_dir  "${SCRIPT_DIR}/.claude/commands"  "${CLAUDE_HOME}/commands" "commands"
     install_dir  "${SCRIPT_DIR}/.claude/output-styles"  "${CLAUDE_HOME}/output-styles" "output-styles"
-    if $PERSONAL; then
-        install_dir  "${SCRIPT_DIR}/.claude/hooks"     "${CLAUDE_HOME}/hooks"    "hooks"
-    fi
 
     if ! $SKIP_CONFIG; then
         if $PERSONAL; then

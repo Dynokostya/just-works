@@ -246,9 +246,6 @@ async function main() {
     }
     installDir(join(PACKAGE_ROOT, '.claude', 'commands'), join(CLAUDE_HOME, 'commands'), 'commands', opts);
     installDir(join(PACKAGE_ROOT, '.claude', 'output-styles'), join(CLAUDE_HOME, 'output-styles'), 'output-styles', opts);
-    if (flags.personal) {
-      installDir(join(PACKAGE_ROOT, '.claude', 'hooks'),    join(CLAUDE_HOME, 'hooks'),    'hooks',    opts);
-    }
 
     if (!flags.skipConfig) {
       if (flags.personal) {

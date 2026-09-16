@@ -4,7 +4,7 @@
 
 Two parallel provider directories plus distribution scaffolding:
 
-- `.claude/` — Claude Code agents, skills, commands, hooks, settings, statusline, plans
+- `.claude/` — Claude Code agents, skills, commands, settings, statusline, plans
 - `.codex/` — OpenAI Codex agents, prompts, skills, config, hooks, plan-reviews
 - `bin/cli.mjs` — Node.js installer published as `npx @dynokostya/just-works`
 - `install.sh`, `install.bat` — shell installers for macOS/Linux and Windows
