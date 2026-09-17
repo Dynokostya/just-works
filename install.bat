@@ -64,7 +64,7 @@ if "%CODEX_ONLY%"=="1" goto :codex
 echo Claude Code
 call :install_dir "%SCRIPT_DIR%.claude\agents"   "%CLAUDE_HOME%\agents"   "agents"
 if "%SKIP_SKILLS_CLAUDE%"=="1" (
-    echo [+] Skipping Claude skills (--skip-skills-claude)
+    echo [+] Skipping Claude skills ^(--skip-skills-claude^)
 ) else (
     call :install_dir "%SCRIPT_DIR%.claude\skills"    "%CLAUDE_HOME%\skills"   "skills"
 )
@@ -72,7 +72,8 @@ call :install_dir "%SCRIPT_DIR%.claude\commands"  "%CLAUDE_HOME%\commands" "comm
 call :install_dir "%SCRIPT_DIR%.claude\output-styles"  "%CLAUDE_HOME%\output-styles" "output-styles"
 
 if "%SKIP_CONFIG%"=="1" (
-    echo [+] Skipping settings.json (--skip-config)
+    echo [+] Skipping settings.json ^(--skip-config^)
+    call :migrate_rtk_hook "%CLAUDE_HOME%\settings.json"
 ) else if "%PERSONAL%"=="1" (
     call :install_file "%SCRIPT_DIR%.claude\settings.json"         "%CLAUDE_HOME%\settings.json" "settings.json (personal)"
 ) else (
@@ -82,7 +83,7 @@ if "%SKIP_CONFIG%"=="1" (
 call :install_file "%SCRIPT_DIR%CLAUDE.md" "%CLAUDE_HOME%\CLAUDE.md" "CLAUDE.md"
 call :install_file "%SCRIPT_DIR%CLAUDE-CHAT.md" "%CLAUDE_HOME%\CLAUDE-CHAT.md" "CLAUDE-CHAT.md"
 if "%SKIP_STATUSLINE%"=="1" (
-    echo [+] Skipping statusline-command.sh (--skip-statusline)
+    echo [+] Skipping statusline-command.sh ^(--skip-statusline^)
 ) else (
     call :install_file "%SCRIPT_DIR%.claude\statusline-command.sh" "%CLAUDE_HOME%\statusline-command.sh" "statusline-command.sh"
 )
@@ -96,13 +97,13 @@ echo Codex
 call :install_dir  "%SCRIPT_DIR%.codex\agents"  "%CODEX_HOME%\agents"  "agents"
 call :install_dir  "%SCRIPT_DIR%.codex\prompts" "%CODEX_HOME%\prompts" "prompts"
 if "%SKIP_SKILLS_CODEX%"=="1" (
-    echo [+] Skipping Codex skills (--skip-skills-codex)
+    echo [+] Skipping Codex skills ^(--skip-skills-codex^)
 ) else (
     call :install_dir  "%SCRIPT_DIR%.codex\skills"  "%AGENTS_HOME%\skills"  "skills (-> ~/.agents/)"
 )
 
 if "%SKIP_CONFIG%"=="1" (
-    echo [+] Skipping config.toml and hooks.json (--skip-config)
+    echo [+] Skipping config.toml and hooks.json ^(--skip-config^)
 ) else if "%AZURE%"=="1" (
     if "%PERSONAL%"=="1" (
         call :install_file "%SCRIPT_DIR%.codex\config\azure\config.toml"         "%CODEX_HOME%\config.toml" "config.toml (azure, personal)"
@@ -130,7 +131,7 @@ echo.
 :: --- Summary ---
 :summary
 if "%DRY_RUN%"=="1" (
-    echo [!] Dry run complete -- no files were modified.
+    echo [^^!] Dry run complete -- no files were modified.
 ) else (
     echo Done.
     if "%DO_BACKUP%"=="1" echo   Backups:     %BACKUP_DIR%\
@@ -162,7 +163,7 @@ set "TARGET=%~1"
 set "REL_PATH=!TARGET:%USERPROFILE%\=!"
 set "BACKUP_PATH=%BACKUP_DIR%\!REL_PATH!"
 if "%DRY_RUN%"=="1" (
-    echo [!] Would back up: %~1 -^> !BACKUP_PATH!
+    echo [^^!] Would back up: %~1 -^> !BACKUP_PATH!
     exit /b 0
 )
 :: Ensure backup parent directory exists
@@ -172,14 +173,14 @@ if exist "%~1\" (
 ) else (
     copy "%~1" "!BACKUP_PATH!" >nul
 )
-echo [!] Backed up: %~1 -^> !BACKUP_PATH!
+echo [^^!] Backed up: %~1 -^> !BACKUP_PATH!
 exit /b 0
 
 :clean_target
 :: %~1 = target path (file or dir)
 if not exist "%~1" exit /b 0
 if "%DRY_RUN%"=="1" (
-    echo [!] Would remove: %~1
+    echo [^^!] Would remove: %~1
     exit /b 0
 )
 if exist "%~1\" (
@@ -187,13 +188,13 @@ if exist "%~1\" (
 ) else (
     del /q "%~1"
 )
-echo [!] Removed: %~1
+echo [^^!] Removed: %~1
 exit /b 0
 
 :install_dir
 :: %~1 = source dir, %~2 = dest dir, %~3 = label
 if not exist "%~1\" (
-    echo [!] Source not found, skipping: %~1
+    echo [^^!] Source not found, skipping: %~1
     exit /b 0
 )
 call :prepare_target "%~2"
@@ -209,7 +210,7 @@ exit /b 0
 :install_file
 :: %~1 = source file, %~2 = dest file, %~3 = label
 if not exist "%~1" (
-    echo [!] Source not found, skipping: %~1
+    echo [^^!] Source not found, skipping: %~1
     exit /b 0
 )
 call :prepare_target "%~2"
@@ -223,6 +224,37 @@ copy "%~1" "%~2" >nul
 echo [+] Installed: %~3 -^> %~2
 exit /b 0
 
+:migrate_rtk_hook
+:: %~1 = settings.json path
+:: Rewrites legacy rtk-rewrite.sh hook commands to "rtk hook claude" (rtk 0.37+ removed the script).
+:: JW_PS exits 10 if a rewrite is needed (JW_MODE=apply also writes it), 0 if not, 1 on error.
+:: JW_RE and JW_PS must not contain double quotes, exclamation marks or percent signs.
+if not exist "%~1" exit /b 0
+set "JW_SETTINGS=%~1"
+set "JW_RE=(\x22command\x22\s*:\s*)\x22(?:[^\x22\\]|\\.)*rtk-rewrite\.sh(?:[^\x22\\]|\\.)*\x22"
+set "JW_PS=try { $p = $env:JW_SETTINGS; $old = [IO.File]::ReadAllText($p); $new = [regex]::Replace($old, $env:JW_RE, '$1' + [char]34 + 'rtk hook claude' + [char]34); $rc = 0; if ($new -cne $old) { if ($env:JW_MODE -eq 'apply') { [IO.File]::WriteAllText($p, $new) }; $rc = 10 } } catch { $rc = 1 }; exit $rc"
+set "JW_MODE=check"
+powershell -NoProfile -ExecutionPolicy Bypass -Command "!JW_PS!"
+set "JW_RC=!ERRORLEVEL!"
+if "!JW_RC!"=="0" exit /b 0
+if not "!JW_RC!"=="10" (
+    echo [^^!] Could not migrate legacy rtk hook in !JW_SETTINGS! -- set its command to "rtk hook claude" manually
+    exit /b 0
+)
+if "%DO_BACKUP%"=="1" call :backup_target "%~1"
+if "%DRY_RUN%"=="1" (
+    echo [+] Would migrate: legacy rtk hook -^> rtk hook claude in !JW_SETTINGS!
+    exit /b 0
+)
+set "JW_MODE=apply"
+powershell -NoProfile -ExecutionPolicy Bypass -Command "!JW_PS!"
+if "!ERRORLEVEL!"=="10" (
+    echo [+] Migrated: legacy rtk hook -^> rtk hook claude in !JW_SETTINGS!
+) else (
+    echo [^^!] Could not migrate legacy rtk hook in !JW_SETTINGS! -- set its command to "rtk hook claude" manually
+)
+exit /b 0
+
 :usage
 echo Usage: install.bat [OPTIONS]
 echo.
@@ -232,7 +264,7 @@ echo Options:
 echo   --personal      Use opinionated settings.json (permissions, hooks, sounds)
 echo                   Default: minimal settings.json.default
 echo   --azure         Use Azure OpenAI config instead of direct OpenAI API
-echo   --skip-config      Skip installing settings/config files
+echo   --skip-config      Skip installing settings/config files (still migrates a legacy rtk hook)
 echo   --skip-statusline  Skip installing statusline-command.sh
 echo   --skip-skills-claude  Skip installing Claude Code skills
 echo   --skip-skills-codex   Skip installing Codex skills

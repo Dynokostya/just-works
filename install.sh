@@ -45,7 +45,7 @@ Options:
   --personal      Use opinionated settings (permissions, hooks, sounds)
                   Default: minimal *.default configs
   --azure         Use Azure OpenAI config instead of direct OpenAI API
-  --skip-config      Skip installing settings/config files
+  --skip-config      Skip installing settings/config files (still migrates a legacy rtk hook)
   --skip-statusline  Skip installing statusline-command.sh
   --skip-skills-claude  Skip installing Claude Code skills
   --skip-skills-codex   Skip installing Codex skills
@@ -201,6 +201,28 @@ install_file() {
     fi
 }
 
+# Point legacy rtk-rewrite.sh hook commands at "rtk hook claude" (rtk >= 0.37 deletes the script)
+migrate_rtk_hook() {
+    local file="$1" tmp
+    [[ -f "$file" ]] || return 0
+    tmp="$(mktemp)"
+    if ! sed -E 's/("command"[[:space:]]*:[[:space:]]*)"([^"\\]|\\.)*rtk-rewrite\.sh([^"\\]|\\.)*"/\1"rtk hook claude"/g' "$file" > "$tmp"; then
+        warn "Could not migrate legacy rtk hook in $file — set its command to \"rtk hook claude\" manually"
+    elif ! cmp -s "$file" "$tmp"; then
+        if $DO_BACKUP; then
+            backup_target "$file"
+        fi
+        if $DRY_RUN; then
+            info "Would migrate: legacy rtk hook -> rtk hook claude in $file"
+        elif cat "$tmp" > "$file"; then
+            info "Migrated: legacy rtk hook -> rtk hook claude in $file"
+        else
+            warn "Could not migrate legacy rtk hook in $file — set its command to \"rtk hook claude\" manually"
+        fi
+    fi
+    rm -f "$tmp"
+}
+
 # --- Claude Code ---
 if ! $CODEX_ONLY; then
     echo -e "${BOLD}Claude Code${NC}"
@@ -221,6 +243,7 @@ if ! $CODEX_ONLY; then
         fi
     else
         info "Skipping settings.json (--skip-config)"
+        migrate_rtk_hook "${CLAUDE_HOME}/settings.json"
     fi
 
     install_file "${SCRIPT_DIR}/CLAUDE.md" "${CLAUDE_HOME}/CLAUDE.md" "CLAUDE.md"

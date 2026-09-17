@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-import { readFileSync, existsSync, mkdirSync, cpSync, copyFileSync, rmSync, statSync } from 'node:fs';
+import { readFileSync, writeFileSync, existsSync, mkdirSync, cpSync, copyFileSync, rmSync, statSync } from 'node:fs';
 import { join, dirname, relative } from 'node:path';
 import { homedir } from 'node:os';
 import { createInterface } from 'node:readline';
@@ -36,7 +36,7 @@ Options:
   --personal         Use opinionated settings.json (permissions, hooks, sounds)
                      Default: minimal settings.json.default
   --azure            Use Azure OpenAI config instead of direct OpenAI API
-  --skip-config         Skip installing settings/config files
+  --skip-config         Skip installing settings/config files (still migrates a legacy rtk hook)
   --skip-statusline     Skip installing statusline-command.sh
   --skip-skills-claude  Skip installing Claude Code skills
   --skip-skills-codex   Skip installing Codex skills
@@ -199,6 +199,27 @@ function installFile(srcFile, destFile, label, opts) {
   }
 }
 
+// rtk >= 0.37 deletes hooks/rtk-rewrite.sh, so a leftover hook entry breaks every Bash call.
+// Point those "command" values at `rtk hook claude`, leaving the rest of the file byte-identical.
+function migrateRtkHook(settingsPath, opts) {
+  if (!existsSync(settingsPath)) return;
+  try {
+    const text = readFileSync(settingsPath, 'utf8');
+    const updated = text.replace(/("command"\s*:\s*)"(?:[^"\\]|\\.)*rtk-rewrite\.sh(?:[^"\\]|\\.)*"/g, '$1"rtk hook claude"');
+    if (updated === text) return;
+    if (opts.doBackup) backupTarget(settingsPath, opts.backupDir, opts.dryRun);
+    if (opts.dryRun) {
+      info(`Would migrate: legacy rtk hook -> rtk hook claude in ${settingsPath}`);
+    } else {
+      writeFileSync(settingsPath, updated);
+      info(`Migrated: legacy rtk hook -> rtk hook claude in ${settingsPath}`);
+    }
+  } catch (err) {
+    // An unreadable or read-only (e.g. Nix-managed) file must not abort the rest of the install.
+    warn(`Could not migrate legacy rtk hook in ${settingsPath} — set its command to "rtk hook claude" manually (${err.message})`);
+  }
+}
+
 // ---------------------------------------------------------------------------
 // Interactive backup prompt
 // ---------------------------------------------------------------------------
@@ -255,6 +276,7 @@ async function main() {
       }
     } else {
       info('Skipping settings.json (--skip-config)');
+      migrateRtkHook(join(CLAUDE_HOME, 'settings.json'), opts);
     }
 
     installFile(join(PACKAGE_ROOT, 'CLAUDE.md'), join(CLAUDE_HOME, 'CLAUDE.md'), 'CLAUDE.md', opts);

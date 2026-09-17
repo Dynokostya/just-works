@@ -48,7 +48,7 @@ Installs agents, skills, commands, and settings globally to `~/.claude/` and `~/
 
 **Two `--personal` hooks need extra setup to work:**
 
-- **`rtk` Bash rewriting** (`rtk hook claude`) rewrites commands to save tokens, but needs [`rtk`](https://github.com/rtk-ai/rtk) ≥ 0.37.0 installed. Without it every Bash call shows a non-blocking hook error and runs unchanged — install `rtk`, or delete the `PreToolUse` hook from `settings.json`. Upgrading from an older just-works install? Run `rtk init -g --hook-only --auto-patch` once to delete the leftover `~/.claude/hooks/rtk-rewrite.sh`.
+- **`rtk` Bash rewriting** (`rtk hook claude`) rewrites commands to save tokens, but needs [`rtk`](https://github.com/rtk-ai/rtk) ≥ 0.37.0 installed. Without it every Bash call shows a non-blocking hook error and runs unchanged — install `rtk`, or delete the `PreToolUse` hook from `settings.json`. Upgrading from an older just-works install? Re-run the installer (even with `--skip-config`) to switch the old `~/.claude/hooks/rtk-rewrite.sh` hook entry to `rtk hook claude`, then delete that leftover script — see [Troubleshooting](#troubleshooting).
 - **Completion sounds** use `afplay` + `/System/Library/Sounds/Glass.aiff`, which are **macOS-only**. On Linux/Windows the notification hooks fail silently (no sound) — swap `afplay` for your player (`paplay`/`aplay` on Linux), or remove the hook.
 
 ### Quick install (recommended)
@@ -100,7 +100,7 @@ To update: `git pull && ./install.sh`
 ```bash
 --personal              # opinionated settings (pre-approved commands, hooks, sounds)
 --dry-run               # preview without changes
---skip-config           # skip settings.json
+--skip-config           # skip settings.json (still migrates a legacy rtk hook entry)
 --skip-statusline       # skip statusline-command.sh
 --skip-skills-claude    # skip Claude Code skills
 --skip-skills-codex     # skip Codex skills
@@ -133,6 +133,20 @@ cp .mcp.json /path/to/your/project/.mcp.json
 ```
 
 Requires `npx` (Node.js) in your PATH.
+
+## Troubleshooting
+
+### `PreToolUse:Bash hook error` … `rtk-rewrite.sh: No such file or directory`
+
+`settings.json` still points at the pre-0.37 rtk hook script, which rtk ≥ 0.37 deletes when it migrates — usually after restoring or copying an older `settings.json`. Every Bash call shows the error and runs without rtk.
+
+`rtk init -g` doesn't repair this: it counts the stale entry as an installed hook and writes nothing ([rtk-ai/rtk#3693](https://github.com/rtk-ai/rtk/issues/3693)). Re-run the installer (add `--skip-config` to keep your settings), or patch the file directly — swap the path for other config dirs such as `~/.claude-2`:
+
+```bash
+perl -pi -e 's/("command"\s*:\s*)"(?:[^"\\]|\\.)*rtk-rewrite\.sh(?:[^"\\]|\\.)*"/$1"rtk hook claude"/g' ~/.claude/settings.json
+```
+
+Confirm with `rtk verify` (prefix `CLAUDE_CONFIG_DIR=<dir>` for other config dirs): it should report `native binary hook registered in settings.json` as `PASS`. Don't rely on `rtk init --show` here — it reports the stale entry as configured.
 
 ## Project Structure
 
