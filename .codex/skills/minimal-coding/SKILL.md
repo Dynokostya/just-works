@@ -1,13 +1,13 @@
 ---
 name: minimal-coding
 description: >
-  Forces the minimal working solution — least code, fewest files, no speculative
-  abstraction. Channels a senior dev applying YAGNI: stdlib, native platform
-  features, and existing dependencies over custom code. Three levels: lite (name
-  the lazier option, user picks), full (enforce the ladder), ultra (deletion-first
-  extremist). Activates when user says "be lazy", "yagni", "simplest solution",
-  "minimal", "over-engineered", "too much code", or invokes /minimal-coding.
-  Governs WHAT you build, not HOW you talk.
+  Apply when writing or editing code in any language. Forces the minimal working
+  solution — least code, fewest files, no speculative abstraction. Channels a
+  senior dev applying YAGNI: stdlib, native platform features, and existing
+  dependencies over custom code. Three levels: lite (name the lazier option, user
+  picks), full (the default — enforce the ladder), ultra (deletion-first
+  extremist); say "be lazy", "yagni", "simplest solution", or "ultra" to change
+  level. Governs WHAT you build, not HOW you talk.
 ---
 
 # Minimal Coding
