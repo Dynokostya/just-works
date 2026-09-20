@@ -14,15 +14,14 @@ Two parallel provider directories plus distribution scaffolding:
 
 ## Module Boundaries
 
-**Agents** (`.claude/agents/`, `.codex/agents/`) — 9 specialized agents per provider, file-type-triggered via `description` frontmatter:
+**Agents** (`.claude/agents/`, `.codex/agents/`) — 8 specialized agents per provider, file-type-triggered via `description` frontmatter:
 - `python-code-writer`, `typescript-code-writer`, `swift-code-writer`, `csharp-code-writer`
 - `react-code-writer` (React/Tailwind/shadcn)
-- `flutter-code-writer` (Dart/Flutter)
 - `prompt-writer` (Fable, Opus, GPT, Gemini)
 - `diagrammer` (PlantUML)
 - `ticket-creator` (ClickUp MCP)
 
-**Skills** (`.claude/skills/`, `.codex/skills/`) — 19 mirrored skill directories: coding standards per language, architecture patterns (DDD, feature-driven), model-specific prompting (`fable-5-prompting`, `opus-5-prompting`, `gpt-5-6-prompting`, `gemini-3-prompting`), domain skills (`ticket-writing`, `plantuml-diagramming`, `rest-api`), and behavioral modes (`minimal-coding`).
+**Skills** (`.claude/skills/`, `.codex/skills/`) — 15 mirrored skill directories: coding standards per language, model-specific prompting (`fable-5-prompting`, `opus-5-prompting`, `gpt-5-6-prompting`, `gemini-3-prompting`), domain skills (`ticket-writing`, `plantuml-diagramming`, `rest-api`), and behavioral modes (`minimal-coding`).
 
 **Commands** (`.claude/commands/`, `.codex/prompts/`) — multi-phase workflows:
 - `project-docs` — 5-phase documentation pipeline (Detect → Explore → Synthesize → Write → Verify)
@@ -55,7 +54,7 @@ Commands orchestrate multi-phase work: `project-docs` spawns three parallel `Exp
 - `install.sh`, `install.bat` — clone-and-run installers
 - `.claude/commands/project-docs.md` — documentation pipeline
 - `.claude/commands/git-sync.md` — multi-repo branch sync
-- `.claude/agents/*.md`, `.codex/agents/*.toml` — 9 specialized agents per provider
+- `.claude/agents/*.md`, `.codex/agents/*.toml` — 8 specialized agents per provider
 - `src/evals/` — pytest harness for skill validation via OpenRouter
 
 ---

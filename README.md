@@ -16,10 +16,10 @@ Just copy `.claude/` into any project — or install globally — and get pre-co
 
 **Context-isolating subagents** — delegates file-type work (`python`, `react`, `swift`, …) to subagents that carry their own context, so the main thread stays lean and focused.
 
-**Agents** — file-type-triggered writers (`python`, `typescript`, `swift`, `csharp`, `react`), plus `prompt-writer`, `diagrammer`, and `ticket-creator`. 9 per provider.
+**Agents** — file-type-triggered writers (`python`, `typescript`, `swift`, `csharp`, `react`), plus `prompt-writer`, `diagrammer`, and `ticket-creator`. 8 per provider.
 **Commands** — `project-docs` and `git-sync` (Claude & Codex).
 
-**Skills** — coding standards (Python, TypeScript, React, Tailwind, shadcn/ui, Swift, C#, Dart/Flutter), architecture patterns (DDD, feature-driven), model-specific prompt engineering (Claude Opus 5 & Fable 5, GPT-5.6, Gemini 3), and behavioral modes (`minimal-coding` for least-code solutions). Applied automatically based on the file type you're editing.
+**Skills** — coding standards (Python, TypeScript, React, Tailwind, shadcn/ui, Swift, C#), model-specific prompt engineering (Claude Opus 5 & Fable 5, GPT-5.6, Gemini 3), and behavioral modes (`minimal-coding` for least-code solutions). Applied automatically based on the file type you're editing.
 
 **Security** — `settings.json` blocks agent access to `*.pem`, `*.key`, credentials, cloud configs, SSH keys, Terraform state, and databases.
 
