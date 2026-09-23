@@ -13,7 +13,7 @@ Title: **Export transaction history to CSV from account settings**
 Body:
 
 **Problem**
-Finance-facing users currently export transactions by copying rows out of the web table — about 15 minutes per account per month. Reported by the ops team and two customer support tickets (see Source).
+Finance-facing users currently export transactions by copying rows out of the web table — about 15 minutes per account per month. Reported by the ops team in Slack (18 Apr) and in two customer support tickets.
 
 **Proposed change**
 Add a Download CSV button in Settings → Account → Transactions. The file covers the currently selected date range and includes date, amount, merchant, category, and status.
@@ -25,14 +25,8 @@ Add a Download CSV button in Settings → Account → Transactions. The file cov
 - An empty range produces a CSV with header row only.
 - Download starts within 2 seconds for ranges up to 10,000 rows.
 
-**Out of scope**
-Excel export, email delivery, scheduled exports. These are separate tickets if demand appears.
-
 **Links:**
 Parent: ACCT-410, Self-service reporting epic.
-
-**Source**
-Ops team Slack thread (18 Apr): https://example.slack.com/archives/C01/p1713456789
 
 ## Spike — before
 
@@ -51,9 +45,6 @@ Body:
 **Goal**
 Recommend one PDF library to generate styled invoice PDFs from our existing HTML templates. Decision criteria: render fidelity vs the current Chrome reference, bundle size, license compatibility (commercial distribution), active maintenance.
 
-**Timebox:**
-2 days.
-
 **Method:**
 1. Shortlist three libraries based on current industry usage: Puppeteer (headless Chrome), wkhtmltopdf, and Playwright print-to-PDF.
 2. Render the current invoice template through each and diff against the Chrome reference.
@@ -66,6 +57,3 @@ A comparison table, a recommendation with reasoning, and three sample PDFs (one 
 **Open questions:**
 1. Are we constrained to run this in-process, or can it run as a side-car service?
 2. Is the commercial license for wkhtmltopdf a blocker given our distribution model?
-
-**Source**
-Engineering sync (14 Apr): https://example.atlassian.net/wiki/spaces/ENG/pages/1234
