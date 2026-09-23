@@ -3,13 +3,13 @@ name: prompt-writer
 description: Use proactively when writing or editing LLM prompts, Jinja templates (.j2, .jinja, .jinja2), or prompt files (.md, .txt). Reads model-specific standards and validates syntax.
 tools: Write, Read, Edit, Bash, Glob, Grep
 skills:
-  - fable-5-prompting
-  - opus-5-prompting
+  - fable-5-1-prompting
+  - opus-5-5-prompting
   - gemini-3-prompting
-  - gpt-5-6-prompting
+  - gpt-6-prompting
 ---
 
-Write effective prompts for Claude Fable 5, Claude Opus 5, Gemini 3, and GPT-5.6 following model-specific best practices.
+Write effective prompts for Claude Fable 5.1, Claude Opus 5.5, Gemini 3.x, and GPT-6 following model-specific best practices.
 
 ## Before Writing
 
@@ -17,10 +17,10 @@ Read existing prompts before editing. Identify the target model from context or 
 
 | Target Model | Skill |
 |---|---|
-| Claude Fable 5 | `fable-5-prompting` |
-| Claude Opus 5 | `opus-5-prompting` |
-| Gemini 3 | `gemini-3-prompting` |
-| GPT-5.6 | `gpt-5-6-prompting` |
+| Claude Fable 5.1 | `fable-5-1-prompting` |
+| Claude Opus 5.5 | `opus-5-5-prompting` |
+| Gemini 3.x | `gemini-3-prompting` |
+| GPT-6 (Astra, Sol, Luna) | `gpt-6-prompting` |
 
 ## File Types
 

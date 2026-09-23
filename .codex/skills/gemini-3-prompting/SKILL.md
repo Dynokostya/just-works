@@ -1,45 +1,60 @@
 ---
 name: gemini-3-prompting
-description: Apply when creating or editing prompts targeting the Gemini 3 family (3.0, 3.1 Pro, 3 Flash, 3.1 Flash-Lite). Covers prompt layering (system instruction + context + task), thinking_level tuning, structured output prompting, function calling guidance, grounding prompt wording, few-shot examples, long-context patterns, persona/constraint alignment, prompt decomposition, agentic workflows, and migration from Gemini 2.5.
+description: Apply when creating or editing prompts targeting the Gemini 3.x family (3.1 Pro, 3.5–3.8 Flash, 3.5 Flash-Lite). Covers prompt layering, thinking-level implications, determinism via instructions, few-shot, long context, tool and grounding instructions, agentic prompts, model picking, and migration from 3.0 and 2.5.
 ---
 
-# Gemini 3 Prompting
+# Gemini 3.x Prompting
 
 ## When to Use
 
-- Creating or editing system prompts targeting Gemini 3
+- Creating or editing system prompts targeting any Gemini 3.x model
+- Picking a Gemini 3.x model for a prompt's workload
 - Writing few-shot examples for classification or extraction tasks
 - Structuring long-context prompts with multiple sources
-- Writing agentic instructions for Gemini 3 tool-use workflows
+- Writing agentic and tool-use instructions for Gemini 3.x workflows
 - Decomposing complex prompts into chainable sub-prompts
-- Migrating prompt text from Gemini 2.5
+- Migrating prompt text from Gemini 3 Flash Preview / 3.0 or Gemini 2.5
 
 ## Overview
 
-Gemini 3 responds best to direct, concise instructions. Verbose prompt engineering techniques from older models (Gemini 2.5 and earlier) cause over-analysis and degrade output quality. The model has native thinking capabilities controlled by a `thinking_level` parameter (snake_case in Python, `thinkingLevel` in JS/REST) -- do not write manual chain-of-thought instructions. (Source: ai.google.dev/gemini-api/docs/gemini-3)
+Gemini 3.x responds best to direct, concise instructions. Verbose prompt engineering from Gemini 2.5 and earlier causes over-analysis and degrades output quality. Reasoning depth is set by the thinking level, not by prompt text -- keep prompts simple and let the level do the work. From 3.5 Flash onward the default level is `medium`, so prompts tuned under the old `high` default need re-testing.
 
 <context>
-Key characteristics to design around (all cited from ai.google.dev/gemini-api/docs/prompting-strategies and ai.google.dev/gemini-api/docs/gemini-3):
+Key characteristics to design around (sources: ai.google.dev/gemini-api/docs/prompting-strategies, ai.google.dev/gemini-api/docs/whats-new-gemini-3.5):
 
 - **Conciseness Over Verbosity**: "Be concise in your input prompts. Gemini 3 responds best to direct, clear instructions." Remove filler.
 - **Context Before Task**: "When providing large amounts of context (e.g., documents, code), supply all the context first. Place your specific instructions or questions at the very end of the prompt."
 - **Constraints + Persona at the Beginning**: "Place essential behavioral constraints, role definitions (persona), and output format requirements in the System Instruction or at the very beginning of the user prompt."
-- **Native Thinking**: `thinking_level` (values: `minimal` / `low` / `medium` / `high`; default `high`, dynamic) replaces manual CoT prompting -- do not write "Let's think step by step." Availability varies by model -- see the thinking-level table.
-- **Temperature at 1.0**: "We strongly recommend keeping the `temperature` at its default value of 1.0." Setting it below may cause "looping or degraded performance."
+- **Native Thinking**: Levels `minimal` / `low` / `medium` / `high` set reasoning depth. Simplify heavy chain-of-thought scaffolding; a short "think very hard" cue is fine for heavy reasoning.
+- **Determinism Through Instructions**: Sampling parameters are deprecated. Get consistent output from explicit rules in the system instruction plus a response schema.
 - **Persona + Constraint Alignment**: Persona and other constraints belong together in the System Instruction. Ensure they do not contradict each other.
 - **Default Directness**: "By default, Gemini 3 models provide direct and efficient answers." Request conversational tone explicitly if needed.
 - **Few-Shot Recommended**: "Prompts without few-shot examples are likely to be less effective."
+- **Reasoning Carries Forward**: From 3.5 Flash, reasoning from earlier turns carries into later turns -- long conversations can use more tokens than the same prompt did on 3.0.
 </context>
+
+## Model Picker
+
+Behavioral fit, not specs. Thinking-level support is listed because it changes how "fast" prompts must be written.
+
+| Model | Pick when | Thinking levels (default) |
+|-------|-----------|---------------------------|
+| 3.1 Pro | Deep reasoning, synthesis across many sources, high-stakes analysis | low / medium / high (high) |
+| 3.8 Flash | Most capable Flash; hard agentic and coding work that benefits from step-by-step verification | low / medium / high (medium) |
+| 3.7 Flash | Efficiency-first everyday work | low / medium / high (medium) |
+| 3.6 Flash | General Flash work with fewer output tokens than 3.5 Flash | minimal / low / medium / high (medium) |
+| 3.5 Flash | General Flash work | minimal / low / medium / high (medium) |
+| 3.5 Flash-Lite | Sub-agents, routing, high-volume classification and extraction | minimal / low / medium / high (minimal) |
+
+3.8 Flash verifies its own work heavily. Per Google: "the model takes smaller reasoning steps, calls tools iteratively, and verifies its work along the way. Not every workflow needs this level of verification. For everyday tasks, you can lower the reasoning effort to reduce token consumption. Alternatively, Gemini 3.7 Flash remains fully supported." (Source: ai.google.dev/gemini-api/docs/latest-model)
+
+Older models still in use: 3.1 Flash-Lite (replacement: 3.5 Flash-Lite) and 3 Flash Preview (replacement: 3.6 Flash). 3 Pro Preview now resolves to 3.1 Pro.
 
 ## Core Prompt Structure
 
-### Prompt Structure: System Instruction + Context + Task
+### System Instruction + Context + Task
 
-Google's current guidance splits prompt content by role and position. Constraints and persona go FIRST (system instruction or prompt start); long context goes next; the specific question goes LAST.
-
-> "Prioritize critical instructions: Place essential behavioral constraints, role definitions (persona), and output format requirements in the System Instruction or at the very beginning of the user prompt." -- ai.google.dev/gemini-api/docs/prompting-strategies
-
-> "When providing large amounts of context (e.g., documents, code), supply all the context first. Place your specific instructions or questions at the very end of the prompt." -- ai.google.dev/gemini-api/docs/prompting-strategies
+Constraints, persona, and output format go FIRST (system instruction or prompt start); long context goes next; the specific question goes LAST.
 
 ```jinja
 {# System Instruction -- behavioural rules, persona, output format #}
@@ -63,67 +78,55 @@ Based on the information above, {{ specific_question }}.
 
 ### Bridging Context to Task
 
-Use bridging phrases to connect the context block to the task at the end: "Based on the information above, ...", "Using only the provided documents, ...", "Given the context above, ...", "Based on the entire document above, provide a comprehensive answer to: ...". The last phrasing is especially effective when synthesizing from multiple sources -- it anchors the model to the full input rather than just the most recent section.
+"Anchor the model's reasoning by starting your question with a phrase like, "Based on the preceding information..."" (Source: ai.google.dev/gemini-api/docs/prompting-strategies). Equivalents: "Based on the information above, ...", "Using only the provided documents, ...". For multi-source synthesis, "Based on the entire document above, provide a comprehensive answer to: ..." anchors the model to the full input rather than the most recent section.
 
 ### Consistent Delimiters
 
-Pick ONE delimiter style within a single prompt -- XML tags (`<role>`, `<constraints>`, `<context>`, `<task>`) OR Markdown headings (`# Identity`, `# Constraints`, `# Context`, `# Task`), not both. XML tags work best for programmatic prompts; Markdown headings work best for human-readable prompts. (Source: ai.google.dev/gemini-api/docs/prompting-strategies)
+Pick ONE delimiter style per prompt -- XML tags (`<role>`, `<constraints>`, `<context>`, `<task>`) OR Markdown headings (`# Identity`, `# Constraints`, `# Context`, `# Task`), not both. XML suits programmatic prompts; Markdown suits human-readable ones.
 
 ### Conciseness
 
-Remove filler that does not change model behavior:
+Remove filler that does not change model behavior: "I would like you to carefully analyze the following text and provide a detailed summary of the key points, making sure to capture all the important information." becomes "Summarize the key points from the text above."
 
-```
-Before: "I would like you to carefully analyze the following text and provide
-         a detailed summary of the key points, making sure to capture all the
-         important information."
+## Thinking Levels -- Prompt Implications
 
-After:  "Summarize the key points from the text above."
-```
+| Level | What it means for prompt wording |
+|-------|----------------------------------|
+| `high` | Complex reasoning, hard math, difficult coding. Keep prompts short; don't script reasoning steps. Encourages more tool calls to explore and verify. |
+| `medium` | Default from 3.5 Flash onward. Best quality for most tasks; start here. |
+| `low` | Faster and cheaper with strong quality; routine tool loops, chat, simple instruction following. |
+| `minimal` | Speed on simple queries. Not accepted by 3.1 Pro, 3.7 Flash, or 3.8 Flash -- prompts tuned for `minimal` need re-testing at `low` there. Does not guarantee thinking is off. |
 
-## Thinking and Reasoning
-
-The `thinking_level` parameter controls how deeply the model reasons. It replaces manual chain-of-thought prompting entirely.
-
-| Level | Availability | Use Case |
-|-------|-------------|----------|
-| `high` (default, dynamic) | All Gemini 3 models | Complex reasoning, analysis, math, multi-step problems |
-| `medium` | All Gemini 3 models | Balanced for moderate complexity |
-| `low` | All Gemini 3 models | Simple instruction following, chat, high throughput |
-| `minimal` | Flash, Flash-Lite only (not Pro) | Chat, quick Q&A; does not guarantee thinking is off |
-
-Parameter name note: `thinking_level` in Python (snake_case) / `thinkingLevel` in JS/REST (camelCase).
+Google's guidance: "Tip: Start with medium, it provides the best quality for the vast majority of tasks. Try low for a faster, cheaper experience with strong quality. Switch to high for complex reasoning, hard math, or difficult coding challenges. Use minimal to optimize for speed in simple queries." (Source: ai.google.dev/gemini-api/docs/whats-new-gemini-3.5)
 
 **Prompt implications:**
 
-- Remove "Let's think step by step", "Think carefully", and similar CoT triggers from all prompts.
-- If you need visible reasoning steps in the output (not just internal reasoning), request it explicitly:
+- Simplify chain-of-thought scaffolding written for 2.5: "If you used chain-of-thought prompt engineering to force reasoning, try thinking_level: "medium" or "high" with simpler prompts instead." (Source: ai.google.dev/gemini-api/docs/thinking)
+- Short "think" cues are acceptable: "For problems that require heavy reasoning, simple requests like 'Think very hard before answering' can improve performance, though at the cost of extra thinking tokens." Google's own template closes with `<final_instruction>Remember to think step-by-step before answering.</final_instruction>`. (Source: ai.google.dev/gemini-api/docs/prompting-strategies)
+- Don't add "think silently" or "answer fast" text to get lower latency -- lower the level instead.
+- Cost and latency: "To reduce cost or latency without truncating responses, lower thinking_level (low or medium) instead of setting a small max_output_tokens." (Source: ai.google.dev/gemini-api/docs/thinking)
+- If you need visible reasoning in the output (not just internal reasoning), request it explicitly: "Show your reasoning step by step, then provide your final answer."
 
-```
-Analyze this data. Show your reasoning step by step, then provide your final answer.
-```
+## Determinism
 
-- For lower latency on Flash models, target `thinking_level: low` or `minimal` (see the availability table above). Do not add manual "think silently" instructions -- rely on the parameter.
+Sampling parameters are deprecated; do not write prompts that rely on low temperature for consistency. Per Google: "To ensure determinism, we recommend defining a system instruction with explicit rules for your specific use case." (Source: ai.google.dev/gemini-api/docs/whats-new-gemini-3.5) The 3.8 Flash guide adds that determinism can be controlled with the thinking level plus a response schema.
+
+- Put the decision rules (tie-breaks, allowed values, formatting rules) in the system instruction, stated once.
+- Let a response schema own the output shape; the prompt owns the rules.
+- Prefilled model turns are not supported, and on 3.7/3.8 Flash the conversation must not end with a model turn -- put format instructions ("Respond with a JSON object only") in the prompt instead.
 
 ## Constraint Writing
 
 ### Scope Negatives to the Task
 
-Broad negations like "do not infer any information" work WELL for strict extraction/verbatim-reporting (Google uses exactly this phrasing for grounded extraction: "Do not assume or infer from the provided facts; simply report them exactly as they appear" -- ai.google.dev/gemini-api/docs/prompting-strategies).
+Broad negations like "do not infer" work WELL for strict extraction -- Google uses "Do not assume or infer from the provided facts; simply report them exactly as they appear" for grounded extraction. They work POORLY for reasoning or deduction: the model becomes overly conservative and refuses sensible inferences.
 
-They work POORLY when the task requires reasoning or deduction -- the model becomes overly conservative and refuses sensible inferences.
-
-For verbatim extraction:
-    "Do not infer. Report facts exactly as they appear in the source."
-
-For reasoning/QA tasks:
-    "Use the provided context for deductions. Do not use outside knowledge."
-
-Match the negative to the task type.
+- Verbatim extraction: "Do not infer. Report facts exactly as they appear in the source."
+- Reasoning/QA: "Use the provided context for deductions. Do not use outside knowledge."
 
 ### Grounding to Provided Context
 
-When the model should not use training data, be explicit about the source of truth:
+When the model should not use training data, name the source of truth:
 
 ```
 The provided context is the only source of truth for the current session.
@@ -131,23 +134,15 @@ Do not supplement answers with information from your training data.
 If the context does not contain relevant information, say so.
 ```
 
-This is particularly important for hypothetical scenarios, fictional settings, or domain-specific data that contradicts general knowledge.
+For fictional, counterfactual, or simulation prompts, say so explicitly: "You are operating in a simulated environment. Treat the provided context as the only source of truth. Do not reference real-world information that contradicts the simulation state."
 
 ### Quantitative Constraints
 
-Gemini 3 follows quantitative constraints reliably. Use them instead of vague qualifiers:
-
-```
-Avoid:   "Keep it short."
-Better:  "Respond in 2-3 sentences."
-
-Avoid:   "List some examples."
-Better:  "List exactly 5 examples."
-```
+Gemini 3.x follows quantitative constraints reliably. Use them instead of vague qualifiers: "Respond in 2-3 sentences." rather than "Keep it short."; "List exactly 5 examples." rather than "List some examples."
 
 ## Few-Shot Examples
 
-For pattern-following tasks (classification, extraction, formatting), include few-shot examples: "Prompts without few-shot examples are likely to be less effective." (Source: ai.google.dev/gemini-api/docs/prompting-strategies) Reasoning tasks are the exception -- they can run zero-shot, relying on `thinking_level` (see the Reasoning Task pattern below). The model reproduces patterns it sees -- every example should reflect exactly the behaviour you want.
+For pattern-following tasks (classification, extraction, formatting), include few-shot examples: "Prompts without few-shot examples are likely to be less effective." Reasoning tasks can run zero-shot on the thinking level. The model reproduces patterns it sees -- every example should reflect exactly the behaviour you want.
 
 - Include 2-5 diverse examples demonstrating the desired pattern
 - Use consistent semantic prefixes (Input:, Output:)
@@ -155,42 +150,27 @@ For pattern-following tasks (classification, extraction, formatting), include fe
 - Place examples before the final input (context-first principle)
 
 ```jinja
-{% for example in few_shot_examples %}
-Input: {{ example.input }}
-Output: {{ example.output }}
-
-{% endfor %}
-Input: {{ current_input }}
-Output:
-```
-
-For classification with structured output:
-
-```jinja
-Classify each message into one of these categories: {{ categories | join(", ") }}.
+Classify each {{ item_type }} into one of these categories: {{ categories | join(", ") }}.
 
 {% for example in examples %}
-Message: {{ example.message }}
+{{ item_type }}: {{ example.input }}
 Category: {{ example.category }}
-Confidence: {{ example.confidence }}
 
 {% endfor %}
-Message: {{ input_message }}
+{{ item_type }}: {{ input_item }}
 Category:
 ```
 
-## Structured Output
+## Structured Output Prompting
 
-When the caller needs JSON output, JSON schema is enforced by API parameters outside the prompt text itself -- not by embedding the schema in prose. The prompt's job is to state the task clearly; the schema's job is to define the shape.
-
-**Prompt-level guidance when structured output is active:**
+When a response schema is in play, the schema owns the shape and the prompt owns the intent.
 
 - State the intent plainly: "Extract sentiment and confidence from the review."
-- Do not paste the schema into the prompt text; rely on the schema parameter to constrain shape. Duplicating the schema in prose wastes tokens and can conflict with the enforced schema.
-- If the schema defines enum values (e.g., `"positive" | "neutral" | "negative"`), you can still reference them by name in the prompt instructions to reinforce intent.
-- For classification, describe the class meanings in the prompt even when enum values are in the schema -- the schema constrains syntax, not semantics.
+- Do not paste the schema into the prompt text -- duplication wastes tokens and can conflict with the enforced schema.
+- Describe class meanings in the prompt even when enum values are in the schema -- the schema constrains syntax, not semantics.
+- Use structured output for the model's final *answer*; use function calling for intermediate actions that trigger external code.
 
-**When structured output is NOT active** and you want JSON in prose, include a minimal schema-like example in the prompt:
+**Without a schema**, include a minimal shape example in the prompt:
 
 ```jinja
 Extract {{ fields | join(", ") }} from the following text.
@@ -203,17 +183,11 @@ Respond in JSON format:
   "{{ field }}": "..."{% if not loop.last %},{% endif %}
   {% endfor %}
 }
-
-JSON:
 ```
-
-**Structured output vs function calling (prompt-design choice):** Use structured output for the model's final *answer*. Use function calling for intermediate actions where the model triggers external code.
 
 ## Persona and Tone
 
-### Persona and Constraint Alignment
-
-Define persona in the System Instruction alongside output format and behavioural constraints, and check that they don't contradict each other. Contradictions force the model to pick one -- results become unpredictable.
+Define persona in the System Instruction alongside output format and constraints, and check they don't contradict each other -- contradictions force the model to pick one.
 
 ```
 {# Contradiction: persona says "friendly/talkative" but output constraint says "2 words" #}
@@ -225,27 +199,13 @@ Define persona in the System Instruction alongside output format and behavioural
 <output_format>Respond in 1-2 words only.</output_format>
 ```
 
-Review potential conflicts between the persona description and:
-- Output length constraints
-- Tone requirements elsewhere in the prompt
-- Domain restrictions (e.g., a "creative writer" persona asked to stick to facts)
+Check the persona against length constraints, tone requirements elsewhere in the prompt, and domain restrictions (e.g., a "creative writer" persona asked to stick to facts).
 
-### Conversational Tone
-
-Gemini 3 defaults to direct, efficient responses. If you need a warmer or more conversational tone, request it explicitly:
-
-```
-Explain this as a friendly, talkative assistant. Use casual language
-and occasional humor where appropriate.
-```
-
-Without this, responses will be professional and to-the-point.
+Gemini 3.x defaults to direct, professional responses. Request a warmer tone explicitly: "Explain this as a friendly, talkative assistant. Use casual language and occasional humor where appropriate."
 
 ## Long-Context and Multi-Source
 
-### Multi-Source Synthesis
-
-When the prompt includes multiple documents, wrap each in an indexed tag and anchor the task to the full set:
+Wrap each document in an indexed tag and anchor the task to the full set:
 
 ```jinja
 {% for doc in documents %}
@@ -261,48 +221,24 @@ information.
 Question: {{ question }}
 ```
 
-### Prefix-Cache-Friendly Ordering
+**Stable prefix first.** Put stable content (system instructions, few-shot examples, large reference documents) at the START and volatile content (user query, session data) at the END. Prompts sharing a stable prefix reuse cached input; interleaving volatile and stable content defeats it.
 
-Gemini 3 has a 1M input / 64k output context window. Implicit caching matches on prompt prefix. Put stable content (system instructions, few-shot examples, large reference documents) at the START; put volatile content (user query, session-specific data) at the END. Prompts that share a stable prefix across requests hit the cache; prompts that interleave volatile and stable content do not.
-
-### Knowledge Cutoff Declaration
-
-When the model needs to be aware of its knowledge boundaries, include the cutoff in system instructions:
+**Time-sensitive tasks.** Tell the model the current date and its knowledge boundary. Google's clause for Flash (Source: ai.google.dev/gemini-api/docs/prompting-strategies):
 
 ```
-Your knowledge cutoff date is January 2025. For events or information
-after this date, rely only on the provided context.
+For time-sensitive user queries that require up-to-date information, you
+MUST follow the provided current time (date and year) when formulating
+search queries in tool calls. Remember it is 2026 this year.
 ```
 
-### Grounding Hypothetical Scenarios
-
-For fictional, counterfactual, or simulation-based prompts, establish the context as the sole source of truth:
-
-```
-You are operating in a simulated environment. The provided context describes
-the current state of this environment. Treat it as the only source of truth.
-Do not reference real-world information that contradicts the simulation state.
-```
+Without search tools, state the boundary instead: "Your knowledge cutoff date is {{ knowledge_cutoff }}. For events after this date, rely only on the provided context."
 
 ## Prompt Decomposition
 
-When a single prompt tries to do too much, split it into focused sub-prompts and chain outputs. Three common shapes:
+When a single prompt tries to do too much, split it and chain outputs:
 
-**Sequential chain** -- extract, analyze, summarize:
-
-```
-Stage 1 -- Extract: "Extract all dates, names, and monetary amounts from the
-contract above. Respond in JSON format."
-
-Stage 2 -- Analyze (receives Stage 1 output): "Given the extracted data above,
-identify any clauses where the effective date is more than 90 days from the
-signing date."
-
-Stage 3 -- Summarize (receives Stage 2 output): "Summarize the flagged clauses
-in plain language for a non-legal audience."
-```
-
-**Two-step verification** -- prevents silent fallback to training data:
+- **Sequential chain** -- extract, then analyze the extraction, then summarize the analysis. Each stage gets one focused instruction and the previous stage's output.
+- **Two-step verification** -- prevents silent fallback to training data:
 
 ```
 First, check if the document above contains information about {{ topic }}.
@@ -312,26 +248,11 @@ If the document does not contain relevant information, state that clearly
 instead of answering from general knowledge.
 ```
 
-**Parallel decomposition** -- independent sub-prompts aggregated:
-
-```jinja
-{% for section in document_sections %}
-Prompt {{ loop.index }}: "Summarize the following section in 2-3 sentences: {{ section }}"
-{% endfor %}
-
-Aggregation: "Given the section summaries above, write a unified executive summary in one paragraph."
-```
+- **Parallel decomposition** -- independent sub-prompts ("Summarize the following section in 2-3 sentences: ..."), then an aggregation prompt ("Given the section summaries above, write a unified executive summary in one paragraph.").
 
 ## Agentic Prompts
 
-Gemini 3 agentic workflows benefit from explicit guidance on four dimensions (Source: ai.google.dev/gemini-api/docs/prompting-strategies):
-
-1. **Logical decomposition** -- how to sequence operations and satisfy constraints.
-2. **Risk assessment** -- distinguishing exploratory reads from state-changing writes.
-3. **Adaptability** -- pivoting when observation contradicts assumption.
-4. **Persistence** -- recovering from failures without abandoning the task.
-
-**System instruction skeleton:**
+Gemini 3.x agentic workflows benefit from explicit guidance on logical decomposition (sequencing operations), risk assessment (exploratory reads vs state-changing writes), adaptability (pivoting when observation contradicts assumption), and persistence (recovering from failures without abandoning the task).
 
 ```jinja
 Agent Instructions:
@@ -342,54 +263,56 @@ Agent Instructions:
 - For planning and complex decisions, explain your reasoning.
 ```
 
-**Tool scope affects prompt design:**
+Let native thinking handle task decomposition; use `high` for planning-heavy steps and `low`/`medium` for routine tool loops.
 
-- Cap the active tool set at **10-20 tools**. "Providing too many can increase the risk of selecting an incorrect or suboptimal tool." (Source: ai.google.dev/gemini-api/docs/function-calling) Large tool sets also inflate the system prompt; prune tools the agent won't plausibly call for the current workflow.
-- Gemini 3 generates a unique `id` for every function call and exposes `thought_signature` on function-call turns. When prompt-flow metadata is authored manually (e.g., REST history or custom scaffolds), those fields must round-trip unchanged.
+### Too Many Tool Calls
 
-**Thinking level tuning:**
+Lower the thinking level first: "Higher thinking levels encourage the model to use more tools to explore and verify, so lowering the level can reduce tool calls." On 3.8 Flash, also consider 3.7 Flash for everyday work. If calls still run high, add a budget to the prompt:
 
-- `thinking_level: high` for planning and multi-step decisions.
-- `thinking_level: low` or `medium` for routine tool execution loops.
-- Let native thinking handle task decomposition; avoid manually prescribing reasoning steps.
+```
+You have a limited action budget of <n> tool calls. Use them efficiently.
+```
+
+### Required Text Before Tool Calls
+
+Requiring structured text (e.g., an `<UPDATE>` block) before every tool call can produce malformed function calls. (Source: ai.google.dev/gemini-api/docs/function-calling#workarounds-for-pre-tool-text-requirements) Replace the required text part with an `update` tool.
+
+Instead of:
+
+```
+Before calling a tool, in every response you MUST first output a single `<UPDATE>` part as specified, don't skip this part or any of required sub-tags within `<UPDATE>`.
+```
+
+Use:
+
+```
+Before calling any other tool, in every response you MUST first call `update` with all required parameters (previous_step, plan, next_step, external).
+```
+
+Give the `update` tool the parameters `previous_step`, `plan`, `next_step`, and `external` ("A short, plain-language note shown to the User about what you are ABOUT TO DO next."). Fallbacks: use Markdown headers (`# UPDATE`, `## PLAN`) instead of XML tags, or stop requiring text before tool calls.
+
+### Instructions Inside Function Responses
+
+To steer the model from a tool result, "append any extra instructions to the end of the function response text separated by two newlines." Sending them as a separate part "can lead to unexpected model behavior (e.g. thought leakage)." Likewise, return images inside the function response rather than as a separate part.
 
 ## Function Calling
 
-Gemini 3 function-calling prompt-design conventions (Source: ai.google.dev/gemini-api/docs/function-calling):
-
-**Tool declaration wording -- this text IS prompt content the model reads:**
+Tool names and descriptions are prompt content the model reads (Source: ai.google.dev/gemini-api/docs/function-calling):
 
 - Name functions with descriptive snake_case or camelCase -- no spaces, no special characters.
-- Write specific, unambiguous tool descriptions: "The model relies on these to choose the correct function." A vague description is a prompt-quality issue.
-- Describe parameter semantics in each parameter's description, including valid ranges, units, and enum meanings.
-- Mark required parameters explicitly; optional parameters should state what omitting them means.
-
-**Active tool set:** cap at 10-20 tools per request -- scope each prompt to just the tools relevant to the workflow.
-
-**Function calling modes (prompt-scope implications):**
-
-| Mode | Prompt implication |
-|------|--------------------|
-| `AUTO` | Prompt should describe when tool use is appropriate vs when prose answer suffices. |
-| `ANY` | Prompt can assume a call will happen; focus on guiding argument selection. |
-| `VALIDATED` | Prompt should support both paths; describe when each is preferred. |
-| `NONE` | Treat as a pure prompt-only task; don't reference tools. |
-
-**Parallel and compositional calls:** Gemini 3 issues multiple function calls per turn when warranted. For compositional chains (e.g., `get_location()` then `get_weather(location)`), let the model orchestrate -- don't prescribe the sequence in prose.
-
-**Multi-turn state:** when authoring conversation history manually, surface `function_call_id` on each `functionCall`/`functionResponse` pair and preserve `thought_signature` across turns. Mismatched or dropped fields break reasoning continuity.
+- Write specific, unambiguous descriptions: "The model relies on these to choose the correct function." A description like "Gets data" forces the model to guess.
+- Describe each parameter's semantics, including valid ranges, units, and enum meanings; state what omitting an optional parameter means.
+- "Keep active set to 10-20 tools maximum." More tools raise the risk of selecting an incorrect or suboptimal tool; scope each request to the tools the current workflow needs.
+- When tool use is optional, the prompt should say when a tool call is appropriate versus when a prose answer suffices.
+- For compositional chains (e.g., `get_location()` then `get_weather(location)`), let the model orchestrate -- don't prescribe the sequence in prose.
 
 ## Grounding with Google Search
 
-When grounding is enabled via the `google_search` tool, the model performs real-time retrieval and returns citation metadata. The prompt's job is to shape when and how the model uses that retrieval.
+When the `google_search` tool is enabled, the prompt shapes when and how the model retrieves.
 
-**Prompt wording that triggers grounding well:**
-
-- Phrase queries that reference current information: "What is the current price of...", "What are the latest...", "As of today, ..."
-- Include explicit triggers when grounding should fire: "Use up-to-date information" or "Based on the most recent data available".
-- For time-sensitive tasks, include a dated frame: "As of {{ today }}, ..."
-
-**Prompt pattern when grounding is on:**
+- Phrase queries around current information: "What is the current price of...", "What are the latest...", "As of today, ...".
+- Add explicit triggers when grounding should fire: "Use up-to-date information".
+- Include the current-date clause (see Long-Context) for time-sensitive queries.
 
 ```
 Answer the user's question using up-to-date information from Google Search.
@@ -399,123 +322,74 @@ that correspond to the retrieved sources.
 Question: {{ user_query }}
 ```
 
-**Citation rendering:** Gemini returns grounding metadata keyed by index. When the prompt asks for inline citations, instruct the model to use bracketed indices (`[1]`, `[2]`) -- the caller maps those indices to URLs in the grounding metadata. Do not ask the model to emit full URLs inline; it degrades answer quality.
-
-**Tool selection note:** current Gemini 3 variants use the `google_search` tool (not the legacy `google_search_retrieval` tool). If a migrated prompt references the legacy name in tool-instruction text, update it.
-
-## Gemini 3 Pro vs Flash (prompt-design choices)
-
-- **Gemini 3.1 Pro**: complex reasoning, multimodal tasks, long deliberation. Default `thinking_level: high` (dynamic); for `minimal` support, see the thinking-level table. Target Pro when the prompt demands multi-step reasoning, synthesis across many sources, or high-stakes analysis.
-- **Gemini 3 Flash / 3.1 Flash-Lite**: high-throughput, latency-sensitive, chat, structured extraction. Accept all `thinking_level` values including `minimal`. Target Flash for classification, extraction, routing, and conversational tasks where latency matters more than depth.
-
-Flash-specific prompting: include "current day accuracy" context and explicit knowledge-cutoff statements for time-sensitive tasks. (Source: ai.google.dev/gemini-api/docs/prompting-strategies, Gemini 3 Flash strategies section)
-
-## Common Patterns
-
-### Classification Task
-
-```jinja
-Classify the following {{ item_type }} into one of these categories: {{ categories | join(", ") }}.
-
-{% for example in examples %}
-{{ item_type }}: {{ example.input }}
-Category: {{ example.category }}
-
-{% endfor %}
-{{ item_type }}: {{ input_item }}
-Category:
-```
-
-### Reasoning Task
-
-Keep the prompt simple; rely on `thinking_level: high`:
-
-```jinja
-{{ question }}
-
-Provide your analysis and final answer.
-```
-
-If you need visible reasoning in the output:
-
-```jinja
-{{ question }}
-
-Show your reasoning step by step, then provide your final answer.
-```
+Ask for bracketed indices, not full URLs inline -- the caller maps indices to sources, and inline URLs degrade answer quality. If migrated tool-instruction text names the legacy `google_search_retrieval` tool, change it to `google_search`.
 
 ## Iteration Techniques
 
-When a prompt is not producing the desired output:
+When a prompt underperforms, try in turn: **rephrase** (semantically equivalent phrasings can respond differently); **reorder** (question last, constraints and persona first); **switch to an analogous task** ("extract the 5 most important points" instead of "summarize"); **add or remove examples** (reduce to 2 if over-fitting, add edge cases if under-performing); **adjust constraint specificity**; **change the thinking level** before adding reasoning instructions; **decompose** if iteration isn't converging.
 
-1. **Rephrase**: Gemini 3 can respond differently to semantically equivalent phrasings.
-2. **Reorder**: move the question to the end (after context); move constraints, persona, and output format to the beginning.
-3. **Switch to an analogous task**: if "summarize this document" fails, try "extract the 5 most important points" -- differently framed.
-4. **Add or remove examples**: over-fitting? reduce to 2. Under-performing? add edge-case examples.
-5. **Adjust constraint specificity**: replace vague constraints with quantitative ones, or loosen overly tight ones.
-6. **Decompose**: if iteration is not converging, split into sub-prompts.
+## Migration
 
-## Migration from Gemini 2.5
+### From Gemini 3 Flash Preview / 3.0 → 3.5+
 
-Prompt-level changes when migrating from Gemini 2.5 to Gemini 3 (Source: ai.google.dev/gemini-api/docs/gemini-3):
+- [ ] Re-test prompts tuned under the old `high` default -- 3.5 Flash and later default to `medium`.
+- [ ] Rework prompts tuned for `minimal` when moving to 3.7 or 3.8 Flash (no `minimal`); start at `low`.
+- [ ] Replace any reliance on low temperature with explicit rules in the system instruction plus a response schema.
+- [ ] Move format guidance from prefilled model turns into the prompt; don't end the conversation on a model turn.
+- [ ] Replace required pre-tool XML text (`<UPDATE>` blocks) with an `update` tool.
+- [ ] Move extra instructions and images into the function response text instead of separate parts.
+- [ ] If tool calls run high, lower the thinking level first, then add an action-budget line.
+- [ ] On 3.8 Flash, lower the thinking level for everyday tasks or route them to 3.7 Flash.
+- [ ] Re-check token use in long conversations -- reasoning now carries forward across turns.
+- [ ] Control cost with the thinking level, not a small output cap.
+- [ ] Update the current-date clause to the current year.
 
-- [ ] Remove manual CoT instructions ("Let's think step by step", "Think carefully before answering") -- rely on `thinking_level` instead.
-- [ ] Remove prompt text that assumes `temperature` below 1.0. Gemini 3 expects 1.0.
-- [ ] Simplify verbose prompts. "Gemini 3 responds best to direct, clear instructions."
-- [ ] Move critical constraints, persona, and output format to the **beginning** (System Instruction or prompt start). Move specific questions to the **end**.
-- [ ] Review broad negatives ("do not infer"). Keep them for strict verbatim-extraction tasks; replace with specific alternatives for reasoning tasks.
+### From Gemini 2.5
+
+- [ ] Simplify verbose prompts and heavy chain-of-thought scaffolding; use `medium` or `high` with simpler prompts.
+- [ ] Move critical constraints, persona, and output format to the **beginning**; move specific questions to the **end**.
+- [ ] Review broad negatives ("do not infer") -- keep for strict extraction, replace with specific alternatives for reasoning tasks.
 - [ ] Verify persona instructions do not contradict output-format or length constraints.
-- [ ] Remove image segmentation instructions (not supported in Gemini 3).
-- [ ] Remove in-prompt JSON schema templates when the caller now uses schema-enforced structured output -- state the task in prose, let the schema define shape.
-- [ ] In tool-instruction text, replace legacy `google_search_retrieval` references with `google_search`.
-- [ ] Replace any `thinking_budget` phrasing (Gemini 2.5) with `thinking_level` (Gemini 3) in prompt metadata.
+- [ ] Remove image segmentation instructions (not supported in Gemini 3.x).
+- [ ] Remove in-prompt JSON schema templates when a response schema is used.
+- [ ] Replace legacy `google_search_retrieval` references with `google_search`.
+- [ ] Then apply the 3.0 → 3.5+ checklist above.
 
 ## Anti-Patterns
 
-- **Manual chain-of-thought**: "Let's think step by step" is redundant when `thinking_level` is active. Remove it. (Source: ai.google.dev/gemini-api/docs/gemini-3)
-- **Assuming `temperature` below 1.0**: "May lead to unexpected behavior, such as looping or degraded performance." Prompts written to compensate for low-temperature determinism won't match Gemini 3's default sampling. (Source: ai.google.dev/gemini-api/docs/gemini-3)
-- **Broad negatives in reasoning tasks**: "Never assume" makes the model refuse reasonable deductions. Scope the negative to the task -- strict for extraction, specific for reasoning.
-- **Persona-constraint contradictions**: A "friendly, talkative" persona paired with a "2-word response" constraint produces unpredictable output. Align persona with output format in the System Instruction.
-- **Context after the question**: "The model's performance will be better if you put your query / question at the end of the prompt." Context first, question last. (Source: ai.google.dev/gemini-api/docs/long-context)
-- **Constraints placed at the end instead of the beginning**: Behavioural constraints, persona, output format go at the BEGINNING or in the System Instruction -- not at the end. (Source: ai.google.dev/gemini-api/docs/prompting-strategies)
-- **Mixed delimiter styles**: Using both XML tags and Markdown headings for structural sections in the same prompt. Pick one style.
-- **Over-specified prompts**: Long meta-instructions about how to approach the task. Gemini 3 handles concise instructions better than verbose ones.
-- **Anti-pattern examples**: Showing the model what NOT to do. It reproduces patterns it sees, including bad ones.
-- **Duplicating schema in prose when structured output is active**: Wastes tokens and can conflict with the enforced schema. State the task; let the schema define shape.
-- **Overloading the tool set**: Exceeding 20 active tools -- "Providing too many can increase the risk of selecting an incorrect or suboptimal tool." Scope prompts to the tools the current workflow actually needs. (Source: ai.google.dev/gemini-api/docs/function-calling)
-- **Vague tool descriptions**: Tool descriptions are prompt content. A description like "Gets data" forces the model to guess when to call it.
+- **Heavy chain-of-thought scaffolding**: step-by-step plans written for 2.5 cause over-analysis. Simplify and use the thinking level; a short "think very hard" cue is fine for heavy reasoning.
+- **Relying on low temperature for determinism**: sampling parameters are deprecated. Write explicit rules and use a response schema.
+- **Required XML text before tool calls**: can produce malformed function calls. Use an `update` tool.
+- **Instructions as a separate part next to a function response**: can cause thought leakage. Append them to the function response text.
+- **Broad negatives in reasoning tasks**: "Never assume" makes the model refuse reasonable deductions.
+- **Persona-constraint contradictions**: a "friendly, talkative" persona with a "2-word response" constraint produces unpredictable output.
+- **Wrong ordering**: "The model's performance will be better if you put your query / question at the end of the prompt." (Source: ai.google.dev/gemini-api/docs/long-context) Persona, constraints, and output format go at the beginning.
+- **Mixed delimiter styles**: XML tags and Markdown headings in the same prompt. Pick one.
+- **Anti-pattern examples**: showing the model what NOT to do. It reproduces patterns it sees.
+- **Duplicating the schema in prose** when a response schema is active.
+- **Overloading the tool set**: more than 20 active tools raises the risk of wrong tool selection.
+- **Vague tool descriptions**: tool descriptions are prompt content.
 
 ## Quality Checklist
 
-- [ ] Instructions are concise and direct (no verbose meta-instructions).
-- [ ] Persona, behavioural constraints, and output format are placed at the BEGINNING (System Instruction).
-- [ ] Large context blocks are placed BEFORE the specific question/task.
-- [ ] Specific question or task is placed at the END of the user prompt.
+- [ ] Model choice matches the workload (see Model Picker); thinking level is supported by that model.
+- [ ] Instructions are concise and direct (no verbose meta-instructions or heavy reasoning scaffolding).
+- [ ] Persona, constraints, and output format at the BEGINNING; stable context next; specific question at the END.
 - [ ] One delimiter style (XML OR Markdown) is used consistently.
-- [ ] Response format is explicitly defined; when structured output is active, the prompt states the task in prose without duplicating the schema.
-- [ ] Few-shot examples (2-5, diverse) are included for pattern-following tasks (classification, extraction, formatting); reasoning tasks may run zero-shot on `thinking_level`.
-- [ ] Examples show only correct patterns, not anti-patterns.
-- [ ] No manual CoT instructions -- rely on `thinking_level`.
-- [ ] `thinking_level` target respects model support (see the thinking-level availability table).
-- [ ] Prompt does not assume temperature below 1.0.
-- [ ] Negative constraints match the task type (strict for extraction, specific for reasoning).
-- [ ] Persona does not contradict output-format or length constraints.
-- [ ] Grounding instructions are included when context should override training data.
-- [ ] Knowledge-cutoff clause is present for time-sensitive tasks.
-- [ ] For tool use: active tool set is capped at 10-20; tool and parameter descriptions are specific.
-- [ ] For grounding: tool-instruction text references `google_search` (not legacy `google_search_retrieval`); citation format is described.
-- [ ] Stable content (system, examples, large docs) is at the START of the prompt for prefix-cache hits.
-- [ ] Complex prompts are decomposed into chainable sub-prompts where needed.
+- [ ] Determinism comes from explicit rules and a schema, not sampling assumptions; the schema is not duplicated in prose.
+- [ ] Few-shot examples (2-5, diverse, correct patterns only) for pattern-following tasks.
+- [ ] Negative constraints match the task type; persona does not contradict output-format or length constraints.
+- [ ] Grounding instructions when context should override training data; current-date clause for time-sensitive tasks.
+- [ ] Tools: 10-20 active, specific descriptions, no required pre-tool XML text, inline instructions appended to function response text.
+- [ ] Grounding: `google_search` named; citation format is described.
 
 ## Reference
 
-- Gemini 3 Developer Guide: https://ai.google.dev/gemini-api/docs/gemini-3
+- What's new in Gemini 3.5: https://ai.google.dev/gemini-api/docs/whats-new-gemini-3.5
+- Latest model guide: https://ai.google.dev/gemini-api/docs/latest-model
 - Gemini Prompting Strategies: https://ai.google.dev/gemini-api/docs/prompting-strategies
-- Thinking Level: https://ai.google.dev/gemini-api/docs/thinking
-- Structured Output (JSON Schema): https://ai.google.dev/gemini-api/docs/structured-output
+- Thinking: https://ai.google.dev/gemini-api/docs/thinking
 - Function Calling: https://ai.google.dev/gemini-api/docs/function-calling
-- Context Caching: https://ai.google.dev/gemini-api/docs/caching
 - Grounding with Google Search: https://ai.google.dev/gemini-api/docs/google-search
 - Long Context: https://ai.google.dev/gemini-api/docs/long-context
-- Gemini Models: https://ai.google.dev/gemini-api/docs/models
-- Vertex AI Prompt Design: https://docs.cloud.google.com/vertex-ai/generative-ai/docs/learn/prompts/introduction-prompt-design
+- Prompt Design (Gemini Enterprise Agent Platform): https://docs.cloud.google.com/gemini-enterprise-agent-platform/models/prompts/introduction-prompt-design

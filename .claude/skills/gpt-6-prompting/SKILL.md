@@ -1,88 +1,65 @@
 ---
-name: gpt-5-6-prompting
-description: Apply when creating or editing prompts targeting GPT-5.6 (gpt-5.6-sol, gpt-5.6-terra, gpt-5.6-luna). Covers lean prompting, outcome-first structure, reasoning-effort calibration (none through max), verbosity tuning, autonomy and approval boundaries, tool routing, programmatic tool calling, preamble and phase patterns, persisted-reasoning state, retrieval budgets, citation discipline, validation contracts, frontend prompting, and migration from GPT-5.5, GPT-5.4, GPT-5.3-Codex, or older GPT models.
+name: gpt-6-prompting
+description: Apply when creating or editing prompts targeting the GPT-6 family (gpt-6-astra, gpt-6-sol, gpt-6-luna). Covers bias to action, approval boundaries, writing style, skill and AGENTS.md hygiene, reasoning effort, delegation, testing calibration, and migration from GPT-5.6.
 ---
 
-# GPT-5.6 Prompt Writing Guidelines
+# GPT-6 Prompt Writing Guidelines
 
 ## When to Use
 
-- Creating or editing prompts targeting GPT-5.6 (any variant: `gpt-5.6-sol`, `gpt-5.6-terra`, `gpt-5.6-luna`)
-- Calibrating reasoning effort, verbosity, autonomy boundaries, and tool routing for GPT-5.6 workloads
-- Migrating prompt text from GPT-5.5, GPT-5.4, GPT-5.3-Codex, or older GPT models
-- Diagnosing 5.6-specific behaviors (concise-by-default output, instruction-conflict instability, `medium` default reasoning, proactive multi-step execution)
+- Creating or editing prompts targeting GPT-6 (`gpt-6-astra`, `gpt-6-sol`, `gpt-6-luna`)
+- Writing or auditing skills and AGENTS.md files that GPT-6 models will read
+- Tuning persistence, approval boundaries, writing style, delegation, and testing behavior
+- Migrating prompt text from GPT-5.6 or older GPT models
+- Diagnosing Astra behaviors: early stops for review, unneeded questions, detailed formatted output, over-testing, under-delegation
 
 ## Overview
 
-GPT-5.6 is OpenAI's frontier family. `gpt-5.6-sol` is the flagship (the bare `gpt-5.6` alias routes to it); `gpt-5.6-terra` balances cost; `gpt-5.6-luna` targets high-volume efficiency. Sol and Terra run ~1.05M-token context with 128K max output; Luna runs 400K context, 128K max output.
+GPT-6 is OpenAI's frontier family: `gpt-6-astra` (the primary focus of this skill), `gpt-6-sol`, and `gpt-6-luna`. OpenAI's prompt snippets address behavior observed with GPT-6 Astra — evaluate them with your chosen model and workload before applying them to Sol or Luna. The reverse also holds: guidance that helps Sol or Luna may overconstrain GPT-6 Astra.
 
-Compared with GPT-5.5, it reaches frontier performance with fewer output tokens, is more concise by default, follows prompt contracts more tightly (so conflicting instructions create instability), executes multi-step work more proactively, and has stronger layout and design judgment. New capabilities relevant to prompt design: programmatic tool calling, persisted reasoning across turns, pro mode for quality-first work, and multi-agent coordination (beta).
-
-The core discipline is lean prompting: OpenAI measured 10-15% eval-score improvement with 41-66% token reduction from pruning prompts — GPT-5.6 rewards removing scaffolding more than adding it.
+The core discipline is lean prompting. On Astra, "what used to require a lot of handholding and scaffolding no longer does," and "overly specific guidance can now hinder." Prompts, skills, and AGENTS.md files carried over from GPT-5.6 are the most common source of regressions — several Astra defaults reverse GPT-5.6 behavior.
 
 <context>
 Key behavioral characteristics to design prompts around:
 
 - **Outcome-first**: Strongest when the prompt defines destination, constraints, evidence, and completion bar, then leaves the path to the model.
-- **Tight contract-following**: Follows prompt contracts closely; duplicated or conflicting instructions destabilize behavior. State each instruction once.
-- **Concise by default**: More concise than GPT-5.5 — carried-over brevity blocks can now cut content you need. Define what brief answers must include.
-- **Proactive and persistent**: Carries multi-step tasks forward on its own; needs approval boundaries, not step-by-step supervision.
-- **Strong planning over tools**: Needs less fallback and invocation scaffolding than 5.5; still benefits from explicit prerequisite-retrieval and routing rules.
-- **Stronger design judgment**: Better layout, hierarchy, and visual taste — constrain it to the existing design system rather than prescribing layout steps.
-- **Legacy-prompt penalty**: Process-heavy stacks carried from older models narrow the search space and waste tokens.
+- **Stronger instruction following**: More sensitive to instructions in prompts and skills. Duplicated, conflicting, or cautionary instructions are taken seriously — state each once.
+- **Tentative by default**: More likely to ask when additional input could materially change the result, and asks non-blocking questions while working. This can stop work where the user expected reasonable assumptions and persistence.
+- **Early review stops**: May reach a first implementation and come back for review while work remains. Put running, inspecting, and fixing inside the definition of done.
+- **Detailed, formatted output**: Tends toward detailed, formatted responses and may use recurring phrases across sessions. Specify writing style and structure.
+- **Tests on its own**: Runs tests without prompting — carried-over "always run tests" nudges produce unnecessary testing.
+- **Under-delegates**: May parallelize through subagents less than you want. Say when delegation is expected.
+- **Legacy-prompt penalty**: Process-heavy stacks and prescriptive skills narrow the search space and cause early pauses.
 </context>
 
 ## Lean Prompting
 
-Trim iteratively — one group of instructions, examples, or tools at a time — validating against evals after each cut.
+Trim iteratively — one group of instructions, examples, skills, or tools at a time — validating against evals after each cut.
 
-Remove:
-- Duplicate statements of the same rule (state each instruction once)
-- Style/process guidance that doesn't change behavior in evals
-- Examples that don't alter behavior
-- Process instructions for behaviors the model already does reliably
-- Tools out of scope for the task (expose only what the task needs)
+**Remove**: duplicate statements of the same rule; style/process guidance and examples that don't change behavior in evals; process instructions for behaviors the model already does reliably (testing, persistence scaffolding); cautionary "ask first" and "stop for review" language on safe work; out-of-scope tools.
 
-Preserve:
-- User-visible outcomes, success criteria, and stopping conditions
-- Safety, business, evidence, and permission constraints
-- Context-dependent tool-routing rules
-- Required output schemas and validation requirements
+**Preserve**: user-visible outcomes, success criteria, and the definition of done; safety, business, evidence, and permission constraints; context-dependent tool-routing rules; required output schemas and writing-style contracts.
 
 ## Suggested Prompt Structure
 
-8-section layout for complex prompts. Keep each section short; add detail only where it changes behavior.
+Keep each section short; add detail only where it changes behavior.
 
 ```
 Role: [1-2 sentences defining the model's function, context, and job]
-
-# Personality
-[tone plus collaboration style: when to ask vs assume, how it checks work]
-
-# Goal
-[user-visible outcome]
-
-# Success criteria
-[what must be true before the final answer]
-
-# Constraints
-[policy, safety, business, evidence, side-effect limits]
-
-# Tools
-[which tools to use, when, and what not to use]
-
-# Output
-[format, sections, tone, and a quantitative length bound]
-
-# Stop rules
-[when to retry, fallback, abstain, ask, or stop]
+# Personality: [tone plus collaboration style: when to assume vs ask, how it checks work]
+# Goal: [user-visible outcome]
+# Success criteria: [what must be true before the final answer, including running and checking the result]
+# Constraints: [policy, safety, business, evidence, side-effect limits]
+# Tools: [which tools to use, when, and what not to use]
+# Output: [format, writing style, and a quantitative length bound]
+# Stop rules: [when to retry, fall back, abstain, ask, or stop]
 ```
 
-Keep personality short — describe specific writing choices (warmth, directness, formality, humor), not labels like "friendly". Collaboration style covers when the model asks questions, makes assumptions, checks work, and handles uncertainty.
+Describe personality through specific writing choices (warmth, directness, formality), not labels like "friendly".
 
 ## Outcome-First Prompting
 
-Describe what "good" looks like; let the model choose the tool, search, or reasoning strategy.
+Describe what "good" looks like; let the model choose the tool, search, or reasoning strategy. OpenAI's framing: "Give it the sources, templates, constraints, and checks that define a useful result."
 
 ```
 Resolve the customer's issue end to end.
@@ -94,110 +71,131 @@ Success means:
 - if evidence is missing, ask for the smallest missing field
 ```
 
-Add stopping conditions that prevent over-iteration. For lists, batches, and paginated work, require tracked coverage: treat the task as incomplete until every requested item is covered or explicitly marked `[blocked]` with what is missing.
+**Define "done" before starting.** Astra may return for review after a first implementation. If the task includes getting the implementation running, inspecting the result, and fixing what fails, make that part of the request. A requirement to stop for review after the first implementation pulls the model toward an earlier stopping point.
+
+For lists, batches, and paginated work, require tracked coverage: the task is incomplete until every item is covered or marked `[blocked]` with what is missing.
 
 **Reserve absolute rules for invariants.** Use `ALWAYS`, `NEVER`, `must`, and `only` for safety rules, required output fields, or actions that must never happen. For judgment calls, prefer decision rules — replace `"ALWAYS search the web before answering"` with `"Search the web when the question names a specific product, person, date, version, or figure; otherwise answer from context."`
 
-## Reasoning Effort Calibration
+## Reasoning Effort — Prompt Implications
 
-GPT-5.6 supports six levels: `none`, `low`, `medium`, `high`, `xhigh`, `max`. The default is `medium` when unset. `none` returns (absent on GPT-5.5) as the no-reasoning baseline; `max` is new — reserve it for the hardest quality-first workloads, never as a global default. Pro mode exists as a separate quality-first execution mode independent of effort; prefer it over `max`-everywhere for offline work where quality dominates.
+| Model | Levels | Starting point |
+|---|---|---|
+| Astra | `low`, `medium`, `high`, `xhigh`, `max` — no `none` | Default undocumented, so pin it; Codex suggests starting at `low` |
+| Sol | `none` through `max`, default `medium` | Codex suggests `medium` |
+| Luna | `none` through `max`, default `medium` | Codex suggests `high` |
 
-**Baseline before changing.** Preserve the source model's reasoning effort as the baseline, then test the same setting and one level lower on representative tasks — GPT-5.6 frequently holds quality one level down, converting directly to latency and cost savings.
+- **Levels don't map exactly between generations.** Try a familiar task at a lower setting than you used on GPT-5.6 before assuming the old level carries over.
+- **Astra's lowest level is `low`.** Where old prompts relied on `none` or `minimal`, start Astra at `low`.
+- **Fix the prompt before raising effort.** Check for a missing success criterion, definition of done, routing rule, or verification loop first; escalate only when evals show a gap the prompt cannot close.
+- **Reserve `max`** for the hardest quality-first workloads, never as a global default.
+- **Latency**: "For faster time to first visible token in latency-sensitive applications, ask the model to generate a short preamble before continuing with deeper reasoning."
 
-**Engineer the prompt before escalating.** Before raising effort, check whether the prompt is missing a success criterion, dependency rule, tool-routing rule, or verification loop. Only escalate when evals show a gap the prompt cannot close.
+## Autonomy, Persistence, and Approval
 
-| Task profile | Start at |
-|---|---|
-| Latency-sensitive Q&A, high-volume classification | `low` (test `none` where no tool reasoning is needed) |
-| General production workflows, default | `medium` |
-| Complex debugging, multi-step tool workflows | `medium`, escalate to `high` on eval gaps |
-| Deep research, long agentic traces | `high`, `xhigh` for offline/async |
-| Hardest quality-first workloads | `max` or pro mode |
+Astra's typical failure is stopping too early, not overreaching. Three snippets from OpenAI's guide address it.
 
-### Effort Migration Mapping
-
-| Current Model + Effort | Target (GPT-5.6) |
-|---|---|
-| GPT-5.5 @ any effort | same level as baseline, then test one lower |
-| GPT-5.4 @ `none` / `minimal` | `none` |
-| GPT-5.4 @ `low`-`xhigh` | same level as baseline, then test one lower |
-| GPT-5.3-Codex @ any effort | same level as baseline, then test one lower |
-| GPT-4o / GPT-4.1 (no effort param) | `none` or `low` |
-| GPT-5.5-pro workloads | pro mode |
-
-## Verbosity
-
-GPT-5.6 is more concise by default than GPT-5.5. Two consequences:
-
-- **Re-validate carried-over brevity blocks.** "Be concise" scaffolding written for 5.5 can now cut content you need. Remove blanket brevity instructions unless evals show they still earn their place.
-- **Define what brief answers must include**: conclusions, supporting evidence, material caveats, next actions. List what may be omitted (secondary detail, repetition, generic reassurance) rather than capping length alone.
-
-Use the host verbosity control (`text.verbosity`: `low` / `medium` / `high`) as the first lever for default detail level — it sets defaults, not task contracts. Every prompt's Output section still states the output format (JSON / Markdown / prose / code) and a quantitative length bound per user-facing section; quantitative constraints ("3-6 sentences", "under 400 words") outperform qualitative ones.
-
-For editing / rewriting / summarizing: preserve the requested artifact, length, structure, genre, and factual claims first; improve clarity, flow, and correctness without adding new claims or sections.
-
-## Autonomy and Approval Boundaries
-
-GPT-5.6 is proactive and persistent on multi-step work. Define what each request type authorizes — once, in one place. Repetitive "ask first" language paradoxically creates approval pauses on work that was already safe.
-
+Bias to action and persistence:
 ```
-<approval_boundaries>
-- For answer/explain/review/diagnose requests: inspect materials, report results;
-  do not implement changes unless asked.
-- For change/build/fix requests: make in-scope local changes and run
-  non-destructive validation without asking.
-- Safe local actions never need approval: reading files, inspecting logs,
-  editing code in scope, running tests.
-- Require confirmation for: external writes, destructive actions, purchases,
-  and scope expansion beyond the request.
-</approval_boundaries>
+You should infer the user's intent and task scope from the instructions and prior conversation context. Your job is to bias towards action and carry the user's intended task to completion.
+
+When the user expresses intent to perform new work or fix an existing issue, persist until the user's intended goal is complete. Progress autonomously towards the user's goal (e.g. creating isolated worktrees / checkouts if needed, resolving merge conflicts, read-only actions, creating draft PRs etc.) unless they are clearly destructive or irreversible.
 ```
 
-For long-running work, name the current work layer (research, design, implementation, review, external coordination) so the model doesn't silently escalate from one to the next.
+Treat "can you…" as a request:
+```
+When the user's prompt indicates a request for action, such as "can you...", "I want to...", "help me..." and similar expressions, treat these as instructions to do the work and take action. Do not stop at acknowledging capability (e.g. "Yes…"), proposing a plan, or offering to continue. Do not settle for a partial or "helpful enough" solution that does not fully satisfy the user's task to save time, effort or tokens. If a task requires sustained work, complete all the necessary work until the intended outcome is fulfilled.
+```
 
-For genuine ambiguity: present 2-3 plausible interpretations with labeled assumptions by default; ask a blocking question only when picking the wrong branch would be costly.
+Ask for approval only on a concrete result:
+```
+Before asking the user clarifying questions, you should complete the work that is already authorized from context and necessary to make the proposed action concrete and reviewable. The user should be approving a concrete, reviewable result. For example, before deploying a change, writing to an external application, merging a PR or publishing a site, do all the required work first so that user approval is the final step. You don't need user permission for reversible tasks, read-only actions, reviews or fixes, or anything for which authorization is provided earlier in the session or strongly implied from the task instruction.
 
-## Tool Routing and Descriptions
+Do not introduce unsolicited warnings, disclaimers, approval flows, or safety/compliance checklists due to hypothetical risk.
+```
 
-- **Expose only task-relevant tools.** Descriptions state purpose, when to use it, key return fields, and error behavior — 1-2 sentences.
-- **Make prerequisite retrieval explicit** when correctness depends on it: "Read the current config before proposing changes" — GPT-5.6 may otherwise skip discovery steps when the end state seems obvious.
+**Audit carried-over "ask first" language.** Repetitive "ask first" language creates approval pauses on work that was already safe, and Astra "could take it too seriously and may stop work where you'd actually be happy for it to continue." GPT-5.6-era boundaries such as "require confirmation for scope expansion beyond the request" are a common trigger. Keep confirmation for destructive, irreversible, and external actions, stated once. Where a workflow is safe, grant permission for it explicitly — OpenAI's AGENTS.md example:
+```
+The local tests use disposable fixtures and have no production access. Run them, fix failures caused by the requested change, and rerun affected tests without asking for approval at each step.
+```
+
+**Ambiguity**: default to labeled assumptions; ask a blocking question only when picking the wrong interpretation would be costly. If the host gives the model a non-blocking way to ask the user, instruct it to continue independent work after asking and to wait for the answer only before a step that depends on it.
+
+## Writing Style
+
+Astra tends toward detailed, formatted responses. Specify the style you want rather than relying on defaults. OpenAI's writing-style snippet:
+```
+Default to using clear, concise paragraphs, each developing one main idea. Use lists only when the information is genuinely parallel, sequential, or easier to compare, and avoid nested lists unless the hierarchy cannot be expressed clearly in prose. Use plain, simple language: familiar words, concrete examples, and precise verbs. Prefer active voice and direct statements.
+
+Make sure to state the main point clearly and early, then develop it with the explanation and detail the reader needs. Let each sentence build on what came before. Develop the points that matter and provide enough support to be useful.
+```
+
+For technical communication:
+```
+Use plain language over jargon, and reference technical details only to the degree that it helps illustrate an idea or your work to the user. Communicate complex concepts in a clear and cohesive manner, and calibrate your writing to the level of background knowledge assumed from the user's prompt and context.
+```
+
+Astra may reuse recurring phrases across sessions. To suppress stock phrasing:
+```
+Avoid using slop words or phrases like "Bottom Line:" in conclusions, "delve," "foster," "leverage," "it's worth noting," "importantly," "Question? Answer." or "This isn't about X. It's about Y.", "genuinely" or hyphenated compound descriptions and adjectives. Do not use concluding summary statements such as "In short:..", "The simplest mental model is:...".
+
+State the intended action directly. Avoid adding what you won't do, what will remain unchanged, or how you'll separate or categorize results. Do not use contrastive framing such as "X, not Y" or "X—not Y" that introduces an unprompted alternative that the user didn't ask about. Avoid invented compound labels like "exact-head checks" and "editorial-row layouts", vague qualifiers, and canned transitions; use plain verbs and prepositions to state the actual relationship directly.
+```
+
+A host verbosity setting, where available, sets the default detail level; the Output section still states format and a quantitative length bound ("3-6 sentences", "under 400 words"). For editing, rewriting, or summarizing: preserve the requested artifact, length, structure, genre, and factual claims; improve clarity without adding claims or sections.
+
+## Skills and AGENTS.md
+
+Astra is more sensitive to instructions in skills, and unclear or conflicting skill guidance may cause it to pause and block work early. OpenAI strongly recommends auditing skills and other files accessible to the model for instructions that could influence its behavior.
+
+State precedence explicitly:
+```
+The user's instructions take precedence over guidelines provided in a skill. If explicit user instructions conflict with a skill's instructions, prioritize the user's instructions.
+```
+
+Make skill-caused pauses traceable:
+```
+If a skill causes you to ask for permission or confirmation, pause, leave requested work unfinished, or diverge from the user's intent, name and link to the exact SKILL.md file you read, quote the relevant instruction, and briefly explain how it applies. Distinguish explicit skill requirements from your interpretation of guidelines.
+```
+
+Skill hygiene:
+- **Short descriptions.** Keep descriptions as short as possible while making it clear when to use the skill — Codex truncates them when many skills are loaded. Bad: "…Use when working with databases, queries, models, or persistence." Good: "…Use when adding or changing a migration, or reviewing its rollout."
+- **Minimal root file.** Make SKILL.md or AGENTS.md a minimal router that points to supporting docs and scripts. Avoid elaborate itineraries or recipes.
+- **Point to docs by context.** Bad: "Before every edit, read architecture.md, database.md, and deployment.md." Good: "Use architecture.md for service boundaries, database.md for schema changes, and deployment.md when preparing a deployment."
+
+## Subagents
+
+Astra may delegate less than you want. Encourage parallelization:
+```
+If at any point you can parallelize work by delegating tasks to another agent (no matter if you are the root or subagent), you should do so using collaboration tools if it could save time or improve quality.
+```
+
+Keep inter-agent messages readable:
+```
+Messages that you send to other agents and your final answer may be read by a human, so ensure they are legible. Always put proper spaces between words and/or numbers.
+```
+
+## Tool Routing
+
+- **Expose only task-relevant tools.** Descriptions state purpose, when to use it, key return fields, and error behavior in 1-2 sentences.
+- **Make prerequisite retrieval explicit** when correctness depends on it: "Read the current config before proposing changes."
 - **Parallelize independent reads**; keep work sequential when one result determines the next call.
 - **Empty-result recovery**: on empty, partial, or suspiciously narrow results, require 1-2 meaningful fallbacks (alternate wording, broader filters, prerequisite lookup) before concluding "no results", reported with what was tried.
-- **Prefer strict schemas** where the host supports them: forbid extra properties, mark every property required (use `["string", "null"]` for optional fields).
+- **Strict tool schemas** where the host supports them: no extra properties, every property required, nullable types for optional fields.
 
-GPT-5.6 plans well over large tool surfaces — the verbose invocation scaffolding GPT-5.5 needed (persistence blocks, detailed fallback ladders) can usually shrink to the rules above.
+### Programmatic Tool Calling
 
-## Programmatic Tool Calling
+Where the model can run code that orchestrates tool calls, route through code when the workflow is bounded and deterministic: filtering, joining, sorting, deduplication, and aggregation across many records; batching similar calls; reducing large intermediate results to a compact shape.
 
-GPT-5.6 can execute code that orchestrates tool calls in a hosted runtime. Prompt-design guidance:
+Keep direct tool calls when one call suffices, when each result may change the next decision, when the action requires approval, or when the final answer must preserve citations or artifacts. If a task needs both routes, define one handoff point so the model doesn't switch mid-task or repeat work. Test both the program output and the final message — correct records can still arrive with required fields or caveats missing.
 
-Route through code when the workflow is bounded and deterministic:
-- Filtering, joining, sorting, ranking, deduplication, aggregation across many records
-- Batching many similar calls; repeated deterministic validation
-- Reducing large intermediate results to a compact schema
+## Progress Updates
 
-Keep direct tool calls when:
-- One call suffices, or intermediate outputs are already small
-- Each result may change the next decision (semantic judgment between calls)
-- The action requires approval, or the final answer must preserve citations or artifacts
-
-If a task needs both routes, define one clear handoff point — do not let the model switch routes mid-task or repeat work across them. Test both the program output and the final assistant message: a program can return correct records while the message omits required fields or caveats.
-
-## Long-Running Work: Preamble, Updates, State
-
-**Preamble**: before the first tool call on multi-step work, send 1-2 user-visible sentences acknowledging the request and stating the first step.
-
-**Updates**: after the preamble, brief updates only when a major phase begins or a finding changes the plan — one concrete outcome plus the next step. No narration of routine tool calls.
-
-**Phase discipline**: assistant messages carry a `phase` value — `"commentary"` (progress updates) vs `"final_answer"` (the deliverable). Keep the two distinct in prompt instructions: preamble/update rules govern commentary; format, schema, and length contracts govern the final answer. When replaying conversation history manually, preserve each message's original phase value; hosts that persist state across turns handle this automatically.
-
-**Persisted reasoning**: useful when the objective, assumptions, and priorities stay stable across turns. When earlier reasoning is stale (pivoted objective, invalidated assumptions), prefer fresh current-turn reasoning — stale reasoning adds tokens and anchors the model to outdated approaches.
-
-**Compaction and caching**: compact after major milestones rather than every turn, keep the prompt functionally consistent after compaction, and keep reusable prompt prefixes stable — churn in large system prompts defeats caching.
+Before the first tool call on multi-step work, have the model send 1-2 user-visible sentences acknowledging the request and stating the first step. After that, brief updates only when a major phase begins or a finding changes the plan — one concrete outcome plus the next step. Keep update rules separate from the final answer's format and length contract, and keep the reusable prompt prefix stable across turns — churn in large system prompts defeats caching.
 
 ## Grounding, Citations, and Retrieval Budget
 
-Define what needs support, what counts as sufficient evidence, and what to do when evidence is missing. Absence of evidence is not a factual "no" — instruct the model to narrow the answer or report the gap instead of guessing.
+Define what needs support, what counts as sufficient evidence, and what to do when evidence is missing. Absence of evidence is not a factual "no" — instruct the model to narrow the answer or report the gap.
 
 ```
 <retrieval_budget>
@@ -214,33 +212,28 @@ can safely be made more generic.
 </retrieval_budget>
 ```
 
-Citation rules — lock citations to retrieved sources:
-- Cite only sources retrieved in the current workflow; never fabricate citations, URLs, IDs, or locators.
-- Attach citations to the claims they support, not only at the end; label inference separately from directly supported facts; state source conflicts rather than resolving them silently.
-- If the host renders inline citation markers (e.g. Unicode markers like `<ZWSP>cite<ZWSP>` where `<ZWSP>` stands for the invisible U+200B), emit one marker per source, in exactly the host's format.
+Citation rules: cite only sources retrieved in the current workflow, never fabricating citations, URLs, IDs, or locators; attach citations to the claims they support; label inference separately from supported facts; state source conflicts rather than resolving them silently; if the host renders inline citation markers, emit one per source in exactly the host's format.
 
-For research and synthesis, scope is query coverage: cover plausible user intents rather than expanding into tangential topics, and keep the answer within the requested length even when more material was retrieved.
+For creative drafting (slides, launch copy), use retrieved or provided facts for concrete product, metric, date, and customer claims; never invent specifics — write a generic draft with placeholders or labeled assumptions instead.
 
-For creative drafting (slides, launch copy, narrative framing): use retrieved or provided facts for concrete product, metric, date, roadmap, and customer claims; never invent specifics to make the draft sound stronger — write a useful generic draft with placeholders or labeled assumptions instead.
+## Validation and Testing
 
-## Validation Contracts
+Astra tests on its own; the risk is over-testing, not under-testing. Replace GPT-5.6-era "run the most relevant check" nudges with:
+```
+Do not write tests for reversible, low-impact changes that mirror the implementation. If you do choose to verify your work with tests, make sure that the tests are meaningful and necessary to verify implementation.
 
-State what validation matters before finishing, and give the model access to the tools that run it.
+Run tests appropriate to the change and complete required checks. Once those pass, broaden or repeat testing only when new changes, failures, or unresolved concerns justify it; otherwise, continue toward completing the task.
+```
 
-- **Coding**: after changes, run the most relevant check available — targeted tests for changed behavior, type/lint checks, build checks for affected packages, or a minimal smoke test. If validation cannot run, explain why and name the next-best check.
-- **Visual artifacts**: render before finalizing; inspect layout, clipping, spacing, missing content; revise until the rendered output matches requirements.
-- **Implementation plans**: cover requirements and where each is addressed, named files/APIs/systems, state transitions or data flow, validation checks, failure behavior, privacy/security considerations, and open questions that materially affect implementation.
-
-GPT-5.6 iterates well — validation instructions can be this concise without losing thoroughness.
+**Give the model ways to inspect its own work.** Astra does well with a loop to reproduce a problem, inspect screenshots and state, trace the relevant code, make a change, and rerun the check. Provide the tools that loop needs (renderer, screenshots, logs, a runnable build). For visual artifacts, require rendering and inspecting layout, clipping, spacing, and missing content before finalizing. For implementation plans, require requirements mapped to where each is addressed, named files/APIs/systems, data flow, validation checks, failure behavior, and open questions that materially affect implementation.
 
 ## Structured Extraction
 
-Prefer host-enforced strict schemas over format prompts. When encoding the contract in the prompt, include the schema inline, require exact adherence with no extra fields, and set missing fields to `null` rather than guessing; re-scan the source for missed fields before returning. For multi-document extraction, serialize per-document results with a stable ID (filename, title, page range). For layout-aware extraction, specify the coordinate format exactly and process dense layouts page by page with a second pass.
+Prefer host-enforced strict schemas over format prompts. When the contract lives in the prompt, include the schema inline, require exact adherence with no extra fields, and set missing fields to `null` rather than guessing; re-scan the source for missed fields before returning. For multi-document extraction, key per-document results with a stable ID (filename, title, page range). For layout-aware extraction, specify the coordinate format exactly and process dense layouts page by page with a second pass.
 
 ## Frontend and Visual Tasks
 
-GPT-5.6 has stronger layout, visual hierarchy, and design judgment than 5.5 — constrain it, don't script it:
-
+Constrain design work; don't script it:
 ```
 <design_constraints>
 - Inspect and preserve the existing design system: tokens, components, patterns.
@@ -250,59 +243,65 @@ GPT-5.6 has stronger layout, visual hierarchy, and design judgment than 5.5 — 
 </design_constraints>
 ```
 
-For net-new design where no system exists, either specify a concrete direction (palette hexes, typeface, radii, spacing) or have the model propose 3-4 distinct visual directions and build only the one picked.
+For net-new design with no system, specify a concrete direction (palette hexes, typeface, radii, spacing) or have the model propose 3-4 distinct directions and build only the one picked.
 
-For vision, computer-use, localization, or OCR tasks needing spatial precision, choose image detail intentionally — use original detail for large, dense, or coordinate-sensitive images when the extra input cost is justified.
+For vision, computer-use, or OCR tasks needing spatial precision, choose image detail intentionally — use original detail for large, dense, or coordinate-sensitive images when the extra input cost is justified.
 
-## Migration Guide
+## Migration
 
-Isolate one variable at a time — never rewrite a working prompt in the same step as a model switch:
+Isolate one variable at a time — never rewrite a working prompt in the same step as a model switch. Switch the model, pin reasoning effort explicitly, run representative evals, then make the smallest targeted edit that fixes each measured regression. To debug: collect a few real failing traces, find the instruction or contradiction causing the failure, make one surgical edit, and re-run the same cases.
 
-1. **Switch the model string, preserve the current reasoning effort.** Pin it explicitly — GPT-5.6 defaults to `medium` when unset, which silently changes cost and latency for prompts that relied on 5.4-era `none`.
-2. **Run representative evals before touching the prompt.**
-3. **Remove obsolete scaffolding**: repeated instructions, brevity blocks, verbose tool-invocation guidance, non-behavioral examples, out-of-scope tools.
-4. **Test one effort level lower** than baseline on representative tasks.
-5. **Add only the smallest targeted instruction that fixes a measured regression**, re-running evals after each change.
+### From GPT-5.6
 
-To debug a regression: collect a small set of real failing traces, identify the failure mode, find the instruction or contradiction causing it, make one surgical edit, re-run the same cases.
+- [ ] Pin reasoning effort. On Astra, move `none`/`minimal` routes to `low`; test a familiar task at a lower level than the GPT-5.6 setting.
+- [ ] Remove blanket brevity reliance — Astra defaults to detailed, formatted output. Add the writing-style snippet and state format and length in the Output section.
+- [ ] Replace "proactive by default" assumptions with the bias-to-action, "can you…", and concrete-approval snippets.
+- [ ] Remove "ask first", "stop for review after the first implementation", and "confirm scope expansion" language on safe work; grant explicit permission for safe workflows.
+- [ ] Put running, inspecting, and fixing the result inside the definition of done.
+- [ ] Replace "always run tests" / "run the most relevant check" nudges with the testing snippet.
+- [ ] Audit skills and AGENTS.md: short descriptions, minimal router files, docs referenced by context, user-over-skill precedence, and the name-the-skill instruction.
+- [ ] Add delegation encouragement and the legible-messages instruction for multi-agent setups.
+- [ ] Keep: outcome-first structure, retrieval budget, citation rules, tool routing, PTC routing, design constraints.
 
-Compare four configurations when validating: original model + prompt; GPT-5.6 + same prompt + preserved effort; GPT-5.6 + same prompt + one lower effort; GPT-5.6 + minimal fixes. Measure success rate, latency, tokens, cost, tool-choice quality, and schema validity.
+### From older models
 
-**From GPT-5.5**: the structural patterns carry over (outcome-first, retrieval budget, phase discipline, validation contracts). Prune: brevity blocks (5.6 is already concise), tool-persistence scaffolding, repeated rules. Add: approval boundaries, one-level-lower effort test. Replace `gpt-5.5-pro` routing with pro mode.
-
-**From GPT-5.4 / GPT-5.3-Codex**: pin effort explicitly first (`none` stays available). Then apply the lean-prompting pass — these prompts typically carry the most process scaffolding.
-
-**From GPT-4o / GPT-4.1**: remove defensive prompting; start at `none` or `low`; add an output contract only if outputs drift; add approval boundaries for agentic use.
+- **GPT-5.5 / GPT-5.4 / GPT-5.3-Codex**: run the lean-prompting pass first — these prompts carry the most process scaffolding and tool-persistence blocks — then apply the GPT-5.6 checklist.
+- **GPT-4o / GPT-4.1**: remove defensive prompting, start Astra at `low`, add an output contract only if outputs drift, and add approval boundaries for agentic use.
 
 ## Anti-Patterns
 
-- **Stating an instruction more than once** — duplicated rules destabilize contract-following. Consolidate.
-- **Carrying 5.5-era brevity blocks** — 5.6 is already concise; blanket "be concise" now cuts needed content. Define what brief answers must include.
-- **Repetitive "ask first" language** — creates approval pauses on safe work. One approval-boundaries block, stated once.
-- **Generic phrases**: "be brief", "think step by step" — dead weight; reasoning is parameter-controlled and conciseness is default.
-- **`max` effort or pro mode as global default** — reserve for the hardest quality-first workloads.
-- **Raising effort before engineering the prompt** — add the missing success criterion, routing rule, or verification loop first.
-- **Absolute rules on judgment calls** — reserve `ALWAYS`/`NEVER` for invariants; use decision rules for search/ask/iterate choices.
-- **Routing judgment-dependent workflows through programmatic tool calling** — code paths hide semantic decisions and drop citations; keep those on direct calls.
-- **Letting PTC and direct calls trade the same work back and forth** — define one handoff.
-- **Replaying history without phase values** — the model loses the commentary/final-answer distinction.
-- **Persisting stale reasoning across a pivot** — anchors the model to the outdated approach; use fresh reasoning when objectives change.
-- **Treating empty tool results as final** — require 1-2 fallbacks with a report of what was tried.
-- **Inventing figures, citations, or references when evidence is missing** — narrow the answer or report the gap.
-- **Scripting layout steps for UI work** — constrain to the design system instead; 5.6's design judgment outperforms step-scripts.
+- **Stating an instruction more than once** — Astra follows instructions closely; duplicates and conflicts destabilize behavior.
+- **Not specifying writing style** — Astra defaults to lists, tables, and Markdown with recurring phrases.
+- **Leaving old "ask first" or "always run tests" nudges** — cause early pauses and unnecessary testing.
+- **Stop-for-review requirements after a first implementation** — pull the model toward an earlier stopping point.
+- **Unaudited or prescriptive skills** — conflicting skill guidance blocks work early; long descriptions get truncated.
+- **Raising effort before fixing the prompt** — add the missing success criterion, routing rule, or verification loop first.
+- **`max` effort (or pro mode, where available) as a global default** — reserve for the hardest quality-first workloads.
+- **Routing judgment-dependent workflows through programmatic tool calling** — code paths hide semantic decisions and drop citations.
+- **Inventing figures, citations, or references** — narrow the answer or report the gap.
+- **Scripting layout steps for UI work** — constrain to the design system instead.
 - **Churning the system-prompt prefix** — defeats caching on long-running agents.
 
 ## Quality Checklist
 
 The easy-to-forget items:
 
-- [ ] Reasoning effort pinned explicitly — preserved from the source model, then tested one level lower; not silently inherited from the `medium` default
-- [ ] Every instruction stated exactly once — no rule appears in both system prompt and tool descriptions
-- [ ] Brevity blocks re-validated against 5.6's concise default, with "what brief answers must include" defined
-- [ ] Output section states the format and a quantitative length bound — the host verbosity control sets defaults, not task contracts
-- [ ] Approval boundaries stated once, with safe local actions named
-- [ ] Commentary vs. final-answer phases kept distinct, and phase values preserved on manual history replay
+- [ ] Reasoning effort pinned explicitly — Astra has no `none` and an undocumented default
+- [ ] Every instruction stated exactly once across system prompt, tool descriptions, skills, and AGENTS.md
+- [ ] Writing style and structure specified; Output section states format and a quantitative length bound
+- [ ] Definition of done includes running, inspecting, and fixing the result where relevant
+- [ ] Approval limited to destructive, irreversible, or external actions; safe workflows explicitly permitted
+- [ ] No leftover "ask first", "stop for review", or "always run tests" nudges
+- [ ] Skills and AGENTS.md audited; user-over-skill precedence stated
+- [ ] Delegation guidance present for multi-agent setups
 - [ ] Retrieval budget and empty-result recovery set for search-enabled flows
 - [ ] PTC vs direct-call routing defined with a single handoff for hybrid workflows
-- [ ] Extraction tasks include the exact JSON schema inline, with missing fields set to null rather than guessed
 - [ ] Prompt tested unchanged after the model switch, before any re-engineering
+
+## Reference
+
+- Using GPT-6 (latest model guide): https://developers.openai.com/api/docs/guides/latest-model
+- Rethinking skills and prompts for GPT-6 Astra: https://developers.openai.com/blog/rethinking-skills-and-prompts-for-gpt-6-astra
+- Reasoning models: https://developers.openai.com/api/docs/guides/reasoning
+- Codex models: https://developers.openai.com/codex/models
+- How to build games with Astra: https://developers.openai.com/blog/how-to-build-games-with-astra
