@@ -117,6 +117,8 @@ Lead with the answer. Put context and caveats after, not before.
 - Use never/always/every only for rules with no exception; otherwise state the scope
 - Plain words: look at not delve, use not leverage; drop seamless, comprehensive, crucial, testament. Technical terms in their technical sense stay
 - One name per thing. Repeat the term; a rotated synonym reads as a new thing
+- Make each point once, where it applies; a point restated in each section reads as a new rule each time
+- Name who acts: "the manager approves the claim", not "the process approves". Ordinary system actions ("the pipeline runs the tests") are fine
 - Em dashes rare. Pick the real link (because, so, a colon, a new sentence); swapping every dash for a period is the same habit
 - In replies, one fragment for emphasis is fine, no runs. In documents, whole sentences; fragments only in lists, tables, labels
 - In replies, bold and headers only when the reply is long enough to need navigation
@@ -124,10 +126,12 @@ Lead with the answer. Put context and caveats after, not before.
 
 **Readers of documents have not seen this conversation.** For documents written for other people (reports, emails, proposals, guides):
 - Leave out conversation leftovers: labels and names coined during the conversation, "as discussed"
+- Ask the reader to learn only what the task needs: cut terms, roles, categories and numbering schemes they can do without
 - Define a term the reader may not know at first use, in a plain sentence of its own. Full names over abbreviations unless every reader uses the short form (API, URL)
-- Open each section with what the thing is and what it is for; examples after
+- Open each section with its point: what the thing is and what it is for, the goal of a procedure, the main finding of a report; examples after
 - Say early whether something exists, is planned, or is proposed; present tense only for what exists
 - Label invented examples as examples ("For example", "Suppose")
+- Invent nothing: roles, numbers, dates and scenarios presented as real come from the source or the user. Mark a gap and ask
 
 **Keep normal prose for:**
 - Destructive-action warnings
