@@ -19,7 +19,7 @@ Just copy `.claude/` into any project — or install globally — and get pre-co
 **Agents** — file-type-triggered writers (`python`, `typescript`, `swift`, `csharp`, `react`), plus `prompt-writer`, `diagrammer`, and `ticket-creator`. 8 per provider.
 **Commands** — `project-docs` and `git-sync` (Claude & Codex).
 
-**Skills** — coding standards (Python, TypeScript, React, Tailwind, shadcn/ui, Swift, C#), model-specific prompt engineering (Claude Opus 5 & Fable 5, GPT-5.6, Gemini 3), behavioral modes (`minimal-coding` for least-code solutions), and `human-writing` for documents that people outside the project can follow. Applied automatically based on the file type you're editing.
+**Skills** — coding standards (Python, TypeScript, React, Tailwind, shadcn/ui, Swift, C#), model-specific prompt engineering (Claude Opus 5 & Fable 5, GPT-5.6, Gemini 3), behavioral modes (`minimal-coding` for least-code solutions), and `human-writing` for documents that people outside the project can follow. Applied automatically based on the file type you're editing. The exception is `staged-docs`, which runs only when you start it with a topic (`/staged-docs <topic>`, or `$staged-docs` in Codex): it builds a document with you piece by piece, in a mode you choose per piece (agent-drafted, step by step, or author-led), with review rounds you decide on a local page.
 
 **Security** — `settings.json` blocks agent access to `*.pem`, `*.key`, credentials, cloud configs, SSH keys, Terraform state, and databases.
 

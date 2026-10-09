@@ -1,0 +1,1194 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Review</title>
+<style>
+:root {
+  color-scheme: light;
+  --bg: #ffffff;
+  --fg: #1f2328;
+  --muted: #59636e;
+  --line: #d1d9e0;
+  --panel: #f6f8fa;
+  --code-bg: #eff2f5;
+  --link: #0b62d6;
+  --focus: #0b62d6;
+  --yellow-bg: #fff4c2;
+  --yellow-line: #d4a106;
+  --red-bg: #ffe1de;
+  --red-fg: #a3150c;
+  --green-bg: #dcf5e0;
+  --green-fg: #12652a;
+  --orange-bg: #ffe3c4;
+  --orange-fg: #8a3a00;
+  --accept: #1d7f39;
+  --reject: #b42318;
+  --discuss: #0b62d6;
+  --on-fill: #ffffff;
+  --new-bg: #fff3a3;
+  --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    color-scheme: dark;
+    --bg: #0d1117;
+    --fg: #e6edf3;
+    --muted: #9198a1;
+    --line: #3d444d;
+    --panel: #151b23;
+    --code-bg: #212830;
+    --link: #58a6ff;
+    --focus: #58a6ff;
+    --yellow-bg: rgba(234, 179, 8, 0.15);
+    --yellow-line: #c99a06;
+    --red-bg: rgba(248, 81, 73, 0.2);
+    --red-fg: #ffaba6;
+    --green-bg: rgba(63, 185, 80, 0.2);
+    --green-fg: #8fe39d;
+    --orange-bg: rgba(255, 145, 40, 0.2);
+    --orange-fg: #ffb877;
+    --accept: #3fb950;
+    --reject: #ff7b72;
+    --discuss: #58a6ff;
+    --on-fill: #0d1117;
+    --new-bg: rgba(250, 204, 21, 0.3);
+  }
+}
+
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--fg);
+  font: 16px/1.6 system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  -webkit-text-size-adjust: 100%;
+}
+
+:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+
+.sd-wrap { max-width: 760px; margin: 0 auto; padding: 0 16px; }
+.sd-empty { padding-top: 3rem; }
+.sd-top { padding-top: 1.5rem; }
+.sd-title { margin: 0 0 0.35rem; font-size: 1.5rem; line-height: 1.3; overflow-wrap: anywhere; }
+.sd-sub, .sd-keys { margin: 0 0 0.5rem; color: var(--muted); font-size: 0.875rem; }
+.sd-msg { color: var(--muted); font-size: 0.8rem; }
+
+kbd {
+  padding: 0 0.3rem;
+  border: 1px solid var(--line);
+  border-bottom-width: 2px;
+  border-radius: 4px;
+  background: var(--panel);
+  color: var(--fg);
+  font: 0.8rem/1.4 var(--mono);
+}
+
+.sd-banner {
+  margin: 0.75rem 0;
+  padding: 0.5rem 0.75rem;
+  border-radius: 6px;
+  background: var(--orange-bg);
+  color: var(--orange-fg);
+  font-size: 0.875rem;
+}
+.sd-banner p { margin: 0; }
+
+.sd-groups { display: flex; flex-wrap: wrap; align-items: center; gap: 0.4rem 0.6rem; margin: 0.75rem 0; }
+
+.sd-bar {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  margin-bottom: 1rem;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid var(--line);
+  background: var(--bg);
+}
+.sd-summary { margin: 0 0 0.4rem; font-size: 0.875rem; }
+.sd-tools { display: flex; flex-wrap: wrap; align-items: center; gap: 0.4rem; }
+@media (max-width: 600px) {
+  .sd-bar { position: static; }
+}
+
+.sd-files ol { margin: 0.5rem 0 1rem; padding-left: 1.5rem; font-family: var(--mono); font-size: 0.85rem; }
+.sd-files a { color: var(--link); overflow-wrap: anywhere; }
+
+/* Buttons */
+
+.sd-btn {
+  min-height: 2.25rem;
+  padding: 0.3rem 0.8rem;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--bg);
+  color: var(--fg);
+  font: inherit;
+  font-size: 0.875rem;
+  line-height: 1.4;
+  cursor: pointer;
+}
+.sd-btn:hover { border-color: var(--fg); }
+.sd-btn[aria-pressed="true"] { border-color: transparent; background: var(--fg); color: var(--bg); font-weight: 700; }
+.sd-btn[aria-pressed="true"]::before { content: "\2713\00a0"; }
+.sd-btn[aria-pressed="true"][data-status="accepted"] { background: var(--accept); color: var(--on-fill); }
+.sd-btn[aria-pressed="true"][data-status="rejected"] { background: var(--reject); color: var(--on-fill); }
+.sd-btn[aria-pressed="true"][data-status="discuss"] { background: var(--discuss); color: var(--on-fill); }
+
+/* The document */
+
+.sd-file { margin: 1.5rem 0 3rem; }
+.sd-path {
+  margin: 0 0 1rem;
+  padding-bottom: 0.4rem;
+  border-bottom: 1px solid var(--line);
+  color: var(--muted);
+  font: 600 0.85rem/1.4 var(--mono);
+  overflow-wrap: anywhere;
+}
+.sd-md { overflow-wrap: break-word; }
+.sd-md h1 { margin: 1.5rem 0 0.75rem; font-size: 1.6rem; line-height: 1.25; }
+.sd-md h2 { margin: 1.5rem 0 0.75rem; font-size: 1.3rem; line-height: 1.3; }
+.sd-md h3, .sd-md h4 { margin: 1.25rem 0 0.5rem; font-size: 1.1rem; }
+.sd-md p, .sd-md ul, .sd-md ol, .sd-md blockquote, .sd-md pre, .sd-md .sd-scroll, .sd-md .sd-diagram { margin: 0 0 1rem; }
+.sd-md > :last-child { margin-bottom: 0; }
+.sd-md a { color: var(--link); }
+.sd-md img { max-width: 100%; height: auto; }
+.sd-md code { padding: 0.1em 0.3em; border-radius: 4px; background: var(--code-bg); font-family: var(--mono); font-size: 0.875em; }
+.sd-md pre { padding: 0.75rem 1rem; border-radius: 6px; background: var(--code-bg); overflow-x: auto; }
+.sd-md pre code { padding: 0; background: none; }
+.sd-md blockquote { margin-left: 0; padding-left: 1rem; border-left: 4px solid var(--line); color: var(--muted); }
+.sd-md table { border-collapse: collapse; }
+.sd-md th, .sd-md td { padding: 0.35rem 0.6rem; border: 1px solid var(--line); text-align: left; vertical-align: top; }
+.sd-scroll, .sd-diagram { max-width: 100%; overflow-x: auto; }
+.sd-diagram { text-align: center; }
+.sd-raw { padding: 0.5rem 0.75rem; border-radius: 6px; background: var(--code-bg); font: 0.85rem/1.5 var(--mono); white-space: pre-wrap; overflow-wrap: anywhere; }
+.sd-error { color: var(--reject); }
+
+/* Proposal marks inside the text */
+
+del.sd-old, ins.sd-new { padding: 0 0.1em; border-radius: 0.15em; -webkit-box-decoration-break: clone; box-decoration-break: clone; }
+del.sd-old { background: var(--red-bg); color: var(--red-fg); text-decoration: line-through; }
+ins.sd-new { background: var(--green-bg); color: var(--green-fg); text-decoration: none; }
+mark.sd-target { background: transparent; color: inherit; outline: 2px dashed var(--yellow-line); outline-offset: 1px; border-radius: 2px; }
+.sd-hl { box-shadow: 0 0 0 2px var(--focus); }
+
+.sd-block { margin-bottom: 1rem; scroll-margin-top: 7rem; }
+.sd-added, .sd-removed, .sd-replaced { padding: 0.5rem 0.75rem; border-left: 4px solid; border-radius: 6px; }
+.sd-added { border-color: var(--yellow-line); background: var(--yellow-bg); }
+.sd-removed { border-color: var(--red-fg); background: var(--red-bg); }
+.sd-removed > :not(.sd-before) { text-decoration: line-through; }
+.sd-replaced { border-color: var(--green-fg); }
+.sd-added::before, .sd-removed::before, .sd-replaced::before {
+  display: block;
+  margin-bottom: 0.25rem;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+.sd-added::before { content: "New text"; }
+.sd-removed::before { content: "Text to remove"; color: var(--red-fg); }
+.sd-replaced::before { content: "Proposed version"; color: var(--green-fg); }
+.sd-before { margin-top: 0.75rem; }
+.sd-before > summary { color: var(--muted); font-size: 0.85rem; cursor: pointer; }
+.sd-before > .sd-md { margin-top: 0.4rem; padding: 0.5rem 0.75rem; border-radius: 6px; background: var(--red-bg); }
+
+/* Control strip, one per proposal */
+
+.sd-strip {
+  margin: 0.5rem 0 1.5rem;
+  padding: 0.75rem;
+  border: 1px solid var(--line);
+  border-left: 4px solid var(--line);
+  border-radius: 6px;
+  background: var(--panel);
+  font-size: 0.9rem;
+  line-height: 1.5;
+  scroll-margin-top: 7rem;
+}
+.sd-strip:focus { outline: none; }
+.sd-strip.sd-current { box-shadow: 0 0 0 2px var(--focus); }
+.sd-strip[data-status="accepted"], .sd-strip[data-status="default"] { border-left-color: var(--accept); }
+.sd-strip[data-status="rejected"] { border-left-color: var(--reject); }
+.sd-strip[data-status="discuss"] { border-left-color: var(--discuss); }
+.sd-head { display: flex; flex-wrap: wrap; align-items: center; gap: 0.35rem 0.5rem; }
+.sd-id { padding: 0 0.4rem; border-radius: 4px; background: var(--fg); color: var(--bg); font: 700 0.8rem/1.6 var(--mono); }
+.sd-kind { font-weight: 700; }
+.sd-tag { padding: 0 0.45rem; border: 1px solid var(--line); border-radius: 999px; color: var(--muted); font-size: 0.78rem; }
+.sd-tag.sd-high { border-color: var(--orange-fg); color: var(--orange-fg); font-weight: 600; }
+.sd-tag.sd-challenge { border-color: transparent; background: var(--orange-bg); color: var(--orange-fg); font-weight: 600; }
+.sd-tag.sd-unsure { border-color: var(--yellow-line); background: var(--yellow-bg); color: var(--fg); font-weight: 600; }
+.sd-state { margin-left: auto; font-size: 0.8rem; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; }
+.sd-strip[data-status="accepted"] .sd-state, .sd-strip[data-status="default"] .sd-state { color: var(--accept); }
+.sd-strip[data-status="rejected"] .sd-state { color: var(--reject); }
+.sd-strip[data-status="discuss"] .sd-state { color: var(--discuss); }
+/* A strip sits inside the rendered document, so its rules outweigh the document's p and code rules. */
+.sd-strip .sd-line { margin: 0.5rem 0 0; overflow-wrap: anywhere; }
+.sd-line a { color: var(--link); }
+.sd-strip .sd-line code { padding: 0; background: none; font-family: var(--mono); font-size: 0.85em; }
+.sd-strip .sd-quote { margin: 0.5rem 0 0; padding: 0.25rem 0.75rem; border-left: 3px solid var(--orange-fg); background: var(--orange-bg); }
+.sd-quote q { font-style: italic; }
+.sd-options { display: grid; gap: 0.5rem; margin-top: 0.75rem; }
+.sd-option { padding: 0.5rem; border: 1px solid var(--line); border-radius: 6px; background: var(--bg); }
+.sd-option > .sd-btn { display: flex; flex-wrap: wrap; align-items: center; gap: 0.25rem 0.5rem; width: 100%; text-align: left; }
+.sd-num { padding: 0 0.35rem; border: 1px solid currentColor; border-radius: 4px; font: 0.75rem/1.4 var(--mono); opacity: 0.8; }
+.sd-rec { margin-left: auto; padding: 0 0.4rem; border-radius: 4px; background: var(--green-bg); color: var(--green-fg); font-size: 0.72rem; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; }
+.sd-btn[aria-pressed="true"] .sd-rec { background: var(--on-fill); color: var(--accept); }
+.sd-option-text { margin: 0.5rem 0.25rem 0; font-size: 0.9rem; }
+.sd-option-text .sd-msg { margin: 0; font-style: italic; }
+.sd-actions { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-top: 0.75rem; }
+.sd-note {
+  display: block;
+  width: 100%;
+  min-height: 2.5rem;
+  margin-top: 0.6rem;
+  padding: 0.4rem 0.6rem;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--bg);
+  color: var(--fg);
+  font: inherit;
+  font-size: 1rem;
+  resize: vertical;
+}
+.sd-saved { display: block; min-height: 1.2em; margin-top: 0.25rem; color: var(--muted); font-size: 0.8rem; }
+.sd-saved.sd-error { color: var(--reject); }
+
+.sd-minor { margin: 1.5rem 0; padding: 0.5rem 0.75rem; border: 1px solid var(--line); border-radius: 6px; }
+.sd-minor > summary { font-weight: 600; cursor: pointer; }
+.sd-minor[open] > summary { margin-bottom: 0.75rem; }
+.sd-loose { margin: 2rem 0 0.5rem; font-size: 1rem; }
+
+/* Changes mode: a read-only marked copy, with new text in yellow and removed text struck in grey */
+
+.sd-changes ins.sd-new { background: var(--new-bg); color: inherit; }
+.sd-changes del.sd-old { background: none; color: var(--muted); }
+.sd-changes .sd-added::before, .sd-changes .sd-removed::before, .sd-changes .sd-replaced::before { content: none; }
+.sd-changes .sd-added { border-color: var(--yellow-line); background: var(--new-bg); }
+.sd-changes .sd-removed { border-color: var(--muted); background: none; color: var(--muted); }
+.sd-changes .sd-removed .sd-diagram { opacity: 0.5; }
+.sd-changes .sd-replaced { border-color: var(--yellow-line); }
+.sd-changes .sd-before > .sd-md { background: var(--panel); }
+.sd-change { margin: 0 0 1rem; border-radius: 6px; scroll-margin-top: 1rem; }
+.sd-change:focus { outline: none; }
+.sd-change.sd-current { outline: 2px solid var(--focus); outline-offset: 4px; }
+.sd-chead { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.25rem; color: var(--muted); font-size: 0.75rem; font-weight: 600; }
+.sd-changes .sd-id { font-size: 0.75rem; white-space: nowrap; }
+.sd-status {
+  margin-left: 0.5rem;
+  padding: 0 0.45rem;
+  border: 1px solid var(--muted);
+  border-radius: 999px;
+  color: var(--muted);
+  font: 700 0.7rem/1.6 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  vertical-align: middle;
+}
+.sd-status-added { border-color: var(--yellow-line); background: var(--new-bg); color: var(--fg); }
+.sd-toc { margin: 0.75rem 0 1rem; font-size: 0.875rem; }
+.sd-toc > details > summary { font-weight: 600; cursor: pointer; }
+.sd-toc-path { margin: 0.75rem 0 0.25rem; color: var(--muted); font: 600 0.85rem/1.4 var(--mono); overflow-wrap: anywhere; }
+.sd-toc ol { margin: 0; padding: 0; list-style: none; }
+.sd-toc li { margin: 0.2rem 0; overflow-wrap: anywhere; }
+.sd-toc a { color: var(--link); }
+.sd-toc-kind { color: var(--muted); }
+</style>
+</head>
+<body>
+<div id="sd-app"><main class="sd-wrap sd-empty"><p>Loading the review page…</p></main></div>
+<script id="sd-data" type="application/json">/*SD-DATA*/null</script>
+<script src="https://cdn.jsdelivr.net/npm/marked@12.0.2/marked.min.js" integrity="sha384-/TQbtLCAerC3jgaim+N78RZSDYV7ryeoBCVqTuzRrFec2akfBkHS7ACQ3PQhvMVi" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/dompurify@3.1.6/dist/purify.min.js" integrity="sha384-+VfUPEb0PdtChMwmBcBmykRMDd+v6D/oFmB3rZM/puCMDYcIvF968OimRh4KQY9a" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@11.4.1/dist/mermaid.min.js" integrity="sha384-rbtjAdnIQE/aQJGEgXrVUlMibdfTSa4PQju4HDhN3sR2PmaKFzhEafuePsl9H/9I" crossorigin="anonymous"></script>
+<script>
+(() => {
+  "use strict";
+  const app = document.getElementById("sd-app");
+
+  function el(tag, cls, text) {
+    const node = document.createElement(tag);
+    if (cls) node.className = cls;
+    if (text != null) node.textContent = text;
+    return node;
+  }
+
+  function showMessage(text) {
+    const box = el("main", "sd-wrap sd-empty");
+    box.append(el("h1", "sd-title", "Review page"), el("p", null, text));
+    app.replaceChildren(box);
+  }
+
+  // proposals.py replaces the comment marker in #sd-data with the page data.
+  let data;
+  try {
+    const raw = document.getElementById("sd-data").textContent.replace(/^\s*\/\*[\s\S]*?\*\//, "").trim();
+    data = JSON.parse(raw || "null");
+  } catch (err) {
+    showMessage("The page data could not be read: " + err.message);
+    return;
+  }
+  if (!data || typeof data !== "object") {
+    showMessage("This file is the template of the review page and holds no data. " +
+      "scripts/proposals.py generates the page: \"proposals.py serve <round folder>\" serves it and saves each choice, " +
+      "\"proposals.py page <round folder>\" writes a standalone copy, " +
+      "\"proposals.py changes <round folder> --doc <path>\" writes a page of the changes since a snapshot.");
+    return;
+  }
+
+  const preview = data.mode === "preview";
+  const changesMode = data.mode === "changes";
+  const files = Array.isArray(data.files) ? data.files : [];
+  const hasMarked = typeof (window.marked && window.marked.Lexer) === "function";
+  const hasPurify = typeof (window.DOMPurify && window.DOMPurify.sanitize) === "function";
+  // Markdown becomes HTML only when the HTML can be sanitized; otherwise it shows as escaped source.
+  const canRender = hasMarked && hasPurify;
+  const hasMermaid = typeof (window.mermaid && window.mermaid.render) === "function";
+  const reduceMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  if (hasMermaid) {
+    mermaid.initialize({
+      startOnLoad: false,
+      securityLevel: "strict",
+      suppressErrorRendering: true,
+      theme: matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "default",
+    });
+  }
+
+  // Rendering Markdown and diagrams
+
+  const diagrams = new Map(); // source -> promise of the SVG text
+  let diagramCount = 0;
+
+  function drawDiagram(box, src) {
+    // Rendering outside the target lets diagrams inside closed <details> get their real size.
+    if (!diagrams.has(src)) {
+      diagrams.set(src, mermaid.render("sd-diagram-" + ++diagramCount, src).then((r) => r.svg));
+    }
+    diagrams.get(src).then(
+      (svg) => { box.innerHTML = svg; },
+      (err) => {
+        box.replaceChildren(
+          el("p", "sd-error", "This diagram could not be drawn: " + ((err && err.message) || err)),
+          el("pre", null, src),
+        );
+      },
+    );
+  }
+
+  const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
+
+  // DOMPurify's HTML profile keeps what the page needs: del, ins and mark with their class and data-id,
+  // details and summary, tables, and code blocks with their language class (the mermaid sources).
+  // Style is dropped, so text in a document cannot restyle or cover the controls.
+  const PURIFY = { USE_PROFILES: { html: true }, FORBID_TAGS: ["style"], FORBID_ATTR: ["style"] };
+
+  // Marked output, not yet sanitized. links: the reference link definitions of the whole file, so a
+  // reference link resolves when its definition is in another block.
+  function parse(md, links) {
+    const lexer = new marked.Lexer();
+    Object.assign(lexer.tokens.links, links);
+    return marked.parser(lexer.lex(md || ""));
+  }
+
+  function renderMd(md, target, links) {
+    if (!canRender) {
+      target.replaceChildren(el("pre", "sd-raw", md));
+      return;
+    }
+    target.innerHTML = DOMPurify.sanitize(parse(md, links), PURIFY);
+    enhance(target);
+  }
+
+  // A file as one piece: the HTML of all blocks is joined and sanitized together, so a <details>
+  // opened in one block holds the blocks up to its closing tag. A block for which slot(b) is true gets
+  // an empty placeholder instead. Returns the file's link definitions and the placeholders in document
+  // order, for the caller to fill; "at" is null when the document's own HTML swallowed a placeholder.
+  const slotKey = "sd-slot-" + Math.random().toString(36).slice(2);
+  function renderFlow(blocks, target, slot) {
+    const links = canRender ? marked.lexer(blocks.map((b) => b.md || "").join("\n\n")).links : null;
+    const slotted = [];
+    let html = "";
+    for (const b of blocks) {
+      if (slot(b)) {
+        html += '<div data-sd-slot="' + slotKey + "-" + slotted.length + '"></div>';
+        slotted.push(b);
+      } else {
+        html += canRender ? parse(b.md, links) : '<pre class="sd-raw">' + esc(b.md || "") + "</pre>";
+      }
+    }
+    target.innerHTML = canRender ? DOMPurify.sanitize(html, PURIFY) : html;
+    enhance(target);
+    const slots = slotted.map((b, i) => ({ b, at: target.querySelector('[data-sd-slot="' + slotKey + "-" + i + '"]') }));
+    return { links, slots };
+  }
+
+  // A block's text, and its old version under "Before" when it has one.
+  function fillBlock(box, md, before, links, open) {
+    renderMd(md, box, links);
+    if (!before) return;
+    const details = el("details", "sd-before");
+    const inner = el("div", "sd-md");
+    details.open = open;
+    details.append(el("summary", null, "Before"), inner);
+    renderMd(before, inner, links);
+    box.append(details);
+  }
+
+  // Wide tables scroll in their own box; mermaid code blocks become diagrams.
+  function enhance(target) {
+    for (const table of target.querySelectorAll("table")) {
+      const box = el("div", "sd-scroll");
+      table.replaceWith(box);
+      box.append(table);
+    }
+    if (!hasMermaid) return;
+    for (const code of target.querySelectorAll("pre > code.language-mermaid")) {
+      const box = el("div", "sd-diagram");
+      code.parentNode.replaceWith(box);
+      drawDiagram(box, code.textContent);
+    }
+  }
+
+  // Page frame
+
+  document.title = data.title || "Review";
+  const header = el("header", "sd-wrap sd-top");
+  const main = el("main", "sd-wrap");
+  header.append(el("h1", "sd-title", data.title || "Review"));
+  const banner = el("div", "sd-banner");
+  banner.setAttribute("role", "status");
+  banner.hidden = true;
+  function warn(text) {
+    banner.hidden = false;
+    banner.append(el("p", null, text));
+  }
+  if (!canRender) {
+    warn((hasMarked ? "The HTML sanitizer" : "The Markdown library") + " did not load (no network?), so the text is shown as Markdown source." +
+      (preview || changesMode ? "" : " The controls still work."));
+  } else if (!hasMermaid) {
+    warn("The diagram library did not load (no network?), so diagrams are shown as source.");
+  }
+
+  function fileSection(path, i) {
+    const section = el("section", "sd-file");
+    section.id = "sd-file-" + i;
+    section.append(el("h2", "sd-path", path));
+    return section;
+  }
+
+  if (preview) {
+    const nav = el("nav", "sd-files");
+    nav.setAttribute("aria-label", "Files");
+    const list = el("ol");
+    files.forEach((f, i) => {
+      const link = el("a", null, f.path);
+      link.href = "#sd-file-" + i;
+      const item = el("li");
+      item.append(link);
+      list.append(item);
+    });
+    nav.append(list);
+    header.append(banner, nav);
+    files.forEach((f, i) => {
+      const section = fileSection(f.path, i);
+      const body = el("div", "sd-md");
+      renderFlow(f.blocks || [], body, () => false);
+      section.append(body);
+      main.append(section);
+    });
+    app.replaceChildren(header, main);
+    return;
+  }
+
+  if (changesMode) {
+    // Read-only marked copy: each changed block carries its ID (C-n) for the reader to quote.
+    app.classList.add("sd-changes");
+    const C = data.changes || {};
+    const KINDS = { diff: "Changed", replaced: "Rewritten", added: "Added", removed: "Removed" };
+    const FILE_STATUS = { added: "Added file", removed: "Removed file" };
+    const order = []; // change IDs in document order
+    const kindOf = Object.create(null);
+    const blockOf = Object.create(null); // change ID -> its block
+    const toc = el("details");
+    toc.open = true;
+    toc.append(el("summary", null, "List of changes"));
+    let fileCount = 0;
+
+    files.forEach((f, i) => {
+      const section = fileSection(f.path, i);
+      const status = FILE_STATUS[f.status];
+      if (status) section.firstChild.append(el("span", "sd-status sd-status-" + f.status, status));
+      const body = el("div", "sd-md");
+      section.append(body);
+      main.append(section);
+      const fileIds = [];
+      const { links, slots } = renderFlow(f.blocks || [], body, (b) => (b.ids || []).length > 0);
+      for (const { b, at } of slots) {
+        const kind = Object.hasOwn(KINDS, b.kind) ? b.kind : "diff";
+        const block = el("div", "sd-change");
+        block.tabIndex = -1;
+        block.dataset.id = b.ids[0];
+        const head = el("div", "sd-chead");
+        for (const id of b.ids) {
+          const badge = el("span", "sd-id", id);
+          head.append(badge);
+          if (id in blockOf) continue;
+          badge.id = "sd-" + id;
+          blockOf[id] = block;
+          kindOf[id] = kind;
+          order.push(id);
+          fileIds.push(id);
+        }
+        head.append(el("span", null, KINDS[kind]));
+        const box = el("div", "sd-md" + (kind === "diff" ? "" : " sd-" + kind));
+        fillBlock(box, b.md, b.before, links, true);
+        block.append(head, box);
+        if (at) at.replaceWith(block);
+        else body.append(block);
+      }
+      if (!fileIds.length) return;
+      fileCount++;
+      const path = el("h2", "sd-toc-path", f.path);
+      if (status) path.append(el("span", "sd-status sd-status-" + f.status, status));
+      const list = el("ol");
+      for (const id of fileIds) {
+        const link = el("a");
+        link.href = "#sd-" + id;
+        link.dataset.id = id;
+        link.append(el("span", "sd-id", id), " ", el("span", "sd-toc-kind", KINDS[kindOf[id]] + ":"), " " + ((C[id] && C[id].summary) || ""));
+        const item = el("li");
+        item.append(link);
+        list.append(item);
+      }
+      toc.append(path, list);
+    });
+    // Open every collapsible part of the document, so changes inside it show without a click.
+    for (const d of main.querySelectorAll("details")) d.open = true;
+
+    let net = 0;
+    for (const id of order) net += Number(C[id] && C[id].words_delta) || 0;
+    header.append(el("p", "sd-sub",
+      order.length + (order.length === 1 ? " change in " : " changes in ") + fileCount + (fileCount === 1 ? " file" : " files") +
+      " · Net words " + (net > 0 ? "+" + net : net)));
+    const legend = el("p", "sd-sub");
+    legend.append("Key: ", el("ins", "sd-new", "new text"), ", ", el("del", "sd-old", "removed text"), ", ",
+      el("span", "sd-id", "C-1"), " the change ID to quote in your reply. A rewritten block shows its old version under “Before”.");
+    const keys = el("p", "sd-keys");
+    keys.append("Keys: ", el("kbd", null, "j"), " next change, ", el("kbd", null, "k"), " previous change");
+    const nav = el("nav", "sd-toc");
+    nav.setAttribute("aria-label", "Changes");
+    nav.append(toc);
+    header.append(legend, keys, banner, nav);
+
+    let current = null;
+    function setCurrent(id) {
+      const block = blockOf[id];
+      if (!block) return null;
+      if (current && current !== block) current.classList.remove("sd-current");
+      current = block;
+      current.dataset.current = id;
+      block.classList.add("sd-current");
+      return block;
+    }
+    function go(id) {
+      const block = setCurrent(id);
+      if (!block) return;
+      for (let d = block.closest("details"); d; d = d.parentElement.closest("details")) d.open = true;
+      block.scrollIntoView({ block: block.offsetHeight < innerHeight * 0.7 ? "center" : "start", behavior: reduceMotion ? "auto" : "smooth" });
+      block.focus({ preventScroll: true });
+    }
+    nav.addEventListener("click", (e) => {
+      const link = e.target.closest("a[data-id]");
+      if (!link) return;
+      e.preventDefault();
+      go(link.dataset.id);
+    });
+    main.addEventListener("click", (e) => {
+      const block = e.target.closest(".sd-change");
+      if (block) setCurrent(block.dataset.id);
+    });
+    document.addEventListener("keydown", (e) => {
+      if (e.ctrlKey || e.metaKey || e.altKey || (e.key !== "j" && e.key !== "k")) return;
+      if (e.target.closest && e.target.closest("input, textarea, select, [contenteditable]")) return;
+      e.preventDefault();
+      let i = current ? order.indexOf(current.dataset.current) : -1;
+      if (i < 0) i = e.key === "j" ? -1 : order.length;
+      const next = order[i + (e.key === "j" ? 1 : -1)];
+      if (next) go(next);
+    });
+    app.replaceChildren(header, main);
+    return;
+  }
+
+  // Review state
+
+  const P = data.proposals || {};
+  const ids = Object.keys(P);
+  const api = data.api || null;
+  const storageKey = data.storage_key || "staged-docs:" + location.pathname;
+  const STATUSES = ["open", "accepted", "rejected", "discuss", "default"];
+  const LABELS = { open: "Open", accepted: "✓ Accepted", rejected: "✗ Rejected", discuss: "? Discuss", default: "✓ Default" };
+  const records = {};
+  const strips = {};
+  const unsaved = {}; // notes the server did not take: kept in the field until a save succeeds
+  const entries = []; // blocks with proposals: {b, ids, box}
+  const minors = []; // {summary, ids}
+  let onlyOpen = false;
+  let result = false;
+  let current = null;
+
+  for (const [id, r] of Object.entries(data.decisions || {})) if (P[id] && r) records[id] = r;
+  if (!api) {
+    try {
+      const saved = JSON.parse(localStorage.getItem(storageKey) || "{}") || {};
+      for (const [id, r] of Object.entries(saved)) {
+        // A newer record in the page data (for example one marked applied) wins over an older local one.
+        if (P[id] && r && (!records[id] || (r.at || "") > (records[id].at || ""))) records[id] = r;
+      }
+    } catch (err) {
+      warn("This browser does not keep choices for this page. Download decisions.json before you close it.");
+    }
+  }
+
+  const statusOf = (id) => (records[id] && records[id].status) || "open";
+  const isAccepted = (id) => statusOf(id) === "accepted" || statusOf(id) === "default";
+  const words = (s) => (s || "").split(/\s+/).filter(Boolean).length;
+  const signed = (n) => (n > 0 ? "+" + n : String(n));
+
+  function optionOf(id) {
+    const p = P[id];
+    const want = (records[id] && records[id].option) || p.recommended;
+    return (p.options || []).find((o) => o.id === want);
+  }
+
+  // words_delta is computed for the recommended option; another chosen option is counted here.
+  function delta(id) {
+    const p = P[id];
+    if (p.type !== "decision") return Number(p.words_delta) || 0;
+    const o = optionOf(id);
+    if (!o || o.id === p.recommended) return Number(p.words_delta) || 0;
+    return o.new == null ? 0 : words(o.new) - words(p.old);
+  }
+
+  function writeStore() {
+    try {
+      localStorage.setItem(storageKey, JSON.stringify(records));
+      return true;
+    } catch (err) {
+      return false;
+    }
+  }
+
+  const stamp = () => new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 19);
+
+  // Show result: resolve each mark by the status of its proposal.
+  const MARK = /<(del|ins|mark)\b[^>]*?\bdata-id="([^"]+)"[^>]*>([\s\S]*?)<\/\1>/g;
+  function resolve(md) {
+    return md.replace(MARK, (whole, tag, id, inner) => {
+      if (!P[id]) return whole;
+      const accepted = isAccepted(id);
+      const rejected = statusOf(id) === "rejected";
+      if (tag === "mark") {
+        if (accepted) {
+          const o = optionOf(id);
+          return o && o.new != null ? o.new : inner;
+        }
+        return rejected ? inner : whole;
+      }
+      if (!accepted && !rejected) return whole;
+      return (tag === "ins") === accepted ? inner : "";
+    });
+  }
+
+  function renderBlock(x) {
+    const kind = x.b.kind || "diff";
+    let md = x.b.md || "";
+    let before = x.b.before || null;
+    let cls = kind;
+    if (result) {
+      md = resolve(md);
+      if (kind === "added" || kind === "removed" || kind === "replaced") {
+        if (x.ids.every(isAccepted)) {
+          if (kind === "removed") md = "";
+          before = null;
+          cls = "";
+        } else if (x.ids.every((id) => statusOf(id) === "rejected")) {
+          if (kind === "added") md = "";
+          if (kind === "replaced") md = before;
+          before = null;
+          cls = "";
+        }
+      }
+    }
+    x.box.className = "sd-md" + (cls ? " sd-" + cls : "");
+    x.box.hidden = !md;
+    fillBlock(x.box, md, before, x.links, false);
+    if (current && x.ids.includes(current)) for (const m of marksOf(current)) m.classList.add("sd-hl");
+  }
+
+  // Control strips
+
+  function kindLabel(p) {
+    if (p.type === "decision") return "Decision";
+    return { add: "Addition", change: "Change", remove: "Removal" }[p.action] || "Fix";
+  }
+
+  function line(label, text) {
+    const p = el("p", "sd-line");
+    p.append(el("strong", null, label + ": "));
+    if (text) p.append(text);
+    return p;
+  }
+
+  function choiceButton(id, text, status, option) {
+    const b = el("button", "sd-btn", text);
+    b.type = "button";
+    b.dataset.status = status;
+    if (option) b.dataset.option = option;
+    b.setAttribute("aria-pressed", "false");
+    b.addEventListener("click", () => choose(id, status, option));
+    return b;
+  }
+
+  function buildStrip(id) {
+    const p = P[id];
+    const s = el("div", "sd-strip");
+    s.id = "sd-" + id;
+    s.dataset.id = id;
+    s.tabIndex = -1;
+    s.setAttribute("role", "group");
+    s.setAttribute("aria-label", "Proposal " + id);
+
+    const head = el("div", "sd-head");
+    head.append(el("span", "sd-id", id), el("span", "sd-kind", kindLabel(p)));
+    if (p.priority) head.append(el("span", "sd-tag sd-" + p.priority, p.priority + " priority"));
+    if (p.lens) head.append(el("span", "sd-tag", p.lens));
+    if (p.challenges) head.append(el("span", "sd-tag sd-challenge", "Challenges recorded decision " + p.challenges));
+    if (p.verdict === "unsure") head.append(el("span", "sd-tag sd-unsure", "Needs a check"));
+    if (p.manual) head.append(el("span", "sd-tag", "Applied by hand"));
+    head.append(el("span", "sd-state"));
+    s.append(head);
+
+    if (p.quote) {
+      const quote = el("p", "sd-quote");
+      quote.append(el("strong", null, "Feedback: "), el("q", null, p.quote));
+      s.append(quote);
+    }
+    if (p.reader_question) s.append(line("Reader question", p.reader_question));
+    s.append(line("Why", p.why || ""));
+    const sources = line("Sources", "");
+    (p.sources || []).forEach((src, i) => {
+      if (i) sources.append(", ");
+      if (/^https?:\/\//i.test(src)) {
+        const a = el("a", null, src);
+        a.href = src;
+        a.target = "_blank";
+        a.rel = "noopener noreferrer";
+        sources.append(a);
+      } else {
+        sources.append(el("code", null, src));
+      }
+    });
+    s.append(sources);
+
+    const actions = el("div", "sd-actions");
+    if (p.type === "decision") {
+      const options = el("div", "sd-options");
+      (p.options || []).forEach((o, i) => {
+        const card = el("div", "sd-option");
+        const b = choiceButton(id, null, "accepted", o.id);
+        b.append(el("span", "sd-num", String(i + 1)), el("span", null, o.label));
+        if (o.id === p.recommended) b.append(el("span", "sd-rec", "Recommended"));
+        const text = el("div", "sd-md sd-option-text");
+        if (o.new == null) text.append(el("p", "sd-msg", "No text change."));
+        else renderMd(o.new, text);
+        card.append(b, text);
+        options.append(card);
+      });
+      s.append(options);
+    } else {
+      actions.append(choiceButton(id, "Accept", "accepted"));
+    }
+    if (p.type === "decision") actions.append(choiceButton(id, "Discuss", "discuss"), choiceButton(id, "Reject", "rejected"));
+    else actions.append(choiceButton(id, "Reject", "rejected"), choiceButton(id, "Discuss", "discuss"));
+    s.append(actions);
+
+    const note = el("textarea", "sd-note");
+    note.rows = 1;
+    note.maxLength = 4000;
+    note.placeholder = "Note (saved when you leave the field)";
+    note.setAttribute("aria-label", "Note on " + id);
+    // Saved on blur whenever the field differs from the saved note, so leaving it again retries a failed save.
+    note.addEventListener("blur", () => {
+      if (note.value !== ((records[id] && records[id].note) || "")) save(id, { note: note.value });
+    });
+    const saved = el("span", "sd-saved");
+    saved.setAttribute("aria-live", "polite");
+    s.append(note, saved);
+
+    s.addEventListener("focusin", () => setCurrent(id));
+    s.addEventListener("click", () => setCurrent(id));
+    strips[id] = s;
+    return s;
+  }
+
+  function paint(id) {
+    const s = strips[id];
+    const r = records[id] || {};
+    const st = statusOf(id);
+    s.dataset.status = st;
+    let label = LABELS[st] || st;
+    if (P[id].type === "decision" && isAccepted(id)) label += ": option " + ((optionOf(id) || {}).id || "?");
+    if (r.applied) label += " · applied";
+    s.querySelector(".sd-state").textContent = label;
+    for (const b of s.querySelectorAll("button[data-status]")) {
+      const on = b.dataset.status === st && (!b.dataset.option || b.dataset.option === r.option);
+      b.setAttribute("aria-pressed", String(on));
+    }
+    const note = s.querySelector(".sd-note");
+    if (document.activeElement !== note) note.value = id in unsaved ? unsaved[id] : r.note || "";
+    s.hidden = onlyOpen && st !== "open";
+  }
+
+  // Choosing and saving
+
+  function choose(id, status, option) {
+    const r = records[id] || {};
+    const decision = P[id].type === "decision";
+    // Clicking the active choice again sets the proposal back to open.
+    if (r.status === status && (!decision || status !== "accepted" || r.option === option)) status = "open";
+    save(id, decision ? { status, option: status === "accepted" ? option : null } : { status });
+  }
+
+  let queue = Promise.resolve();
+  function save(id, fields) {
+    queue = queue.then(() => send(id, fields));
+    return queue;
+  }
+
+  async function send(id, fields) {
+    const said = strips[id] && strips[id].querySelector(".sd-saved");
+    let text = "Saved";
+    let failed = false;
+    if (api) {
+      try {
+        const res = await fetch(api + "/" + encodeURIComponent(id), {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(fields),
+        });
+        const body = await res.json().catch(() => null);
+        if (!res.ok) throw new Error((body && body.error) || "HTTP " + res.status);
+        records[id] = body || Object.assign({}, records[id], fields);
+        if ("note" in fields) delete unsaved[id];
+      } catch (err) {
+        if ("note" in fields) unsaved[id] = fields.note;
+        failed = true;
+        text = "Not saved: " + (err instanceof TypeError ? "the server did not answer" : err.message);
+      }
+    } else {
+      records[id] = Object.assign({ status: "open", option: null, note: "", applied: false }, records[id], fields, { at: stamp() });
+      failed = !writeStore();
+      text = failed ? "Not saved in this browser: download decisions.json before you close the page" : "Saved in this browser";
+    }
+    if (said) {
+      said.textContent = text;
+      said.classList.toggle("sd-error", failed);
+    }
+    render();
+    if (result) entries.filter((x) => x.ids.includes(id)).forEach(renderBlock);
+  }
+
+  function download() {
+    const out = {};
+    for (const id of Object.keys(records).filter((k) => P[k]).sort()) {
+      const r = records[id];
+      out[id] = { status: r.status || "open", option: r.option == null ? null : r.option, note: r.note || "", at: r.at || null, applied: Boolean(r.applied) };
+    }
+    const url = URL.createObjectURL(new Blob([JSON.stringify(out, null, 2) + "\n"], { type: "application/json" }));
+    const a = el("a");
+    a.href = url;
+    a.download = "decisions.json";
+    document.body.append(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  }
+
+  async function loadFile(file) {
+    try {
+      const d = JSON.parse(await file.text());
+      if (!d || typeof d !== "object" || Array.isArray(d)) throw new Error("expected an object keyed by proposal ID");
+      let n = 0;
+      for (const [id, r] of Object.entries(d)) {
+        if (!P[id] || !r || typeof r !== "object" || !STATUSES.includes(r.status || "open")) continue;
+        const known = (P[id].options || []).some((o) => o.id === r.option);
+        records[id] = {
+          status: r.status || "open",
+          option: known ? r.option : null,
+          note: typeof r.note === "string" ? r.note.slice(0, 4000) : "",
+          at: typeof r.at === "string" ? r.at : null,
+          applied: Boolean(r.applied),
+        };
+        n++;
+      }
+      writeStore();
+      toolMsg.textContent = "Loaded " + n + (n === 1 ? " decision" : " decisions") + " from " + file.name + ".";
+      render();
+      if (result) entries.forEach(renderBlock);
+    } catch (err) {
+      toolMsg.textContent = "Could not load " + file.name + ": " + err.message;
+    }
+  }
+
+  // Current proposal and keys
+
+  const marksOf = (id) => main.querySelectorAll(':is(del.sd-old, ins.sd-new, mark.sd-target)[data-id="' + CSS.escape(id) + '"]');
+
+  function setCurrent(id, scroll) {
+    if (current !== id) {
+      if (current) {
+        strips[current].classList.remove("sd-current");
+        for (const m of marksOf(current)) m.classList.remove("sd-hl");
+      }
+      current = id;
+      strips[id].classList.add("sd-current");
+      for (const m of marksOf(id)) m.classList.add("sd-hl");
+    }
+    if (!scroll) return;
+    const s = strips[id];
+    for (let d = s.closest("details"); d; d = d.parentElement.closest("details")) d.open = true;
+    const block = s.parentElement;
+    const target = block.classList.contains("sd-block") && block.offsetHeight < innerHeight * 0.7 ? block : s;
+    target.scrollIntoView({ block: "center", behavior: reduceMotion ? "auto" : "smooth" });
+    s.focus({ preventScroll: true });
+  }
+
+  function move(step) {
+    const all = [...main.querySelectorAll(".sd-strip")].filter((s) => strips[s.dataset.id] === s);
+    let i = all.findIndex((s) => s.dataset.id === current);
+    if (i < 0) i = step > 0 ? -1 : all.length;
+    for (i += step; i >= 0 && i < all.length; i += step) {
+      if (!all[i].hidden) {
+        setCurrent(all[i].dataset.id, true);
+        return;
+      }
+    }
+  }
+
+  document.addEventListener("keydown", (e) => {
+    if (e.ctrlKey || e.metaKey || e.altKey) return;
+    if (e.target.closest && e.target.closest("input, textarea, select, [contenteditable]")) {
+      if (e.key === "Escape") e.target.blur();
+      return;
+    }
+    const k = e.key;
+    if (k === "j" || k === "k") {
+      e.preventDefault();
+      move(k === "j" ? 1 : -1);
+      return;
+    }
+    if (!current) return;
+    const p = P[current];
+    if (k === "a") choose(current, "accepted", p.type === "decision" ? p.recommended : undefined);
+    else if (k === "r") choose(current, "rejected");
+    else if (k === "d") choose(current, "discuss");
+    else if (k === "n") {
+      e.preventDefault();
+      strips[current].querySelector(".sd-note").focus();
+    } else if (/^[1-9]$/.test(k) && p.type === "decision") {
+      const o = (p.options || [])[Number(k) - 1];
+      if (o) choose(current, "accepted", o.id);
+    }
+  });
+
+  // Build the page
+
+  const sections = {};
+  const claimed = new Set(); // a proposal listed in two blocks shows in the first
+  files.forEach((f, i) => {
+    const section = fileSection(f.path, i);
+    sections[f.path] = section;
+    const body = el("div", "sd-md");
+    section.append(body);
+    const minor = el("details", "sd-minor");
+    const minorSummary = el("summary");
+    minor.append(minorSummary);
+    const minorIds = [];
+    const shown = new Map(); // block -> the proposals it shows
+    for (const b of f.blocks || []) {
+      const blockIds = (b.ids || []).filter((id) => P[id] && !claimed.has(id));
+      blockIds.forEach((id) => claimed.add(id));
+      shown.set(b, blockIds);
+    }
+    // The text of a block with proposals is rendered into its place, with the control strips after it.
+    const { links, slots } = renderFlow(f.blocks || [], body, (b) => shown.get(b).length > 0);
+    for (const { b, at } of slots) {
+      const blockIds = shown.get(b);
+      const wrap = el("div", "sd-block");
+      const entry = { b, ids: blockIds, box: el("div"), links };
+      wrap.append(entry.box);
+      entries.push(entry);
+      renderBlock(entry);
+      for (const id of blockIds) wrap.append(buildStrip(id));
+      const low = blockIds.every((id) => P[id].type === "fix" && P[id].priority === "low");
+      if (low) {
+        minorIds.push(...blockIds);
+        minor.append(wrap);
+        if (at) at.remove();
+      } else if (at) {
+        at.replaceWith(wrap);
+      } else {
+        body.append(wrap);
+      }
+    }
+    if (minorIds.length) {
+      section.append(minor);
+      minors.push({ summary: minorSummary, ids: minorIds });
+    }
+    main.append(section);
+  });
+
+  // A proposal with no passage in the text (for example a decision that changes no text).
+  for (const id of ids.filter((k) => !strips[k])) {
+    const path = P[id].file || "Other";
+    let section = sections[path];
+    if (!section) {
+      section = sections[path] = fileSection(path, files.length + Object.keys(sections).length);
+      main.append(section);
+    }
+    if (!section.querySelector(".sd-loose")) section.append(el("h3", "sd-loose", "Not tied to a passage"));
+    section.append(buildStrip(id));
+  }
+
+  const groups = new Map();
+  for (const id of ids) {
+    const p = P[id];
+    if (p.type !== "fix" || p.action === "add" || p.verdict === "unsure") continue; // decided one by one
+    const name = p.group || p.lens || "Other";
+    if (!groups.has(name)) groups.set(name, []);
+    groups.get(name).push(id);
+  }
+  const groupBox = el("div", "sd-groups");
+  const groupButtons = [];
+  for (const [name, gids] of groups) {
+    const b = el("button", "sd-btn");
+    b.type = "button";
+    b.addEventListener("click", () => {
+      for (const id of gids) if (statusOf(id) === "open") save(id, { status: "accepted" });
+    });
+    groupButtons.push({ b, name, gids });
+    groupBox.append(b);
+  }
+
+  const keys = el("p", "sd-keys");
+  keys.append("Keys: ");
+  [["j", "next"], ["k", "previous"], ["a", "accept"], ["r", "reject"], ["d", "discuss"], ["1–9", "choose an option"], ["n", "note"]]
+    .forEach(([key, what], i) => {
+      if (i) keys.append(", ");
+      keys.append(el("kbd", null, key), " " + what);
+    });
+
+  header.append(
+    el("p", "sd-sub", ids.length + " proposals in " + Object.keys(sections).length + (Object.keys(sections).length === 1 ? " file. " : " files. ") +
+      (api ? "Each choice is saved to decisions.json as you make it."
+        : "Choices are kept in this browser. When you are done, download decisions.json and give it to the agent.")),
+    keys,
+    banner,
+    groupBox,
+  );
+
+  function toggle(text, onChange) {
+    const b = el("button", "sd-btn", text);
+    b.type = "button";
+    b.setAttribute("aria-pressed", "false");
+    b.addEventListener("click", () => {
+      const on = b.getAttribute("aria-pressed") !== "true";
+      b.setAttribute("aria-pressed", String(on));
+      onChange(on);
+    });
+    return b;
+  }
+
+  const bar = el("div", "sd-bar");
+  const barInner = el("div", "sd-wrap");
+  const summary = el("p", "sd-summary");
+  summary.setAttribute("aria-live", "polite");
+  const tools = el("div", "sd-tools");
+  const downloadButton = el("button", "sd-btn", "Download decisions.json");
+  downloadButton.type = "button";
+  downloadButton.addEventListener("click", download);
+  tools.append(
+    toggle("Only open", (on) => { onlyOpen = on; render(); }),
+    toggle("Show result", (on) => { result = on; entries.forEach(renderBlock); }),
+    downloadButton,
+  );
+  if (!api) {
+    const input = el("input");
+    input.type = "file";
+    input.accept = ".json,application/json";
+    input.hidden = true;
+    input.addEventListener("change", () => {
+      if (input.files[0]) loadFile(input.files[0]);
+      input.value = "";
+    });
+    const loadButton = el("button", "sd-btn", "Load decisions.json");
+    loadButton.type = "button";
+    loadButton.addEventListener("click", () => input.click());
+    tools.append(loadButton, input);
+  }
+  const toolMsg = el("span", "sd-msg");
+  toolMsg.setAttribute("aria-live", "polite");
+  tools.append(toolMsg);
+  barInner.append(summary, tools);
+  bar.append(barInner);
+
+  function render() {
+    const count = { accepted: 0, rejected: 0, discuss: 0, open: 0 };
+    let net = 0;
+    let all = 0;
+    for (const id of ids) {
+      const st = statusOf(id);
+      count[st === "default" ? "accepted" : st in count ? st : "open"]++;
+      all += Number(P[id].words_delta) || 0;
+      if (isAccepted(id)) net += delta(id);
+      paint(id);
+    }
+    summary.textContent = (ids.length - count.open) + " of " + ids.length + " decided · " +
+      count.accepted + " accepted · " + count.rejected + " rejected · " + count.discuss + " discuss · " +
+      count.open + " open · Net words " + signed(net) + " (if all accepted " + signed(all) + ")";
+    for (const g of groupButtons) {
+      const n = g.gids.filter((id) => statusOf(id) === "open").length;
+      g.b.hidden = !n;
+      g.b.textContent = "Accept all " + n + (n === 1 ? " fix in " : " fixes in ") + g.name +
+        "; additions and unchecked findings are decided one by one";
+    }
+    groupBox.hidden = groupButtons.every((g) => g.b.hidden);
+    for (const m of minors) {
+      const open = m.ids.filter((id) => statusOf(id) === "open").length;
+      m.summary.textContent = m.ids.length + (m.ids.length === 1 ? " minor fix" : " minor fixes") + ", " + open + " open";
+    }
+  }
+
+  render();
+  app.replaceChildren(header, bar, main);
+
+  if (api) {
+    fetch(api)
+      .then((res) => (res.ok ? res.json() : Promise.reject(new Error("HTTP " + res.status))))
+      .then((saved) => {
+        for (const id of ids) if (saved && saved[id]) records[id] = saved[id];
+        render();
+        if (result) entries.forEach(renderBlock);
+      })
+      .catch((err) => warn("Could not load the saved choices from the server (" + err.message + "). Choices may not be saved."));
+  }
+})();
+</script>
+</body>
+</html>
