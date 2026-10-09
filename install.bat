@@ -81,7 +81,7 @@ if "%SKIP_CONFIG%"=="1" (
 )
 
 call :install_file "%SCRIPT_DIR%CLAUDE.md" "%CLAUDE_HOME%\CLAUDE.md" "CLAUDE.md"
-call :install_file "%SCRIPT_DIR%CLAUDE-CHAT.md" "%CLAUDE_HOME%\CLAUDE-CHAT.md" "CLAUDE-CHAT.md"
+call :install_file "%SCRIPT_DIR%web-chat-prompt.md" "%CLAUDE_HOME%\web-chat-prompt.md" "web-chat-prompt.md"
 if "%SKIP_STATUSLINE%"=="1" (
     echo [+] Skipping statusline-command.sh ^(--skip-statusline^)
 ) else (

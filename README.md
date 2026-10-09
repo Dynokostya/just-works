@@ -165,7 +165,7 @@ Confirm with `rtk verify` (prefix `CLAUDE_CONFIG_DIR=<dir>` for other config dir
   hooks.json        # Lifecycle hooks (notification)
 bin/cli.mjs         # npx installer
 CLAUDE.md           # Behavioral instructions for Claude Code
-CLAUDE-CHAT.md      # Behavioral instructions for claude.ai chat
+web-chat-prompt.md  # Behavioral instructions for claude.ai chat
 AGENTS.md           # Behavioral instructions for Codex
 ```
 

@@ -24,7 +24,7 @@
     ".codex/prompts/",
     ".codex/skills/",
     "CLAUDE.md",
-    "CLAUDE-CHAT.md",
+    "web-chat-prompt.md",
     "AGENTS.md",
     "LICENSE"
   ],

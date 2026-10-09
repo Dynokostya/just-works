@@ -280,7 +280,7 @@ async function main() {
     }
 
     installFile(join(PACKAGE_ROOT, 'CLAUDE.md'), join(CLAUDE_HOME, 'CLAUDE.md'), 'CLAUDE.md', opts);
-    installFile(join(PACKAGE_ROOT, 'CLAUDE-CHAT.md'), join(CLAUDE_HOME, 'CLAUDE-CHAT.md'), 'CLAUDE-CHAT.md', opts);
+    installFile(join(PACKAGE_ROOT, 'web-chat-prompt.md'), join(CLAUDE_HOME, 'web-chat-prompt.md'), 'web-chat-prompt.md', opts);
     if (!flags.skipStatusline) {
       installFile(join(PACKAGE_ROOT, '.claude', 'statusline-command.sh'), join(CLAUDE_HOME, 'statusline-command.sh'), 'statusline-command.sh', opts);
     } else {

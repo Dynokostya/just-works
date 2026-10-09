@@ -247,7 +247,7 @@ if ! $CODEX_ONLY; then
     fi
 
     install_file "${SCRIPT_DIR}/CLAUDE.md" "${CLAUDE_HOME}/CLAUDE.md" "CLAUDE.md"
-    install_file "${SCRIPT_DIR}/CLAUDE-CHAT.md" "${CLAUDE_HOME}/CLAUDE-CHAT.md" "CLAUDE-CHAT.md"
+    install_file "${SCRIPT_DIR}/web-chat-prompt.md" "${CLAUDE_HOME}/web-chat-prompt.md" "web-chat-prompt.md"
     if ! $SKIP_STATUSLINE; then
         install_file "${SCRIPT_DIR}/.claude/statusline-command.sh" "${CLAUDE_HOME}/statusline-command.sh" "statusline-command.sh"
     else

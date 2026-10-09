@@ -9,7 +9,7 @@ Two parallel provider directories plus distribution scaffolding:
 - `bin/cli.mjs` — Node.js installer published as `npx @dynokostya/just-works`
 - `install.sh`, `install.bat` — shell installers for macOS/Linux and Windows
 - `src/evals/` — pytest eval harness validating skill files against frontier models
-- `CLAUDE.md` / `AGENTS.md` / `CLAUDE-CHAT.md` — shared behavioral guidelines at root
+- `CLAUDE.md` / `AGENTS.md` / `web-chat-prompt.md` — shared behavioral guidelines at root
 - `.mcp.json` — per-project MCP server declarations (Playwright)
 
 ## Module Boundaries
