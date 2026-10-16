@@ -68,6 +68,14 @@
   "autoMemoryEnabled": false,
   "plansDirectory": "./.claude/plans",
   "outputStyle": "Compressed",
+  "modelSettings": {
+    "claude-opus-5-5": {
+      "effortLevel": "high"
+    },
+    "claude-sonnet-5-5": {
+      "effortLevel": "high"
+    }
+  },
   "attribution": {
     "commit": "",
     "pr": ""
@@ -77,7 +85,7 @@
   "skillListingBudgetFraction": 0.05,
   "skillListingMaxDescChars": 2048,
   "env": {
-    "CLAUDE_CODE_SUBAGENT_MODEL": "opus",
+    "CLAUDE_CODE_SUBAGENT_MODEL": "sonnet",
     "CLAUDE_CODE_SUBAGENT_MODEL_FORCE": "1",
     "DISABLE_ERROR_REPORTING": "1",
     "DISABLE_FEEDBACK_COMMAND": "1",
@@ -87,7 +95,7 @@
     "CLAUDE_STREAM_IDLE_TIMEOUT_MS": "1800000",
     "API_TIMEOUT_MS": "1800000",
     "CLAUDE_AUTOCOMPACT_PCT_OVERRIDE": "80",
-    "CLAUDE_CODE_MAX_CONCURRENT_SUBAGENTS": "4",
+    "CLAUDE_CODE_MAX_CONCURRENT_SUBAGENTS": "5",
     "CLAUDE_CODE_MAX_SUBAGENT_SPAWN_DEPTH": "1"
   },
   "hooks": {

@@ -41,7 +41,7 @@ Installs agents, skills, commands, and settings globally to `~/.claude/` and `~/
 |---|---|---|
 | Permissions | prompts for everything | `bypassPermissions` + safe read-only allow-list |
 | Security deny-list | empty | blocks reads of keys, credentials, lockfiles, build dirs |
-| Model / effort | Claude Code defaults | `opus[1m]` main model, subagents forced to `opus`, default effort |
+| Model / effort | Claude Code defaults | `opus[1m]` main model at `high` effort, subagents forced to `sonnet` at `high` effort, at most 5 at once |
 | Output style | `default` | `Compressed` (fewer tokens) |
 | Codex | model + basic status line | `danger-full-access`, no approval prompts, MCP servers (Playwright, ClickUp) |
 | Hooks (Claude) | none | Bash command rewriting + completion sounds |
