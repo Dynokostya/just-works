@@ -34,7 +34,7 @@ When a decision has a discrete set of mutually exclusive options (2-4 choices �
 
 Lead with context, then ask. Before calling AskUserQuestion, explain in short, simple language what's being decided — what you're doing, what you found, what makes this a decision point — and give a concrete example that makes the options tangible, so the question is easy to answer. Never call it cold.
 
-All decision content goes in chat first. The full content behind every option — draft texts, diffs, tables, proposals — must already be visible to the user as plain chat text in a message delivered before the AskUserQuestion call. Text bundled in the same assistant message as the tool call may not render in the client; never rely on it to carry anything the user needs in order to decide. If showing the content means ending the turn and calling the tool in the next exchange, do that — or skip the tool and ask in plain text at the end of the content message. Keep the tool call itself lean: the question plus options, with descriptions carrying per-option trade-offs only.
+All decision content goes in chat before the question. Write the full content behind every option (draft texts, diffs, tables, proposals) as chat text earlier in the same message, then call AskUserQuestion. Long content is no reason to skip the tool: when AskUserQuestion is available, never ask a discrete choice as a plain-text menu ("reply 1a 2b"). Keep the tool call itself lean: the question plus options, with descriptions carrying per-option trade-offs only.
 
 Plain-text questions are fine for open-ended input ("what's the hostname?") and quick clarifications.
 
