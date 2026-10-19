@@ -1,5 +1,13 @@
 Read this before you write proposals.json or the author's choices file (decisions.json) for a review or stakeholder round, and for the commands of scripts/proposals.py. A proposal is one change to the document that the author accepts or rejects; the script checks proposals, shows them on the review page and applies the accepted ones.
 
+## Contents
+
+- Fix or decision proposal
+- proposals.json
+- Writing proposals
+- The author's choices file
+- Commands
+
 ## Fix or decision proposal
 
 A fix corrects a problem that has one right answer, such as an undefined term, a wrong path or a sentence that contradicts a source. The author accepts or rejects it.

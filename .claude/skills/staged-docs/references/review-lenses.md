@@ -1,5 +1,15 @@
 Read this at the review stage. It holds the prompts for the four reviewers (lenses) and the verifier, and the rules for triage. A reviewer in a fresh context sees nothing but its prompt, so each prompt below is complete once you fill in the paths.
 
+## Contents
+
+- Shared part of every lens prompt
+- Lens: reader
+- Lens: accuracy
+- Lens: consistency
+- Lens: completeness
+- Verifier prompt
+- Triage
+
 ## Shared part of every lens prompt
 
 Send each reviewer this part, followed by the part for its lens. Leave out the line on the piece sheets when sheets.md does not exist.

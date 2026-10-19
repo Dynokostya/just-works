@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 
-import { readFileSync, writeFileSync, existsSync, mkdirSync, cpSync, copyFileSync, rmSync, statSync } from 'node:fs';
-import { join, dirname, relative } from 'node:path';
-import { homedir } from 'node:os';
+import { readFileSync, writeFileSync, existsSync, lstatSync, mkdirSync, cpSync, copyFileSync, rmSync, readdirSync, mkdtempSync, renameSync } from 'node:fs';
+import { join, dirname, relative, resolve } from 'node:path';
+import { homedir, tmpdir } from 'node:os';
 import { createInterface } from 'node:readline';
 import { fileURLToPath } from 'node:url';
 
@@ -30,7 +30,7 @@ const error = (msg) => console.error(`${RED}[x]${NC} ${msg}`);
 function usage() {
   console.log(`Usage: just-works [OPTIONS]
 
-Install just-works agents, skills, and commands globally.
+Install just-works agents, skills, and settings globally.
 
 Options:
   --personal         Use opinionated settings.json (permissions, hooks, sounds)
@@ -47,25 +47,33 @@ Options:
   -v, --version      Print version and exit
   -h, --help         Show this help message
 
+Environment:
+  CLAUDE_CONFIG_DIR  Claude Code config dir to install into (default ~/.claude)
+  CODEX_HOME         Codex home to install into (default ~/.codex)
+
 What gets installed:
   ~/.claude/
     agents/       Agent definitions (python-code-writer, prompt-writer, ...)
     skills/       Coding and prompting standards
-    commands/     Workflows (project-docs, git-sync)
     output-styles/  Selectable output styles (compressed, ...)
     settings.json             Permission and hook configuration
     CLAUDE.md                 Global behavioral instructions
-    statusline-command.sh     Status line script
+    web-chat-prompt.md        Instructions for claude.ai chat
+    statusline-command.sh     Status line script (needs jq)
 
   ~/.codex/
-    agents/       Custom agent definitions (python-code-writer, diagrammer, ...)
-    prompts/      Slash commands (project-docs, git-sync)
+    agents/       Custom agent definitions (python-code-writer, prompt-writer, ...)
     config.toml   Codex CLI configuration (--azure for Azure OpenAI)
     hooks.json    Lifecycle hooks (notification)
     AGENTS.md     Global behavioral instructions
 
   ~/.agents/
-    skills/       Coding and prompting standards (Codex discovery path)`);
+    skills/       Coding and prompting standards (Codex discovery path)
+
+Agents, skills and output styles are installed one entry at
+a time. Other files in those directories are never touched. Each home keeps a
+.just-works-manifest listing the entries it installed; entries that a later
+version no longer ships are removed (after a backup, unless --no-backup).`);
 }
 
 // ---------------------------------------------------------------------------
@@ -125,63 +133,59 @@ const pad = (n) => String(n).padStart(2, '0');
 const TIMESTAMP = `${now.getFullYear()}${pad(now.getMonth() + 1)}${pad(now.getDate())}_${pad(now.getHours())}${pad(now.getMinutes())}${pad(now.getSeconds())}`;
 
 const HOME = homedir();
-const CLAUDE_HOME = join(HOME, '.claude');
-const CODEX_HOME  = join(HOME, '.codex');
+// Same variables Claude Code and Codex read, so a second profile (~/.claude-2) can be targeted.
+const CLAUDE_HOME = process.env.CLAUDE_CONFIG_DIR || join(HOME, '.claude');
+const CODEX_HOME  = process.env.CODEX_HOME || join(HOME, '.codex');
 const AGENTS_HOME = join(HOME, '.agents');
 const BACKUP_DIR  = join(HOME, 'just-works-backups', TIMESTAMP);
 
 // ---------------------------------------------------------------------------
 // Core operations
 // ---------------------------------------------------------------------------
+const exists = (p) => { try { lstatSync(p); return true; } catch { return false; } };
+const isJunk = (name) => name === '.DS_Store' || name === '__pycache__' || name === '.gitkeep';
+const copyFilter = (src) => { const n = src.split(/[\\/]/).pop(); return n !== '.DS_Store' && n !== '__pycache__'; };
+
+// Back up a file, directory or symlink (a symlink is copied as a link, not followed).
 function backupTarget(targetPath, backupDir, dryRun) {
-  if (!existsSync(targetPath)) return;
-  const relPath = relative(HOME, targetPath);
+  if (!exists(targetPath)) return;
+  let relPath = relative(HOME, targetPath);
+  // A target outside the home dir keeps its absolute path under the backup dir.
+  if (relPath.startsWith('..')) relPath = resolve(targetPath).replace(/^([A-Za-z]:)?[\\/]+/, '');
   const backupPath = join(backupDir, relPath);
   if (dryRun) {
     warn(`Would back up: ${targetPath} -> ${backupPath}`);
   } else {
     mkdirSync(dirname(backupPath), { recursive: true });
-    if (statSync(targetPath).isDirectory()) {
-      mkdirSync(backupPath, { recursive: true });
-      cpSync(targetPath, backupPath, { recursive: true, force: true });
-    } else {
-      copyFileSync(targetPath, backupPath);
-    }
+    cpSync(targetPath, backupPath, { recursive: true, force: true, verbatimSymlinks: true });
     warn(`Backed up: ${targetPath} -> ${backupPath}`);
   }
 }
 
-function cleanTarget(targetPath, dryRun) {
-  if (!existsSync(targetPath)) return;
-  if (dryRun) {
-    warn(`Would remove: ${targetPath}`);
-  } else {
-    rmSync(targetPath, { recursive: true, force: true });
-    warn(`Removed: ${targetPath}`);
-  }
+function backupIfEnabled(targetPath, opts) {
+  if (opts.doBackup) backupTarget(targetPath, opts.backupDir, opts.dryRun);
 }
 
-function prepareTarget(targetPath, backupDir, doBackup, dryRun) {
-  if (doBackup) {
-    backupTarget(targetPath, backupDir, dryRun);
-  } else {
-    cleanTarget(targetPath, dryRun);
-  }
+function listEntries(dir) {
+  return readdirSync(dir).filter((n) => !isJunk(n)).sort();
 }
 
-function installDir(srcDir, destDir, label, opts) {
-  if (!existsSync(srcDir)) {
-    warn(`Source not found, skipping: ${srcDir}`);
+// Install one entry (a file or a whole skill/agent directory). Only the entry itself is
+// replaced: a directory entry is replaced as a whole so files removed upstream do not linger,
+// and nothing next to it is touched.
+function installEntry(src, dest, opts) {
+  if (opts.dryRun) {
+    if (exists(dest)) {
+      backupIfEnabled(dest, opts);
+      warn(`Would replace: ${dest}`);
+    }
     return;
   }
-  prepareTarget(destDir, opts.backupDir, opts.doBackup, opts.dryRun);
-  if (opts.dryRun) {
-    info(`Would copy: ${srcDir}/ -> ${destDir}/`);
-  } else {
-    mkdirSync(destDir, { recursive: true });
-    cpSync(srcDir, destDir, { recursive: true, force: true });
-    info(`Installed: ${label} -> ${destDir}/`);
-  }
+  backupIfEnabled(dest, opts);
+  mkdirSync(dirname(dest), { recursive: true });
+  // rmSync on a symlink removes the link, not the directory it points to.
+  rmSync(dest, { recursive: true, force: true });
+  cpSync(src, dest, { recursive: true, filter: copyFilter });
 }
 
 function installFile(srcFile, destFile, label, opts) {
@@ -189,14 +193,139 @@ function installFile(srcFile, destFile, label, opts) {
     warn(`Source not found, skipping: ${srcFile}`);
     return;
   }
-  prepareTarget(destFile, opts.backupDir, opts.doBackup, opts.dryRun);
+  backupIfEnabled(destFile, opts);
   if (opts.dryRun) {
     info(`Would copy: ${srcFile} -> ${destFile}`);
   } else {
     mkdirSync(dirname(destFile), { recursive: true });
+    rmSync(destFile, { force: true });
     copyFileSync(srcFile, destFile);
     info(`Installed: ${label} -> ${destFile}`);
   }
+}
+
+// ---------------------------------------------------------------------------
+// Manifest: which entries just-works installed into a home directory. Used to remove
+// entries that a later version renamed or deleted, without touching other files.
+// ---------------------------------------------------------------------------
+const MANIFEST_NAME = '.just-works-manifest';
+
+// Entries shipped by earlier versions, used when a home has no manifest yet.
+const LEGACY_ENTRIES = {
+  claude: ['skills/opus-5-prompting', 'skills/fable-5-prompting', 'skills/gpt-5-6-prompting', 'CLAUDE-CHAT.md', 'agents/diagrammer.md',
+    'agents/ticket-creator.md', 'commands/git-sync.md', 'commands/project-docs.md'],
+  codex: ['agents/diagrammer.toml', 'agents/ticket-creator.toml', 'prompts/git-sync.md', 'prompts/project-docs.md'],
+  agents: ['skills/opus-5-prompting', 'skills/fable-5-prompting', 'skills/gpt-5-6-prompting'],
+};
+
+const scopeOf = (entry) => (entry.includes('/') ? entry.split('/')[0] : '.');
+
+// A manifest line must stay inside the home directory.
+function entryIsSafe(entry) {
+  if (!entry || entry.startsWith('/') || entry.includes('//')) return false;
+  return !entry.split('/').some((part) => part === '' || part === '.' || part === '..');
+}
+
+class Manifest {
+  constructor(home, legacyKey, opts) {
+    this.home = home;
+    this.path = join(home, MANIFEST_NAME);
+    this.opts = opts;
+    this.added = new Set();
+    this.doneScopes = new Set();
+    let raw;
+    if (existsSync(this.path)) {
+      raw = readFileSync(this.path, 'utf8').split('\n').map((l) => l.trim()).filter((l) => l && !l.startsWith('#'));
+    } else {
+      raw = LEGACY_ENTRIES[legacyKey];
+    }
+    this.old = raw.filter((e) => {
+      if (entryIsSafe(e)) return true;
+      warn(`Ignoring unsafe manifest entry: ${e}`);
+      return false;
+    });
+  }
+
+  // Remove entries of `scope` that an earlier install owned but the current version no longer ships.
+  prune(scope, shipped) {
+    for (const entry of this.old) {
+      if (scopeOf(entry) !== scope) continue;
+      const name = scope === '.' ? entry : entry.slice(scope.length + 1);
+      if (shipped.includes(name)) continue;
+      const target = join(this.home, entry);
+      if (!exists(target)) continue;
+      backupIfEnabled(target, this.opts);
+      if (this.opts.dryRun) {
+        warn(`Would prune (no longer shipped): ${target}`);
+      } else {
+        rmSync(target, { recursive: true, force: true });
+        warn(`Pruned (no longer shipped): ${target}`);
+      }
+    }
+  }
+
+  // Install every entry of srcDir into <home>/<scope>/ and prune entries no longer shipped.
+  syncScope(scope, srcDir, label) {
+    if (!existsSync(srcDir)) {
+      warn(`Source not found, skipping: ${srcDir}`);
+      return;
+    }
+    const shipped = listEntries(srcDir);
+    this.prune(scope, shipped);
+    this.doneScopes.add(scope);
+    const destDir = join(this.home, scope);
+    for (const name of shipped) {
+      installEntry(join(srcDir, name), join(destDir, name), this.opts);
+      this.added.add(`${scope}/${name}`);
+    }
+    info(`${this.opts.dryRun ? 'Would install' : 'Installed'}: ${shipped.length} ${label} entries -> ${destDir}/`);
+  }
+
+  // Remove every entry of a scope that just-works no longer ships at all.
+  retireScope(scope) {
+    this.prune(scope, []);
+    this.doneScopes.add(scope);
+  }
+
+  // Files owned by just-works directly in the home directory.
+  syncOwnedFiles(srcBase, names) {
+    this.prune('.', names);
+    this.doneScopes.add('.');
+    for (const name of names) {
+      const src = join(srcBase, name);
+      if (!existsSync(src)) {
+        warn(`Source not found, skipping: ${src}`);
+        continue;
+      }
+      installFile(src, join(this.home, name), name, this.opts);
+      this.added.add(name);
+    }
+  }
+
+  // Entries installed now, plus old entries of scopes this run skipped.
+  save() {
+    const all = new Set(this.added);
+    for (const entry of this.old) {
+      if (!this.doneScopes.has(scopeOf(entry))) all.add(entry);
+    }
+    if (this.opts.dryRun) {
+      info(`Would write manifest: ${this.path}`);
+      return;
+    }
+    mkdirSync(this.home, { recursive: true });
+    const tmp = `${this.path}.tmp`;
+    writeFileSync(tmp, `# Entries installed by just-works, relative to this directory. Do not add your own files.\n${[...all].sort().join('\n')}\n`);
+    renameSync(tmp, this.path);
+  }
+}
+
+// Codex skills = the Claude skills plus Codex-only extras from .codex/skills.
+function stageCodexSkills() {
+  const stage = mkdtempSync(join(tmpdir(), 'just-works-skills-'));
+  for (const dir of [join(PACKAGE_ROOT, '.claude', 'skills'), join(PACKAGE_ROOT, '.codex', 'skills')]) {
+    if (existsSync(dir)) cpSync(dir, stage, { recursive: true, force: true, filter: copyFilter });
+  }
+  return stage;
 }
 
 // rtk >= 0.37 deletes hooks/rtk-rewrite.sh, so a leftover hook entry breaks every Bash call.
@@ -259,14 +388,15 @@ async function main() {
   // --- Claude Code ---
   if (!flags.codexOnly) {
     console.log(`${BOLD}Claude Code${NC}`);
-    installDir(join(PACKAGE_ROOT, '.claude', 'agents'),   join(CLAUDE_HOME, 'agents'),   'agents',   opts);
+    const claude = new Manifest(CLAUDE_HOME, 'claude', opts);
+    claude.syncScope('agents', join(PACKAGE_ROOT, '.claude', 'agents'), 'agent');
     if (!flags.skipSkillsClaude) {
-      installDir(join(PACKAGE_ROOT, '.claude', 'skills'),  join(CLAUDE_HOME, 'skills'),   'skills',   opts);
+      claude.syncScope('skills', join(PACKAGE_ROOT, '.claude', 'skills'), 'skill');
     } else {
       info('Skipping Claude skills (--skip-skills-claude)');
     }
-    installDir(join(PACKAGE_ROOT, '.claude', 'commands'), join(CLAUDE_HOME, 'commands'), 'commands', opts);
-    installDir(join(PACKAGE_ROOT, '.claude', 'output-styles'), join(CLAUDE_HOME, 'output-styles'), 'output-styles', opts);
+    claude.retireScope('commands');
+    claude.syncScope('output-styles', join(PACKAGE_ROOT, '.claude', 'output-styles'), 'output style');
 
     if (!flags.skipConfig) {
       if (flags.personal) {
@@ -280,23 +410,34 @@ async function main() {
     }
 
     installFile(join(PACKAGE_ROOT, 'CLAUDE.md'), join(CLAUDE_HOME, 'CLAUDE.md'), 'CLAUDE.md', opts);
-    installFile(join(PACKAGE_ROOT, 'web-chat-prompt.md'), join(CLAUDE_HOME, 'web-chat-prompt.md'), 'web-chat-prompt.md', opts);
+    claude.syncOwnedFiles(PACKAGE_ROOT, ['web-chat-prompt.md']);
     if (!flags.skipStatusline) {
       installFile(join(PACKAGE_ROOT, '.claude', 'statusline-command.sh'), join(CLAUDE_HOME, 'statusline-command.sh'), 'statusline-command.sh', opts);
     } else {
       info('Skipping statusline-command.sh (--skip-statusline)');
     }
+    claude.save();
     console.log();
   }
 
   // --- Codex ---
   if (!flags.claudeOnly) {
     console.log(`${BOLD}Codex${NC}`);
-    installDir(join(PACKAGE_ROOT, '.codex', 'agents'),  join(CODEX_HOME, 'agents'),  'agents',  opts);
-    installDir(join(PACKAGE_ROOT, '.codex', 'prompts'), join(CODEX_HOME, 'prompts'), 'prompts', opts);
+    const codex = new Manifest(CODEX_HOME, 'codex', opts);
+    codex.syncScope('agents', join(PACKAGE_ROOT, '.codex', 'agents'), 'agent');
+    codex.retireScope('prompts');
+    codex.save();
+
     if (!flags.skipSkillsCodex) {
       // Codex discovers skills at ~/.agents/skills/ (see AGENTS.md, install.sh).
-      installDir(join(PACKAGE_ROOT, '.codex', 'skills'),  join(AGENTS_HOME, 'skills'),  'skills (-> ~/.agents/)', opts);
+      const stage = stageCodexSkills();
+      try {
+        const agents = new Manifest(AGENTS_HOME, 'agents', opts);
+        agents.syncScope('skills', stage, 'skill');
+        agents.save();
+      } finally {
+        rmSync(stage, { recursive: true, force: true });
+      }
     } else {
       info('Skipping Codex skills (--skip-skills-codex)');
     }

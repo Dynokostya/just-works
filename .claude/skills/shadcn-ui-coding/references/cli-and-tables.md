@@ -2,77 +2,61 @@
 
 Reference for the shadcn-ui-coding skill.
 
-## CLI and configuration
-
-### Commands
+## CLI commands
 
 ```bash
-npx shadcn@latest init                # initialize project, creates components.json
-npx shadcn@latest init --pointer      # init with cursor-pointer on buttons (Apr 2026+)
-npx shadcn@latest add button          # add a component
-npx shadcn@latest add button --diff   # show upstream changes (replaces the old diff command)
-npx shadcn@latest add sonner          # add sonner (toast replacement)
-npx shadcn@latest search <query>      # search items across registries
-npx shadcn@latest view <item>         # preview a registry item before install
-npx shadcn@latest apply <preset>      # apply a preset (theme/fonts) to existing project
-npx shadcn@latest apply <preset> --only=theme  # partial preset apply
-npx shadcn@latest migrate radix       # run a built-in migration
-npx shadcn@latest build               # build your own registry JSON
-npx shadcn@latest info                # display project info
-npx shadcn@latest docs <component>    # retrieve component documentation
-npx shadcn@latest create              # scaffold a new registry block
+npx shadcn@latest init                    # initialize the project, creates components.json
+npx shadcn@latest init -b radix           # choose the primitive library: base, radix, aria
+npx shadcn@latest init --pointer          # add cursor-pointer to buttons (--no-pointer to skip)
+npx shadcn@latest add button              # add a component
+npx shadcn@latest add button --diff       # show differences from upstream
+npx shadcn@latest add button --dry-run    # preview changes without writing files
+npx shadcn@latest search @shadcn -q card  # search registries
+npx shadcn@latest view <item>             # preview a registry item before installing
+npx shadcn@latest docs <component>        # usage, API, and Composition tree for a component
+npx shadcn@latest info                    # project info (add --json for scripts)
+npx shadcn@latest apply <preset>          # apply a preset (add --only theme or --only font for a part)
+npx shadcn@latest migrate radix           # run a migration: cn, icons, base-color, radix, rtl
+npx shadcn@latest build                   # build your own registry JSON
 ```
 
-### components.json
+`create` is an alias for `init`.
 
-Key settings:
+## components.json
 
 | Field | Effect |
 |---|---|
-| `style` | `"new-york"` or `"sera"` (Apr 2026+). `"default"` is deprecated. |
-| `rsc` | `true` adds `"use client"` to components automatically |
-| `aliases.components` | Import path prefix (e.g., `@/components`) |
-| `aliases.utils` | Path to `cn()` utility (e.g., `@/lib/utils`) |
+| `style` | Prefix names the primitive library (`radix-*`, `base-*`, `aria-*`); legacy `new-york` is Radix. Fixed at initialization. `"default"` is deprecated. |
+| `rsc` | `true` adds `"use client"` to components that need it |
+| `aliases.components` | Import path prefix (for example `@/components`) |
+| `aliases.utils` | Path to the `cn()` helper (for example `@/lib/utils`) |
 
-### Deprecations and migrations
+## Migrations
 
-| Deprecated | Replacement |
+| Old | New |
 |---|---|
-| `shadcn-ui` CLI package | `shadcn` (use `npx shadcn@latest`) |
-| `"default"` style | `"new-york"` style |
-| Toast component | Sonner |
 | `tailwindcss-animate` | `tw-animate-css` |
-| Individual `@radix-ui/react-*` | Unified `radix-ui` package |
+| Individual `@radix-ui/react-*` packages | Unified `radix-ui` package (`npx shadcn@latest migrate radix`) |
 
-## Decision tables
+## Overlay selection
 
-### Overlay selection
-
-| Need | Component | Key Trait |
+| Need | Component | Key trait |
 |---|---|---|
-| Confirm destructive action | AlertDialog | Blocks interaction, requires explicit response |
-| Form or complex content | Dialog | Focus-trapped modal, closes on overlay click |
-| Side panel (filters, nav, detail) | Sheet | Slides from edge, good for secondary content |
-| Mobile-friendly bottom panel | Drawer | Touch-friendly, swipe to dismiss (uses vaul) |
-| Anchored to trigger, lightweight | Popover | Positioned relative to trigger, no overlay |
-| Brief hint on hover | Tooltip | Hover/focus only, no interactive content |
-| Rich preview on hover | HoverCard | Hover card with delay, supports interactive content |
-| Action list from trigger | DropdownMenu | Click to open, keyboard-navigable menu |
-| Action list from right-click | ContextMenu | Right-click triggered, same API as DropdownMenu |
+| Confirm a destructive action | AlertDialog | Blocks interaction, requires an explicit response |
+| Form or complex content | Dialog | Focus-trapped modal |
+| Side panel (filters, nav, detail) | Sheet | Slides from an edge |
+| Mobile bottom panel | Drawer | Touch-friendly, swipe to dismiss |
+| Anchored, lightweight | Popover | Positioned to the trigger, no overlay |
+| Brief hint | Tooltip | Hover/focus only, no interactive content |
+| Rich preview on hover | HoverCard | Delayed, supports interactive content |
+| Action list from a trigger | DropdownMenu | Click to open, keyboard-navigable |
+| Action list from right-click | ContextMenu | Same API as DropdownMenu |
 
-### Selection component
+## Selection component
 
 | Need | Component |
 |---|---|
-| Fixed list, <10 items | Select |
+| Fixed list, fewer than 10 items | Select |
 | Searchable list | Combobox (popover + command) |
-| Searchable with groups/actions | Command (standalone) |
-| Multi-select from small set | ToggleGroup |
-
-### Customization approach
-
-| Situation | Approach |
-|---|---|
-| Global style change (border radius, colors) | Edit `components/ui/` directly |
-| App-specific defaults (icon + label combos) | Wrapper in `components/app/` |
-| One-off layout composition | Inline composition in the page/feature |
+| Searchable with groups or actions | Command (standalone) |
+| Multi-select from a small set | ToggleGroup |

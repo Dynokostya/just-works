@@ -24,23 +24,23 @@ Use only these, in the Status column:
 
 Every status row needs evidence on the current artifact.
 
-## Times across skill versions
+## Comparing times with the prior report
 
 Do not compare two `T_execute` numbers from different encodings as if the page moved.
 
-1. Read the prior row's **operator string** and its **encoding** (`KLM-web-0`, `KLM-web-1`, …). If the prior report has no encoding, treat it as `KLM-web-0`.
-2. Re-sum that string with **this** file's current encoding (`klm-goms.md`) → `T_reencoded`.
+1. Read the prior row's **operator string** and its **encoding** id. If the prior report has no id, its constants are unknown: re-sum the string anyway and say so.
+2. Re-sum that string with **this** encoding (`klm-goms.md`) → `T_reencoded`.
 3. Encode the path on the current page → `T_now`.
 4. Report:
 
 | Task | Path | Prior T | Prior encoding | T_reencoded | T_now | Δ encoding | Δ page |
 |------|------|---------|----------------|-------------|-------|------------|--------|
 
-- **Δ encoding** = `T_reencoded − prior T`. Same operators, new constants. Example: `6K` at 0.28 s → `6 K_soft` at 0.50 s is encoding, not the page.
+- **Δ encoding** = `T_reencoded − prior T`. Same operators, new constants: the same string re-summed with a changed constant gives a different total, and that difference is encoding, not the page.
 - **Δ page** = `T_now − T_reencoded`. Operator string or measured R changed.
 - If the prior string is missing, say so and skip the split. Do not invent operators to make the old sum.
 
-Fitts IDs compare only when W, D, origin, and *a*, *b* source match. If any of those changed in the skill, recompute the prior row with current rules and label it **recomputed**.
+Fitts IDs compare only when W, D, origin, and *a*, *b* source match. If any of those changed since the prior report, recompute the prior row with current rules and label it **recomputed**.
 
 ## Order of the report
 

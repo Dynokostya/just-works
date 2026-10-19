@@ -2,18 +2,13 @@
 name: predictive-ux-evaluation
 description: >
   Predictive (model-based) UX evaluation of web UIs and HTML prototypes using
-  cognitive walkthrough, KLM/GOMS, Fitts's law, Hick's law, and visual-hierarchy
-  / first-fixation analysis. Use whenever the user asks to evaluate a UI,
-  prototype, flow, or HTML mock for first-time-user failures, expert task time,
-  target size and distance, choice time, or where the eye goes first — including
-  "cognitive walkthrough", "KLM", "GOMS", "Fitts", "Hick", "predictive UX",
-  "model-based evaluation", "usability inspection", "will users find this",
-  "how long will this task take", "verify the last UX pass", "mark findings
-  resolved", or "/predictive-ux-evaluation". Produces a fit verdict, a task
-  list, predicted failure points, task-time estimates, and a target table, each
-  finding cited to a screenshot, DOM measurement, or file:line. Re-running a
-  prior report adds resolved/open status and splits encoding change from page
-  change. Does not predict conversion, preference, or emotion.
+  cognitive walkthrough, KLM/GOMS, Fitts's law, Hick's law and first-fixation
+  analysis. Use when asked to evaluate a UI, prototype or flow for first-time-user
+  failures, expert task time, target size and distance, choice time or where the
+  eye goes first; for "cognitive walkthrough", "KLM", "Fitts", "usability
+  inspection", "will users find this" or "how long will this task take"; or to
+  verify or re-run a prior report. Does not predict conversion, preference or
+  emotion.
 ---
 
 # Predictive UX Evaluation
@@ -72,7 +67,6 @@ Use this structure. Every finding carries evidence: a screenshot path, a DOM mea
 ```
 # Predictive UX evaluation: [artifact]
 PREDICTIVE MODEL, NOT USER EVIDENCE
-encoding: KLM-web-1
 Arrival: [snippet / unknown]
 Users: first-time […]; expert […]
 
@@ -114,19 +108,6 @@ Method: heuristic | model ([name])
 
 Keep `PREDICTIVE MODEL, NOT USER EVIDENCE` on the line under the H1 and on each findings table.
 
-## Quality checks
+## Before you finish
 
-- Lane check ran first; out-of-lane asks were refused with a named human method
-- Comprehension tasks were walked with Q2/Q3; Q4 is n/a; KLM/Fitts/Hick were skipped
-- Gates/modals were walked in visual order (read then press); Q1 is not assumed yes on a dismiss-and-go heading
-- Every failure point names the step, the question (Q1–Q4), and a grade
-- Toggles, overlays, and one label-invited wrong path were walked
-- KLM header is `encoding: KLM-web-1`; operator strings are recorded; P in the sum is not an unfitted Fitts MT
-- Fitts first-target D uses the viewport centre; W is the hit area, not only the painted box
-- Hick is skipped (with reason) when the step is visual search or browsing
-- First-look names the method, includes faces when lookable, and skips faces behind a blur/veil
-- Synthesized findings have severity from `handoff.md`
-- Every finding has a screenshot, DOM measurement, or file:line
-- If a prior report was given: verification table and Δ encoding / Δ page split are present
-- The report ends in a real-user hand-off with *n* from `handoff.md`
-- No conversion, preference, or emotion claims
+Check the report against the lane and the output contract. The lane check came first, and out-of-lane asks were refused with a named human method. Every finding carries evidence. Each skipped method (KLM on a comprehension task, Hick on visual search) says why. A verification table with the Δ encoding / Δ page split is present if a prior report was given. The report ends in a real-user hand-off, and it makes no conversion, preference or emotion claims.

@@ -31,7 +31,7 @@ These are unconditional. They prevent ambiguity, lost provenance, and wasted tri
 - **Discovery** — timeboxed product investigation. Output is a decision, not shipped code. Uses **Opportunity / Hypothesis / Open questions / Expected output**.
 - **INVEST** — Independent, Negotiable, Valuable, Estimable, Small, Testable. Sanity check for PBIs.
 - **DoR** (Definition of Ready) — team-owned checklist saying a ticket can be picked up. Optional, lightweight.
-- **DoD** (Definition of Done) — team-owned checklist applied to every ticket at completion. Different from acceptance criteria — AC is per-ticket, DoD is team-global.
+- **DoD** (Definition of Done) — team-owned checklist applied to every ticket at completion. Different from acceptance criteria: AC is per-ticket, DoD is team-global, so don't repeat DoD items (tests passing, code reviewed) in a ticket's AC.
 
 ## Naming
 
@@ -94,21 +94,15 @@ Parent epic, blocked-by, relates-to — each as a specific link type. See Linkin
 
 ### Acceptance criteria — bullet vs Gherkin
 
-Default to bullets. Switch to Given-When-Then only when:
+Default to bullets (the PBI example in `references/rewrite-examples.md` shows them). Switch to Given-When-Then only when:
 
 - The flow has multiple preconditions that affect the outcome
 - Multiple roles interact in the same scenario
 - The criteria will feed an automated test suite directly
 
-```
-Plain bullets (default):
-- A Download CSV button appears in Settings → Account → Transactions for signed-in users.
-- Clicking the button downloads a CSV with header row: date, amount, merchant, category, status.
-- The CSV covers the currently selected date range.
-- An empty range produces a CSV with header row only.
-- Download starts within 2 seconds for ranges up to 10,000 rows.
+Given-When-Then for the same CSV export, where the flow branches on row count:
 
-Given-When-Then (only when logic branches):
+```
 - Given a signed-in user on the Transactions page with a date range selected
   When the user clicks Download CSV and the range contains fewer than 10,000 rows
   Then a CSV downloads within 2 seconds with columns: date, amount, merchant, category, status.
@@ -233,35 +227,16 @@ Skip formal DoR if refinement conversations already cover these items. The check
 
 **When rewriting an existing ticket** — preserve existing tracker links. Rewrite the title to imperative mood. Restructure into the correct sections for the ticket type. Enforce the Never rules. If the ticket describes two distinct changes, split them rather than letting them ride together.
 
-**Before creating or saving**, verify:
-
-- Title passes "If applied, this ticket will ___"
-- Right section names for the type (Acceptance criteria on PBI; Steps / Actual / Expected on Bug; Goal / Method on Spike; Opportunity / Hypothesis on Discovery)
-- No placeholders
-- No em-dash separators, no horizontal rules
-- Body as short as the problem allows; a long one is split or links a doc
-- Duplicate search done; no near-matches, or near-matches reviewed with the requester
-- Every section and value came from the user or was confirmed — nothing added to fit the template
+**Before creating or saving**, check that the Never rules hold and that the body uses the right section names for the type (Acceptance criteria on a PBI; Steps / Actual / Expected on a Bug; Goal / Method on a Spike; Opportunity / Hypothesis on a Discovery). The title passes "If applied, this ticket will ___", and the body is as short as the problem allows.
 
 ## Anti-patterns
 
-- **Technical stories posing as user stories** — "As an API, I want to expose an endpoint..." Systems aren't users. Drop the user-story framing and describe the technical change directly.
-- **Stories slicing by technology layer** — "Backend for feature X" plus "Frontend for feature X". Neither is shippable alone. Slice vertically by user-visible value.
-- **Stories too large to ship in a sprint** — break them into smaller stories, each independently valuable.
-- **Over-specifying the solution** — "Use React Query with a 30-second stale time and a custom retry handler." Unless the constraint is the point, describe behavior and let the implementer choose.
-- **Acceptance criteria that can't be tested** — "The UI should feel snappy." Replace with a measurable threshold or an observable behavior.
-- **Confusing acceptance criteria with Definition of Done** — AC is per-ticket. DoD is team-global (tests passing, code reviewed, deployed to staging). Don't duplicate DoD items in every ticket's AC.
-- **Gherkin for every ticket** — adds overhead on simple changes. Plain bullets by default.
-- **Mixing user roles in one story** — "As a user and admin, I want..." Split the story.
-- **Product manager as proxy user** — describe the real end user, not the PM's guess of what the user wants.
-- **Padding or piling up acceptance criteria** — write as many as are useful and no more. A long list is a signal to consider splitting, not a rule.
-- **Scope creep in comments** — new requirements added after creation without updating the body. Either update the ticket and note the change, or create a follow-up.
-- **Estimates in the title or body** — "Fix login bug (2h)", or a Deadline or Priority section in the body. Estimates, deadlines, and priority belong in native fields.
-- **Placeholders surviving to closure** — `[TBD]`, `[paste link]`. See Workflow.
-- **"Relates to" as a catch-all link** — pick the most specific link type, or none.
-- **Stories treated as full specification documents** — three pages of prose for a two-day change. Tickets are conversation starters; use docs for deep specs and link them.
-- **Filing without a duplicate search** — filing a near-duplicate fragments the discussion, splits the work, and signals weak hygiene. Search first; surface candidates to the requester before creating.
-- **Inventing values to look complete** — filling Severity, Priority, Timebox, or any other field with a guess so the ticket "feels finished". The user can't tell guess from confirmed and ends up re-checking everything. Ask, or omit.
+Beyond the Never rules and the sections above:
+
+- **Technical stories posing as user stories.** "As an API, I want to expose an endpoint..." Systems aren't users. Drop the user-story framing and describe the technical change directly.
+- **Stories slicing by technology layer.** "Backend for feature X" plus "Frontend for feature X". Neither is shippable alone. Slice vertically by user-visible value.
+- **Product manager as proxy user.** Describe the real end user, not the PM's guess of what the user wants.
+- **Scope creep in comments.** New requirements added after creation without updating the body. Either update the ticket and note the change, or create a follow-up.
 
 ## Rewrite examples
 

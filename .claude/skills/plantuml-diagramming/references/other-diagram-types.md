@@ -1,5 +1,14 @@
 # Other Diagram Types
 
+## Contents
+
+- Use case diagram
+- Mindmap
+- Gantt chart
+- WBS (Work Breakdown Structure)
+- ER diagram (using class diagram syntax)
+- JSON and YAML visualization
+
 ## Use case diagram
 
 Good for feature scope and actor interactions at a glance:

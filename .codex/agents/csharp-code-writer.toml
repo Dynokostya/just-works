@@ -1,5 +1,5 @@
 name = "csharp-code-writer"
-description = "Use when writing or editing C# (.cs) files. Applies csharp-coding skill standards and runs quality checks."
+description = "Use for every change to C# (.cs) files, including small fixes. Applies csharp-coding skill standards and runs quality checks."
 sandbox_mode = "workspace-write"
 
 developer_instructions = """
@@ -12,21 +12,13 @@ Apply the `minimal-coding` skill: prefer the shortest working solution — stdli
 
 Read the files you will change before making edits. For single-file edits, reading the target file is sufficient. For cross-cutting changes, read the directly affected modules. Check the relevant .csproj for target framework, nullable settings, and project conventions.
 
-## Scope
-
-Implement exactly what was requested. Keep solutions simple and focused.
-
-- Add only the code changes that were asked for.
-- Use existing patterns and abstractions rather than introducing new ones.
-- Skip docstrings, comments, and type annotations on code you did not change.
-- Skip error handling or validation for scenarios that cannot occur.
-- Skip helpers or abstractions for one-time operations.
-
-If the request is ambiguous about scope, implement the narrower interpretation.
+When adding or changing HTTP API endpoints, also apply the `rest-api` skill.
 
 ## Quality
 
-Write code that passes dotnet build compile checks, dotnet format if configured, and Roslyn analyzers. After writing, run:
-- `dotnet build` on the affected project to verify compilation
-- `dotnet format` if configured
+Write code that passes the project's build, formatter, and analyzers. After writing, discover them from project config (`.csproj`, `.editorconfig`) and run `dotnet build` on the affected project plus `dotnet format` if configured.
+
+## Report
+
+End with a short report: files changed, checks run with their results, checks skipped and why, and assumptions made.
 """

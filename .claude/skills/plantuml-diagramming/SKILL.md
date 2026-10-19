@@ -5,20 +5,12 @@ description: Apply when writing or editing PlantUML (.puml, .plantuml, .pu) file
 
 # PlantUML Diagramming
 
-Match the project's existing conventions. When uncertain, check for existing `.puml` files to infer the local style -- naming, layout direction, theme usage, and abstraction level. Check for shared includes (`!include`) or a project theme file. These defaults apply only when the project has no established convention.
+Match the project's existing conventions. Before writing, Glob for `*.puml`, `*.plantuml` and `*.pu`, and read what you find to infer naming, layout direction, theme usage and abstraction level. Check for shared includes (`!include`) or a project theme file. These defaults apply only when the project has no established convention.
 
-## References index
+## File placement and naming
 
-Deep-dive material lives alongside this file. Load the reference only when you need it.
-
-- `references/sequence-diagrams.md` -- participants, arrows, activation, grouping, notes and dividers.
-- `references/component-deployment.md` -- component and deployment diagrams, container types, interfaces.
-- `references/activity-diagrams.md` -- basic activity flow, swimlane partitions, stereotype coloring rules.
-- `references/class-diagrams.md` -- relationships table, full example, visibility modifiers, stereotypes, packages.
-- `references/state-diagrams.md` -- lifecycle modeling, key syntax, concurrent regions.
-- `references/other-diagram-types.md` -- use case, mindmap, gantt, WBS, ER, JSON/YAML visualization.
-- `references/styling.md` -- modern `<style>` blocks, built-in themes, color formats, layout direction.
-- `references/preprocessing.md` -- `!include`, `!procedure`, `!function`, variables, conditionals, loops.
+- Put diagrams in a `diagrams/` directory at the project root, unless the project already has a convention.
+- Name files `<context>_<type>_<title>.puml`, lowercase with underscores, for example `auth_sequence_login_flow.puml`.
 
 ## Never rules
 
@@ -51,27 +43,29 @@ These are unconditional. They prevent broken or unreadable diagrams regardless o
 - Label arrows with business actions: "submits order", "sends notification"
 - Omit method signatures, database column names, and class internals unless explicitly requested
 
-**Only produce detailed/technical diagrams** (class diagrams with methods, database schemas, detailed state machines) when the user explicitly asks for a technical or detailed diagram. When in doubt, ask.
+**Only produce detailed/technical diagrams** (class diagrams with methods, database schemas, detailed state machines or sequence flows with method signatures) when the user explicitly asks for a technical, detailed, or low-level diagram. When in doubt, ask.
 
 ## Diagram type selection
 
-| Scenario | Recommended Type | Why |
-|----------|-----------------|-----|
-| How systems or services interact over time | Sequence | Shows temporal ordering and message flow clearly |
-| High-level system architecture or service boundaries | Component | Shows parts and their relationships without temporal ordering |
-| Infrastructure and deployment topology | Deployment | Shows physical/cloud nodes and what runs where |
-| Business process or workflow with decisions | Activity | Shows branching, parallel paths, and swimlanes |
-| Object relationships and data modeling (technical) | Class | Shows inheritance, composition, and structure -- technical audiences only |
-| Lifecycle of a single entity | State | Shows transitions and conditions for one stateful object |
-| Feature scope or user goals | Use Case | Shows actors and what they can do at a glance |
-| Brainstorming or knowledge structure | Mindmap | Non-linear, quick to create |
-| Project timeline with dependencies | Gantt | Shows scheduling, milestones, and critical path |
-| Work breakdown or deliverable hierarchy | WBS | Shows hierarchical decomposition of deliverables |
-| Data relationships (technical) | ER (class with stereotypes) | Shows entities, attributes, and cardinality |
+Load the reference only when you write that type.
 
-## Sequence diagrams
+| Scenario | Type | Why | Reference |
+|----------|------|-----|-----------|
+| How systems or services interact over time | Sequence | Shows temporal ordering and message flow | `references/sequence-diagrams.md` |
+| High-level system architecture or service boundaries | Component | Shows parts and relationships without temporal ordering | `references/component-deployment.md` |
+| Infrastructure and deployment topology | Deployment | Shows nodes and what runs where | `references/component-deployment.md` |
+| Business process or workflow with decisions | Activity | Shows branching, parallel paths, and swimlanes | `references/activity-diagrams.md` |
+| Object relationships and data modeling (technical) | Class | Shows inheritance, composition, structure; technical audiences only | `references/class-diagrams.md` |
+| Lifecycle of a single entity | State | Shows transitions and conditions for one stateful object | `references/state-diagrams.md` |
+| Feature scope or user goals | Use Case | Shows actors and what they can do | `references/other-diagram-types.md` |
+| Brainstorming or knowledge structure | Mindmap | Non-linear, quick to create | `references/other-diagram-types.md` |
+| Project timeline with dependencies | Gantt | Shows scheduling, milestones, critical path | `references/other-diagram-types.md` |
+| Work breakdown or deliverable hierarchy | WBS | Shows hierarchical decomposition | `references/other-diagram-types.md` |
+| Data relationships (technical) | ER (class with stereotypes) | Shows entities, attributes, cardinality | `references/other-diagram-types.md` |
 
-The most common type. Shows how components interact over time. Declare all participants at the top in display order.
+## Example
+
+A sequence diagram, the most common type, showing the conventions above: a title, all participants declared at the top in display order, and business-friendly labels.
 
 ```plantuml
 @startuml
@@ -93,153 +87,11 @@ Web --> C: Display confirmation
 @enduml
 ```
 
-See `references/sequence-diagrams.md` for participant types, the full arrow table, activation/deactivation, grouping (`alt`/`opt`/`loop`/`par`), notes, dividers, and delays.
+## Styling and preprocessing
 
-## Component and deployment diagrams
+Use CSS-like `<style>` blocks placed immediately after `@startuml`, not `skinparam`. Built-in themes load with `!theme` (for example `cerulean` or `plain`), and `left to right direction` suits wide diagrams. See `references/styling.md`.
 
-Use these for high-level system architecture. Focus on boundaries and data flow, not internals.
-
-```plantuml
-@startuml
-title E-Commerce Platform Overview
-
-package "Frontend" {
-    [Web Application] as Web
-    [Mobile App] as Mobile
-}
-package "Backend Services" {
-    [Order Service] as Orders
-    [Payment Service] as Payments
-}
-package "Data Layer" {
-    database "Orders DB" as ODB
-    queue "Event Bus" as Events
-}
-
-Web --> Orders: REST/HTTPS
-Mobile --> Payments: REST/HTTPS
-Orders --> ODB
-Orders --> Events: Publishes events
-
-@enduml
-```
-
-See `references/component-deployment.md` for the full component example, deployment topology with `node`/`cloud`, container types (`node`, `cloud`, `database`, `package`, `rectangle`, `frame`), and interface/port syntax.
-
-## Activity diagrams
-
-Use for business processes, workflows, and decision flows. Swimlane partitions clarify responsibility per step.
-
-```plantuml
-@startuml
-title Order Processing Workflow
-
-start
-:Customer submits order;
-
-if (Payment valid?) then (yes)
-    :Charge payment method;
-    :Ship order;
-else (no)
-    :Reject order;
-    stop
-endif
-
-:Update order status to "Complete";
-stop
-
-@enduml
-```
-
-**Key syntax:** `start`/`stop`, `:action;`, `if (condition?) then (yes) else (no) endif`, `fork`/`fork again`/`end fork`, `|Swimlane|`, floating notes with `floating note right: text`.
-
-See `references/activity-diagrams.md` for the full example with parallel forks, swimlane partitions, and the stereotype-based coloring pattern (including the rule that inline `#color` after `;` causes syntax errors -- use `<<stereotype>>` instead).
-
-## Class diagrams
-
-**Technical diagrams only.** Use class diagrams when the user explicitly requests a technical or detailed diagram showing object relationships, inheritance, or data modeling.
-
-```plantuml
-@startuml
-title Domain Model
-
-class Order {
-    - id: UUID
-    - status: OrderStatus
-    + calculateTotal(): Money
-}
-class OrderItem
-enum OrderStatus
-
-Order *-- "1..*" OrderItem: contains
-Order --> OrderStatus: has
-
-@enduml
-```
-
-See `references/class-diagrams.md` for the full relationships table (`<|--`, `*--`, `o--`, `-->`, `--`, `..>`, `..|>`), complete example with visibility modifiers, stereotypes, and packaging.
-
-## State diagrams
-
-Use for modeling the lifecycle of a single entity -- orders, tickets, user accounts, deployments.
-
-```plantuml
-@startuml
-title Order Lifecycle
-
-[*] --> Pending: Order created
-Pending --> Confirmed: Payment succeeds
-Pending --> Cancelled: Payment fails
-Confirmed --> Shipped: Carrier picks up
-Shipped --> Delivered: Delivery confirmed
-Delivered --> [*]
-Cancelled --> [*]
-
-@enduml
-```
-
-See `references/state-diagrams.md` for nested/composite states, pseudo-state syntax (`[*]`, `<<fork>>`, `<<join>>`, `<<choice>>`), and concurrent regions with the `--` separator.
-
-## Other diagram types
-
-Use case (feature scope), mindmap (brainstorming), gantt (timelines), WBS (deliverable hierarchy), ER (technical data relationships), and JSON/YAML visualization are all supported.
-
-See `references/other-diagram-types.md` for complete examples of each.
-
-## Styling
-
-Use CSS-like `<style>` blocks instead of legacy `skinparam`. Place the style block immediately after `@startuml`:
-
-```plantuml
-@startuml
-title Styled Sequence Diagram
-
-<style>
-    sequenceDiagram {
-        actor { BackgroundColor #E8F5E9 }
-        participant { BackgroundColor #E3F2FD }
-    }
-</style>
-...
-@enduml
-```
-
-Built-in themes work via `!theme cerulean` (or `plain`, `sketchy-outline`, `aws-orange`, `mars`, `minty`). For wide diagrams, set `left to right direction` after `@startuml`.
-
-See `references/styling.md` for full `<style>` block examples, theme list, color formats, and layout direction rules.
-
-## Preprocessing
-
-Split large diagrams or share common definitions across files:
-
-```plantuml
-!include common/styles.puml
-!include common/actors.puml
-```
-
-`!procedure`, `!function`, variables (`!$name = ...`), conditionals (`!if`/`!else`/`!endif`), and loops (`!while`/`!endwhile`) are all available.
-
-See `references/preprocessing.md` for the full preprocessor syntax with examples.
+Split large diagrams or share definitions across files with `!include`. `!procedure`, `!function`, variables, conditionals and loops are also available. See `references/preprocessing.md`.
 
 ## Anti-patterns
 

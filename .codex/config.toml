@@ -4,18 +4,18 @@
 
 model = "gpt-5.6"
 model_reasoning_effort = "xhigh"
-sandbox = "danger-full-access"
+sandbox_mode = "danger-full-access"
 approval_policy = "never"
 
-[env]
-DISABLE_TELEMETRY = "1"
+[shell_environment_policy]
+set = { DISABLE_TELEMETRY = "1" }
 
 [features]
 multi_agent = true
-codex_hooks = true
+hooks = true
 
 [agents]
-max_threads = 6
+max_concurrent_threads_per_session = 6
 max_depth = 1
 
 [tui]
@@ -26,7 +26,3 @@ status_line = ["model-with-reasoning", "git-branch", "context-remaining", "used-
 command = "npx"
 args = ["-y", "@playwright/mcp@latest"]
 
-# MCP: ClickUp task management (used by the ticket-creator agent)
-[mcp_servers.clickup]
-command = "npx"
-args = ["-y", "mcp-remote", "https://mcp.clickup.com/mcp"]

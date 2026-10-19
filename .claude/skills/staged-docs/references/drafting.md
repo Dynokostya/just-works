@@ -28,14 +28,11 @@ An overview diagram of a process follows these rules as well (human-writing's ru
 
 ## Text
 
-The human-writing skill applies in full. These of its rules come up most often when you draft a piece:
+The human-writing skill applies in full. These points come from this skill's own files:
 
-- Each section opens the way its type needs (human-writing's rule "What is this?"): an explanation with what the thing is, a procedure with its goal, a report or a findings section with its main finding. When the piece describes part of a process, its opening also gives the input and the output in one sentence.
-- When the document describes decisions its readers make or wait for, the text names the owner role at each decision, from the Roles table in the concept ledger (human-writing's rule "When the reader acts on decisions"). A standing rule in NOTES.md, such as "a person approves", replaces this when the author chose one.
-- When the readers need different depth, such as people who decide and people who carry out the work, follow human-writing's rule "When the readers need different depth".
-- Examples are few, labeled as examples and collapsed where the format allows. Where the text describes a step, an example shows an excerpt of what the step produces and leaves out logs of tool runs. When the document walks through a process or a scenario, one running example goes through all of it (human-writing's rule "Is this real?").
-- The text holds decided content only, and planned or open items go in one place, such as a section for planned work or NOTES.md (human-writing's rule "Does this exist yet?"). In a document that proposes options, such as a proposal or a plan with open choices, the options are the content: label each one as an option, and say who decides and by when (human-writing's rule "When the document proposes options").
-- When the document describes a process, its parts carry no numbering scheme across pages, and they share a fixed template of slots only when the content differs from one step to the next (human-writing's rule "When the document describes a process", and its habit "The same point, formula or length throughout").
+- When the piece describes part of a process, its opening gives the input and the output in one sentence.
+- When the document describes decisions its readers make or wait for, the text names the owner at each decision, taking the role from the Roles table in the concept ledger. A standing rule in NOTES.md, such as "a person approves", replaces this when the author chose one.
+- Planned or open items go in one place, such as a section for planned work or NOTES.md. In a document that proposes options, label each option and say who decides and by when.
 
 ## Self-check before showing a draft
 

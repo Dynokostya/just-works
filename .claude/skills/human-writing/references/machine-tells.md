@@ -4,6 +4,14 @@ A tell is a habit of wording or structure that makes readers suspect a text was 
 
 Each entry gives the shape of the tell, the reason it bothers readers, the fix, and what to keep. Apply the "Keep" part before you record a finding, and list what you kept under "Left alone" in the report. Human writers produce these habits too. In one blind test, a quarter of the readers called a hand-written design document AI-written, so report what the reader experiences and leave authorship out of the report.
 
+## Contents
+
+- One sighting justifies an edit (tells 1 to 5)
+- Strong in documents, after a genre check (tells 6 to 13)
+- Weak alone: act on density or clusters (tells 14 to 23)
+- Over-corrections to avoid
+- Signs that point to a human writer, and signs that prove nothing
+
 ## One sighting justifies an edit
 
 **1. Leftovers from chat, drafts and tools**
@@ -21,7 +29,15 @@ Each entry gives the shape of the tell, the reason it bothers readers, the fix, 
 **3. Sayings and mirrored slogans** (habit 1)
 - Shape: balanced clauses that read as a motto, often two short clauses joined by "and" or a semicolon; a claim of the form "X is the language of Y".
 - Why: the symmetry does the work that content should do.
-- Fix: state the rule that the saying compresses (who acts, when and with what result) from the source material, or mark the gap. Delete the saying when the next sentence already makes the claim, as in the pair in `SKILL.md`, and apply the test described there: imagine the sentence in a document on another subject.
+- Fix: state the rule that the saying compresses (who acts, when and with what result) from the source material, or mark the gap. Delete the saying when the next sentence already makes the claim. To test a sentence, imagine it in a document on another subject, such as another organization or product: if it fits there unchanged, it says nothing specific about this one.
+
+```
+Bad:   Tests decide, and reviewers advise. A failing test blocks the
+       merge, because it gives the same result every time.
+
+Good:  A failing test blocks the merge, because it gives the same
+       result every time. A reviewer's comment does not block it.
+```
 - Keep: quotations, and idioms that the reader already uses.
 
 **4. One-line closers and staged openers**

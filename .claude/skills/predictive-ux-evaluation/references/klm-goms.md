@@ -12,14 +12,7 @@ Default to **KLM** (Keystroke-Level Model): one method, operator counts, a sum. 
 
 ## Encoding `KLM-web-1`
 
-Every KLM table states `encoding: KLM-web-1`. The operator times in this file *are* that encoding. Changing a constant or adding an operator requires `KLM-web-2` and a line in the changelog below.
-
-| ID | Skill vintage | Difference |
-|----|---------------|------------|
-| **KLM-web-0** | First published skill | Phone typing used **K = 0.28**; scroll had no time (unquantified `SCROLL`) |
-| **KLM-web-1** | This file | **P_tap** 1.10, **K_soft** 0.50, **SCROLL_W** 0.10 / notch, **SCROLL_F** 0.70 |
-
-A prior report with no encoding id is `KLM-web-0`. To compare times across skill versions, re-sum the old operator string with this file's table (`references/verify.md`). Never treat `5.48 s` vs `6.80 s` as a page change when the string went from `6K` to `6K_soft`.
+Every KLM table states `encoding: KLM-web-1`. The operator times in this file are that encoding. Changing a constant or adding an operator requires a new id (`KLM-web-2`), so that a verification run can tell a change in constants from a change in the page (`references/verify.md`).
 
 ## Operators and times (KLM)
 

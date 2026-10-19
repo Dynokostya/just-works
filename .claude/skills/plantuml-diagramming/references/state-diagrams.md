@@ -1,6 +1,23 @@
 # State Diagrams
 
-Deep-dive syntax. The basic lifecycle example lives in SKILL.md; this file covers composite states, pseudo-states, and concurrent regions.
+Use for modeling the lifecycle of a single entity, such as an order, ticket, user account or deployment.
+
+## Basic lifecycle
+
+```plantuml
+@startuml
+title Order Lifecycle
+
+[*] --> Pending: Order created
+Pending --> Confirmed: Payment succeeds
+Pending --> Cancelled: Payment fails
+Confirmed --> Shipped: Carrier picks up
+Shipped --> Delivered: Delivery confirmed
+Delivered --> [*]
+Cancelled --> [*]
+
+@enduml
+```
 
 ## Composite (nested) states
 

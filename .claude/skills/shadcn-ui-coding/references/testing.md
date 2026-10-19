@@ -4,19 +4,19 @@ Reference for the shadcn-ui-coding skill.
 
 ## Portal rendering
 
-Dialog, Popover, Sheet, Select, and DropdownMenu content render into a portal at `document.body`. Query by role, not by DOM hierarchy:
+Dialog, Popover, Sheet, Select, and DropdownMenu content render into a portal on `document.body`. Query by role from `screen`, not by DOM hierarchy:
 
 ```tsx
 // Wrong: content is not inside the trigger's DOM subtree
 const content = within(triggerParent).getByText("Option A");
 
-// Correct: query from screen (portaled to body)
+// Correct
 const content = screen.getByRole("option", { name: "Option A" });
 ```
 
 ## User events
 
-Radix components listen on `pointerdown`, not `click`. Use `userEvent.setup()` (not `fireEvent`):
+Use `userEvent.setup()` rather than `fireEvent`. Triggers such as Select and DropdownMenu respond to pointer events, and `userEvent` dispatches the full pointer sequence while `fireEvent.click` sends only a click:
 
 ```tsx
 import userEvent from "@testing-library/user-event";
@@ -29,6 +29,19 @@ it("opens the dialog", async () => {
 });
 ```
 
-## JSDOM limitations
+## jsdom gaps
 
-JSDOM does not implement `pointerdown` or `resize` observers fully. For components that rely on these (Sheet, Drawer, Resizable), test in a real browser environment (Playwright) or mock the specific Radix primitive.
+jsdom implements `PointerEvent` but not `ResizeObserver`, pointer capture (`hasPointerCapture`, `releasePointerCapture`), or `scrollIntoView`. Components that call them (Select, Sheet, Drawer, Resizable) throw until the test setup stubs them:
+
+```ts
+globalThis.ResizeObserver ??= class {
+  observe() {}
+  unobserve() {}
+  disconnect() {}
+};
+Element.prototype.hasPointerCapture ??= () => false;
+Element.prototype.releasePointerCapture ??= () => {};
+Element.prototype.scrollIntoView ??= () => {};
+```
+
+For behavior that depends on real layout or gestures (resizing, swipe to dismiss), use a real browser environment such as Playwright.

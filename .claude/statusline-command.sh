@@ -37,7 +37,7 @@ fmt_reset() {
   local now diff d h m
   resets=${resets%Z}
   case $resets in
-    *[!0-9]*) resets=$(date -j -u -f '%Y-%m-%dT%H:%M:%S' "$resets" +%s 2>/dev/null) || return 1 ;;
+    *[!0-9]*) resets=$(date -j -u -f '%Y-%m-%dT%H:%M:%S' "$resets" +%s 2>/dev/null || date -u -d "$resets" +%s 2>/dev/null) || return 1 ;;
   esac
   [ -n "$resets" ] || return 1
   now=$(date +%s)

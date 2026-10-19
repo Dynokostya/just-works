@@ -1,5 +1,11 @@
 Read this when you create NOTES.md or need to check its layout. The frontmatter is the state that a resumed session reads; the body holds the notes that the author and you keep.
 
+## Contents
+
+- Template
+- Frontmatter fields
+- Body sections
+
 ## Template
 
 Copy this into NOTES.md in the working folder and fill in the placeholders.

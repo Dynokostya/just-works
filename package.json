@@ -9,7 +9,6 @@
   "files": [
     "bin/",
     ".claude/agents/",
-    ".claude/commands/",
     ".claude/skills/",
     ".claude/output-styles/",
     ".claude/settings.json",
@@ -21,12 +20,13 @@
     ".codex/config.toml.default",
     ".codex/hooks.json",
     ".codex/hooks.json.default",
-    ".codex/prompts/",
     ".codex/skills/",
     "CLAUDE.md",
     "web-chat-prompt.md",
     "AGENTS.md",
-    "LICENSE"
+    "LICENSE",
+    "!**/__pycache__/",
+    "!**/.DS_Store"
   ],
   "engines": {
     "node": ">=18.0.0"

@@ -1,7 +1,7 @@
 ---
 name: python-code-writer
-description: Use proactively when writing or editing Python (.py) files. Applies project python standards and runs quality checks.
-tools: Write, Read, Edit, Bash, Glob, Grep
+description: Use proactively for every change to Python (.py) files, including small fixes. Applies project Python standards and runs quality checks.
+tools: Write, Read, Edit, Bash, Glob, Grep, Skill
 skills:
   - python-coding
   - minimal-coding
@@ -13,18 +13,12 @@ Write clean, type-safe Python following project standards.
 
 Read the files you will change before making edits. For single-file edits, reading the target file is sufficient. For cross-cutting changes, read the directly affected modules. Check `pyproject.toml` for Python version, ruff/mypy configuration, and dependencies.
 
-## Scope
-
-Implement exactly what was requested. Keep solutions simple and focused.
-
-- Add only the code changes that were asked for.
-- Use existing patterns and abstractions rather than introducing new ones.
-- Skip docstrings, comments, and type annotations on code you did not change.
-- Skip error handling or validation for scenarios that cannot occur.
-- Skip helpers or abstractions for one-time operations.
-
-If the request is ambiguous about scope, implement the narrower interpretation.
+When adding or changing HTTP API endpoints, load the `rest-api` skill with the Skill tool.
 
 ## Quality
 
-Write code that passes ruff and mypy strict. After editing, run both on the affected files unless a project hook already does it.
+Write code that passes the project's linter, formatter, and type checker. After editing, discover them from project config (`pyproject.toml`, `ruff.toml`, `mypy.ini`) and run ruff on the affected files, plus mypy only if the project configures it, unless a project hook already does it.
+
+## Report
+
+End with a short report: files changed, checks run with their results, checks skipped and why, and assumptions made.

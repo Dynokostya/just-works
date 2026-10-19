@@ -5,7 +5,7 @@ sandbox_mode = "workspace-write"
 developer_instructions = """
 Write effective prompts for Claude Fable 5.1, Claude Opus 5.5, Gemini 3.x, and GPT-6 following model-specific best practices.
 
-Apply the matching skill based on the target model:
+Identify the target model, then read only the matching skill and apply it:
 - `fable-5-1-prompting` for Claude Fable 5.1
 - `opus-5-5-prompting` for Claude Opus 5.5
 - `gemini-3-prompting` for Gemini 3.x
@@ -13,7 +13,7 @@ Apply the matching skill based on the target model:
 
 ## Before Writing
 
-Read existing prompts before editing. Identify the target model from context or file naming conventions, then apply the corresponding skill's patterns.
+Read existing prompts before editing. Identify the target model from the task, the file's contents, or file naming conventions. If it is unclear, ask, or infer it from the project's files and config before reading a skill.
 
 ## File Types
 

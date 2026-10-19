@@ -1,80 +1,73 @@
 ---
 name: synthetic-user-research
-description: "Use AI personas for early-stage research signal — with hard guardrails on what synthetic methods can and cannot validate. Use when asked to run synthetic user testing, simulate user reactions with AI personas, pretest a survey or message before fielding it, or decide whether synthetic research is appropriate at all. Produces a fit verdict for the question at hand, a persona-panel design grounded in real data, the findings labelled as synthetic throughout, and the follow-up plan with real humans. Never a substitute for discovery interviews — see discovery-interview-guide and user-research-synthesis for the real thing."
+description: "Use AI personas for early-stage research signal within a narrow scope. Use when asked to run synthetic user testing, simulate user reactions with AI personas, pretest a survey or message before fielding it, or decide whether synthetic research is appropriate. Produces a fit verdict, a persona-panel design grounded in real data, findings labelled synthetic, and a follow-up plan with real humans. Not a substitute for discovery interviews."
 ---
 
-# Synthetic User Research Skill
+# Synthetic User Research
 
-AI personas are the most misused research tool of the decade — and genuinely useful inside a narrow lane. The difference is the question you ask them. Synthetic panels can catch comprehension failures, confusing flows, and survey defects *before you spend real participants on them*; they cannot tell you what people will pay for, feel, or do. This skill enforces the lane, then runs the method properly.
+AI personas are useful in a narrow lane of questions and misleading outside it. A synthetic panel can catch comprehension failures, confusing flows and survey defects before real participants are spent on them. It cannot tell you what people will pay for, feel or do. This skill checks that the question is in the lane, then runs the method. Sometimes the result is "no, here is the human study to run instead".
 
-## What This Skill Produces
+## The lane (checked before anything runs)
 
-- A **fit verdict**: is this question answerable synthetically at all? (Sometimes the deliverable is "no — here's the human study instead")
-- A **persona-panel design** grounded in real data you already have, with provenance per persona
-- **Findings, labelled synthetic throughout**, with confidence calibrated to the method's floor
-- The **human follow-up plan** — what the synthetic pass earned you the right to test properly
+**Synthetic methods can probe** questions whose answer lives in the artifact, not in people's feelings:
+- **Comprehension**: is this copy, onboarding or explanation understandable, and where does a reader stumble?
+- **Instrument defects**: leading questions, double-barrelled items and missing answer options, found before a survey is fielded.
+- **Information architecture**: can someone with a goal find the thing, and where does the navigation mislead?
+- **Message differentiation**: do these three positionings read as different?
+- **Edge cases**: which user situations did the design forget? Personas serve as brainstorming here, not as evidence.
 
-## The Lane (checked before anything runs)
+**Synthetic methods cannot establish** the following, so refuse these questions and say why:
+- Willingness to pay, purchase intent or price sensitivity. Models have no budget and agree too readily.
+- Emotional response, delight or trust. A model's simulated feeling carries no information.
+- Unknown needs. Personas recombine known data, and discovery is about what is not yet known.
+- Behavior. What people say they would do is already unreliable, and a model's guess at it is worse.
+- Validation of a launch or investment decision. Synthetic output is not evidence of demand.
 
-**Synthetic methods CAN usefully probe** — because the answer lives in the artifact, not in human hearts:
-- **Comprehension**: is this copy/onboarding/explanation understandable? Where does a reader stumble?
-- **Instrument defects**: leading questions, double-barrelled items, missing answer options in a survey *before* fielding it
-- **Information architecture**: can a goal-holder find the thing? Where does the nav mislead?
-- **Message differentiation**: do these three positionings even *read* as different?
-- **Edge-case generation**: what user situations did the design forget? (Personas as brainstorm, not oracle)
+## Required inputs
 
-**Synthetic methods CANNOT establish** — refuse these, and say why:
-- Willingness to pay, purchase intent, or price sensitivity (models have no budget and infinite agreeableness)
-- Emotional response, delight, trust (simulated feeling is fluent and empty)
-- Discovery of unknown needs (personas remix known data; discovery is precisely the unknown)
-- Behavioural prediction (what people *say* is already unreliable; what a model says they'd say is worse)
-- Validation for a launch/investment decision (synthetic evidence is not evidence of demand)
-
-## Required Inputs
-
-Ask for (if not already provided):
-- **The research question** (runs through the lane check first — verdict before method)
-- **Real data to ground personas**: interview notes, support tickets, reviews, analytics segments. *No real data → no panel*: ungrounded personas are the model's stereotypes wearing name tags
-- **The artifact under test** (the copy, flow, survey, IA)
-- **What decision this feeds** — and its stakes (higher stakes shrink the lane)
+Ask for these if they are not provided:
+- **The research question.** Run the lane check first and give the verdict before choosing a method.
+- **Real data to ground the personas**: interview notes, support tickets, reviews, analytics segments. With no real data there is no panel, because ungrounded personas only repeat the model's stereotypes.
+- **The artifact under test**: the copy, flow, survey or navigation.
+- **The decision this feeds and its stakes.** Higher stakes narrow the lane.
 
 ## Method (when the lane check passes)
 
-1. **Build personas from data, with provenance.** Each persona cites its sources ("from the 14 churn interviews: SMB admin, low technical confidence, evaluates in <10 min"). 4-6 personas spanning the *real* segment axes, including at least one hostile/low-attention profile — synthetic panels skew cooperative unless you force otherwise.
-2. **Fight the agreeableness.** Instruct personas to struggle where their profile would struggle; ask for failure ("where do you stop reading? what would make you give up?") rather than opinions ("do you like this?"); never ask satisfaction or intent questions — the lane forbids the questions models answer most fluently.
-3. **Run artifact-grounded tasks.** Give the persona the actual artifact and a goal; capture where it misreads, stalls, or takes the wrong path. Quote the artifact in every finding.
-4. **Triangulate across personas and runs.** A stumble that appears across 4/6 personas and repeated runs is a signal; a single eloquent complaint is noise wearing insight's clothes.
-5. **Label relentlessly and hand off.** Every output says **SYNTHETIC** at the top and per-finding. Findings convert to: fixes to the artifact (cheap, do now) and hypotheses for the human study (the follow-up plan names method, n, and what would confirm/refute).
+1. **Build personas from data, with sources.** Each persona cites where it comes from, for example "from the 14 churn interviews: SMB admin, low technical confidence, evaluates in under 10 minutes". Use 4 to 6 personas that span the real segment axes, including at least one hostile or low-attention profile, because synthetic panels skew cooperative unless you force otherwise.
+2. **Counter the agreeableness.** Instruct each persona to struggle where its profile would struggle. Ask for failure ("where do you stop reading? what would make you give up?") and not for opinions ("do you like this?"). Never ask satisfaction or intent questions, since those are the ones models answer most fluently and least truthfully.
+3. **Run tasks on the actual artifact.** Give the persona the artifact and a goal. Record where it misreads, stalls or takes the wrong path, and quote the artifact in every finding.
+4. **Compare across personas and runs.** A stumble that appears for 4 of 6 personas and in repeated runs is a signal. A single eloquent complaint is not.
+5. **Label every output and hand off.** Mark the output SYNTHETIC at the top and on each finding. Convert findings into fixes to the artifact (cheap, do now) and hypotheses for the human study. The follow-up plan names the method, the sample size and what would confirm or refute each hypothesis.
 
-## Output Format
+## Output format
 
-### Synthetic Research Pass: [artifact] — ⚠️ SYNTHETIC SIGNAL, NOT USER EVIDENCE
+### Synthetic research pass: [artifact] (SYNTHETIC SIGNAL, NOT USER EVIDENCE)
 
-**Lane check:** [question] → [in-lane ✅ / out-of-lane 🔴 with the human method to use instead]
+**Lane check:** [question] → [in the lane / out of the lane, with the human method to use instead]
 
-**Panel:** [persona → grounded in → key traits] *(provenance per persona)*
+**Panel:** [persona → grounded in → key traits], with the source of each persona.
 
-**Findings** *(each labelled synthetic)*
+**Findings** (each labelled synthetic)
 | # | Finding | Artifact evidence (quoted) | Personas affected | Confidence |
 |---|---|---|---|---|
 
-**Fixes now:** [artifact changes the synthetic pass justifies — comprehension/IA/instrument defects]
+**Fixes now:** [artifact changes the pass justifies: comprehension, navigation and survey defects]
 
-**For real humans:** [hypothesis → method → n → what confirms/refutes] — *the synthetic pass bought sharper questions, not answers*
+**For real humans:** [hypothesis → method → n → what confirms or refutes it]. The synthetic pass produces sharper questions, not answers.
 
-## Quality Checks
+## Quality checks
 
 - [ ] The lane check ran first, and out-of-lane questions were refused with the alternative named
-- [ ] Every persona cites the real data it's built from — no data, no persona
-- [ ] The panel includes hostile/low-attention profiles
-- [ ] No finding reports simulated emotion, intent, or willingness to pay
-- [ ] SYNTHETIC labelling survives copy-paste (it's in the findings, not just the header)
-- [ ] The human follow-up plan exists — this method ends in better questions, never in validation
+- [ ] Every persona cites the real data it is built from
+- [ ] The panel includes hostile or low-attention profiles
+- [ ] No finding reports simulated emotion, intent or willingness to pay
+- [ ] The SYNTHETIC label appears on each finding, so it survives copy-paste
+- [ ] The human follow-up plan exists
 
-## Anti-Patterns
+## Anti-patterns
 
-- [ ] Do not run synthetic "validation" for launch or investment decisions — that's laundering a model's agreeableness into evidence
-- [ ] Do not build personas from vibes or market-report archetypes — stereotypes in, stereotypes out
-- [ ] Do not ask personas how they *feel* or what they'd *pay* — the fluent answer is the false one
-- [ ] Do not report synthetic findings in the same register as real research — a stakeholder who can't tell the difference wasn't told loudly enough
-- [ ] Do not let a synthetic pass replace the discovery interview it was supposed to prepare — the lane is *before* human research, never instead of it
+- Running synthetic "validation" for a launch or investment decision. This presents a model's agreeableness as evidence.
+- Building personas from guesses or market-report archetypes. Personas built that way repeat the stereotypes behind them.
+- Asking personas how they feel or what they would pay. The fluent answer is the unreliable one.
+- Reporting synthetic findings in the same register as real research. A stakeholder who cannot tell the difference was not told clearly enough.
+- Letting a synthetic pass replace the discovery interview it was meant to prepare. It comes before human research, never instead of it.

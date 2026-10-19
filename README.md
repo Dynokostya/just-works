@@ -4,28 +4,31 @@ I am tired of manually prompting Claude Code each time to include all tools, bes
 
 Drop-in AI agent workflows, coding skills, and prompt standards for **Claude Code** and **OpenAI Codex**.
 
-Just copy `.claude/` into any project — or install globally — and get pre-configured agents, quality guardrails, and documentation pipelines out of the box.
+Just copy `.claude/` into any project — or install globally — and get pre-configured agents and quality guardrails out of the box.
 
-**`.codex/` works only if you install it globally (only skills folder works per-project).**
+**`.codex/` works only if you install it globally.** The exception is skills: Codex reads project skills from `.agents/skills/`, so for a single project copy `.claude/skills/` to `<project>/.agents/skills/`.
 
 ## What's Inside
 
 **Lean by default** — the `compressed` output style trims response tokens (filler, hedging, emojis); `minimal-coding` forces least-code solutions. Less context burned, lower cost.
 
-**Full Claude Code fluency** — uses the whole toolset by default: `AskUserQuestion` for structured choices, rich markdown, `TaskCreate` progress tracking, and parallel tool calls — not plain-text walls.
+**Full Claude Code fluency** — uses the whole toolset by default: `AskUserQuestion` for structured choices, rich markdown, and parallel tool calls — not plain-text walls.
 
 **Context-isolating subagents** — delegates file-type work (`python`, `react`, `swift`, …) to subagents that carry their own context, so the main thread stays lean and focused.
 
-**Agents** — file-type-triggered writers (`python`, `typescript`, `swift`, `csharp`, `react`), plus `prompt-writer`, `diagrammer`, and `ticket-creator`. 8 per provider.
-**Commands** — `project-docs` and `git-sync` (Claude & Codex).
+**Agents** — file-type-triggered writers (`python`, `typescript`, `swift`, `csharp`, `react`), plus `prompt-writer`. 6 per provider. PlantUML diagrams are handled by the `plantuml-diagramming` skill.
 
-**Skills** — coding standards (Python, TypeScript, React, Tailwind, shadcn/ui, Swift, C#), model-specific prompt engineering (Claude Opus 5 & Fable 5, GPT-5.6, Gemini 3), behavioral modes (`minimal-coding` for least-code solutions), and `human-writing` for documents that people outside the project can follow. Applied automatically based on the file type you're editing. The exception is `staged-docs`, which runs only when you start it with a topic (`/staged-docs <topic>`, or `$staged-docs` in Codex): it builds a document with you piece by piece, in a mode you choose per piece (agent-drafted, step by step, or author-led), with review rounds you decide on a local page.
+**Skills** — coding standards (Python, TypeScript, React, Tailwind, shadcn/ui, Swift, C#), model-specific prompt engineering (Claude Opus 5.5 and Fable 5.1, GPT-6, Gemini 3), behavioral modes (`minimal-coding` for least-code solutions), and `human-writing` for documents that people outside the project can follow. Applied automatically based on the file type you're editing. The exception is `staged-docs`, which runs only when you start it with a topic (`/staged-docs <topic>`, or `$staged-docs` in Codex): it builds a document with you piece by piece, in a mode you choose per piece (agent-drafted, step by step, or author-led), with review rounds you decide on a local page.
 
-**Security** — `settings.json` blocks agent access to `*.pem`, `*.key`, credentials, cloud configs, SSH keys, Terraform state, and databases.
+**Security** — the `--personal` `settings.json` blocks agent reads of `.env`, `*.pem`, `*.key`, credentials, cloud configs, SSH keys, Terraform state, and databases. The default `settings.json` has an empty deny-list.
 
 ## Installation
 
-Installs agents, skills, commands, and settings globally to `~/.claude/` and `~/.codex/`. Existing files get backed up automatically.
+Installs agents, skills, and settings globally to `~/.claude/` and `~/.codex/` (Codex skills go to `~/.agents/skills/`). The status line script (`statusline-command.sh`) needs [`jq`](https://jqlang.org/).
+
+The installer only touches what this repo ships. It replaces each agent, skill and output style one by one, so other skills and agents already in those folders stay as they are. Before it replaces or removes anything it backs it up to `~/just-works-backups/<timestamp>/`, unless you answer `n` at the prompt or pass `--no-backup`. Each install writes a `.just-works-manifest` file in `~/.claude/`, `~/.codex/` and `~/.agents/` listing what it installed. On the next run, entries that a newer version no longer ships (renamed or deleted skills, for example) are removed from that list. Your own files are never in it.
+
+To install into another Claude Code profile or Codex home, set the variable that tool already reads, for example `CLAUDE_CONFIG_DIR=~/.claude-2 ./install.sh --claude-only --skip-config` or `CODEX_HOME=~/.codex-work ./install.sh --codex-only`.
 
 > **For the best experience, add `--personal`** — installs my full opinionated config instead of the minimal defaults:
 >
@@ -41,9 +44,9 @@ Installs agents, skills, commands, and settings globally to `~/.claude/` and `~/
 |---|---|---|
 | Permissions | prompts for everything | `bypassPermissions` + safe read-only allow-list |
 | Security deny-list | empty | blocks reads of keys, credentials, lockfiles, build dirs |
-| Model / effort | Claude Code defaults | `opus[1m]` main model at `high` effort, subagents forced to `sonnet` at `high` effort, at most 5 at once |
+| Model / effort | Claude Code defaults | `opus[1m]` main model at `high` effort, subagents forced to `sonnet` at `high` effort; the limit of 5 concurrent subagents and nesting depth 1 are set by `env` variables in `settings.json` |
 | Output style | `default` | `Compressed` (fewer tokens) |
-| Codex | model + basic status line | `danger-full-access`, no approval prompts, MCP servers (Playwright, ClickUp) |
+| Codex | model + basic status line | `danger-full-access`, no approval prompts, up to 6 concurrent agent threads, MCP server (Playwright) |
 | Hooks (Claude) | none | Bash command rewriting + completion sounds |
 
 **Two `--personal` hooks need extra setup to work:**
@@ -69,7 +72,7 @@ curl -fsSL https://raw.githubusercontent.com/dynokostya/just-works/main/bootstra
 Pin to a specific version:
 
 ```bash
-JUST_WORKS_REF=v1.1.3 curl -fsSL https://raw.githubusercontent.com/dynokostya/just-works/main/bootstrap.sh | bash
+JUST_WORKS_REF=v1.1.4 curl -fsSL https://raw.githubusercontent.com/dynokostya/just-works/main/bootstrap.sh | bash
 ```
 
 To update: re-run the same command.
@@ -122,14 +125,14 @@ export AZURE_OPENAI_API_KEY="your-key-here"
 
 ### MCP for Claude Code
 
-MCP servers are configured per-project, not globally. To set up MCP in your project:
+MCP servers are configured per project, not globally. The installers do not copy the MCP files, so download the one you want from this repo into your project. `.mcp.json.default` is an empty server list; `.mcp.json` declares the Playwright server.
 
 ```bash
-cp .mcp.json.default /path/to/your/project/.mcp.json
+curl -fsSL https://raw.githubusercontent.com/dynokostya/just-works/main/.mcp.json.default -o /path/to/your/project/.mcp.json
 ```
 OR
 ```bash
-cp .mcp.json /path/to/your/project/.mcp.json
+curl -fsSL https://raw.githubusercontent.com/dynokostya/just-works/main/.mcp.json -o /path/to/your/project/.mcp.json
 ```
 
 Requires `npx` (Node.js) in your PATH.
@@ -152,21 +155,26 @@ Confirm with `rtk verify` (prefix `CLAUDE_CONFIG_DIR=<dir>` for other config dir
 
 ```
 .claude/
-  agents/           # Claude Code agent definitions
-  skills/           # Coding and prompting standards
-  commands/         # Multi-step workflows (project-docs, git-sync)
-  output-styles/    # Selectable output styles (compressed)
-  settings.json     # Permissions, hooks, env, MCP toggles
+  agents/                 # Claude Code agent definitions
+  skills/                 # Coding and prompting standards (the single copy, also installed for Codex)
+  output-styles/          # Selectable output styles (compressed)
+  settings.json           # Personal permissions, hooks, env (--personal)
+  settings.json.default   # Minimal settings
+  statusline-command.sh   # Status line (needs jq)
 .codex/
-  agents/           # Codex custom agent definitions (TOML)
-  prompts/          # Codex slash commands (project-docs, git-sync)
-  skills/           # Same standards, mirrored for Codex
-  config/azure/     # config.toml.default + config.toml
-  hooks.json        # Lifecycle hooks (notification)
-bin/cli.mjs         # npx installer
-CLAUDE.md           # Behavioral instructions for Claude Code
-web-chat-prompt.md  # Behavioral instructions for claude.ai chat
-AGENTS.md           # Behavioral instructions for Codex
+  agents/                 # Codex custom agent definitions (TOML)
+  skills/                 # Codex-only extras laid over .claude/skills (staged-docs/agents/openai.yaml)
+  config.toml             # Personal config (--personal)
+  config.toml.default     # Minimal config
+  config/azure/           # Azure OpenAI variants of both
+  hooks.json              # Lifecycle hooks (notification), plus hooks.json.default
+bin/cli.mjs               # npx installer
+install.sh, install.bat   # Installers for macOS/Linux and Windows
+bootstrap.sh              # curl | bash wrapper around install.sh
+.mcp.json, .mcp.json.default  # Per-project MCP server declarations
+CLAUDE.md                 # Behavioral instructions for Claude Code
+web-chat-prompt.md        # Behavioral instructions for claude.ai chat
+AGENTS.md                 # Behavioral instructions for Codex
 ```
 
 `.claude/` and `.codex/` are parallel and independent — use one or both.
@@ -175,7 +183,7 @@ AGENTS.md           # Behavioral instructions for Codex
 
 Add project-specific agents in `.claude/agents/` or `.codex/agents/`. Override skill defaults in your own `CLAUDE.md` or `AGENTS.md`. Extend the deny-list in `.claude/settings.json`.
 
-If you fork this: skills must be mirrored across both providers (Codex doesn't support `@file` references). Keep instructions model-agnostic.
+If you fork this: write each skill once in `.claude/skills/`. The installers copy that folder to `~/.agents/skills/` for Codex and add any files from `.codex/skills/` on top, so put Codex-only files there under the same skill name. Codex doesn't support `@file` references, so keep each skill self-contained. Keep instructions model-agnostic.
 
 ## License
 

@@ -6,7 +6,7 @@ For the current piece:
 
 2. **Save it verbatim.** Before you do anything else with the author's words, append them unchanged to inputs/piece-<n>.md as an entry headed with the date. Do the same with each later answer that adds to the substance of this piece; a bare instruction such as "continue" or "approved" is not substance. These words are the source that every claim in the piece traces back to.
 
-3. **Discuss.** Restate the view as a short list, keeping what the author said apart from what you infer. Point out where it conflicts with the sources, citing the location, or with common practice in the field. Disagree where you have grounds: the author wants conflicts named, and agreement for its own sake hides them. Ask the numbered questions, and end with "Anything else for this piece?"
+3. **Discuss.** Restate the view as a short list, keeping what the author said apart from what you infer. Point out where it conflicts with the sources, citing the location, or with common practice in the field. Disagree where you have grounds: the author wants conflicts named, and agreement for its own sake hides them. Ask your questions as the Questions rule in SKILL.md describes, and end with "Anything else for this piece?"
 
    **Stop.** Set `waiting_for: "approval of the substance of piece <n>"` and end the turn with the menu. Repeat steps 2 and 3 until the author approves the substance. Record each decision as a D-n line in NOTES.md, then set `status: discussed`.
 

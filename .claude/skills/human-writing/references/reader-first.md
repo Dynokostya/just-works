@@ -1,6 +1,21 @@
 # Rules for a reader who lacks your context: details and techniques
 
-This file adds to `SKILL.md`: rules that apply less often, more Bad and Good pairs, the questions to ask during a review, and techniques for reading a text the way its reader will. Its sections use the titles and the order of `SKILL.md`, and each one adds detail to the rule or section of the same title there. Where a pair has a Known line, the Good version uses only what its Bad version or its Known line states.
+This file adds to `SKILL.md`: Bad and Good pairs for the rules, the questions to ask during a review, and techniques for reading a text the way its reader will. Its sections use the titles and the order of `SKILL.md`, and each one adds detail to the rule or section of the same title there. Where a pair has a Known line, the Good version uses only what its Bad version or its Known line states.
+
+## Contents
+
+- Decide what the reader needs
+- "What is this?"
+- "What does this word mean?"
+- "What does this sentence claim?"
+- "Why is this here?"
+- "Is this real?"
+- "Does this exist yet?"
+- "Can I trust the page?"
+- Rules for some documents: when the document is long, describes a process, asks the reader to act on decisions, serves readers who need different depth, or proposes options
+- Review questions
+- Review techniques
+- Facts stay fixed
 
 ## Decide what the reader needs
 
@@ -32,6 +47,21 @@ Good:  Each kind of visit has its own form: one for first visits, one
 - **Sections that stand alone.** Many readers arrive at a section from a search or a link. Give each section a title and a first paragraph that provide the context it needs, and link to any earlier section that it depends on.
 - **Tables for lookup.** Use a table so that the reader can look something up, and keep its cells short. When a cell needs more than a sentence or two, move its content to prose and keep the short answer in the table.
 
+A section that opens with its main finding:
+
+```
+Known: in a six-week pilot in two clinics, the new check-in form cut
+       the average wait at check-in from 25 to 12 minutes in both.
+
+Bad:   ## Results
+       The pilot ran in two clinics for six weeks. Waiting times were
+       recorded at check-in, and staff were interviewed at the end.
+
+Good:  ## Results
+       The new check-in form cut the average wait at check-in from 25
+       to 12 minutes in both pilot clinics.
+```
+
 An explanation in the order a newcomer needs, with a literal word where a figurative one stood:
 
 ```
@@ -57,6 +87,16 @@ Good:  Every change gets a tier that says how risky it is.
 - **Small words and clear pronouns.** Keep words such as "that", "the" and "then", and repeat a noun when a pronoun could point to two things. Second-language readers and translation tools depend on these words.
 - **Literal phrasing.** Avoid idioms, phrasal verbs such as "carry out" or "find out", and references that depend on one culture, in headings as well as in text. Second-language readers and translation tools read them word by word.
 - **A term list for long documents.** Keep a list of each concept and its one approved name, and check each draft against it. An agent that works on a document for hours tends to coin a second name for something that already has one, and then uses both names without connecting them.
+
+One name for each thing, with no abbreviation:
+
+```
+Bad:   Each expense claim (EC) needs receipts. Your EC goes to your
+       line manager, who approves the EC.
+
+Good:  Each expense claim needs receipts. Your expense claim goes to
+       your line manager, who approves it.
+```
 
 A term defined in a sentence of its own, from words the reader knows:
 
@@ -107,12 +147,40 @@ Good:  Every payment over 5,000 euros must have a second signature.
 
 - **Navigation by role.** When a document needs routing by role, put it in the navigation, such as a contents page with links by task, and keep it out of the opening of the content. Routing by task works better than routing by audience, because readers often cannot place themselves in a list of roles, and role labels often come from internal jargon.
 
+A page that opens with what it gives the reader, with no routing by role:
+
+```
+Known: the guide explains the first week for new staff in every
+       department, and what to bring on the first day.
+
+Bad:   Sales staff start at section B2, warehouse staff at C1, and
+       managers at the appendix.
+
+Good:  This guide explains what happens in your first week, and what
+       to bring on your first day.
+```
+
 ## "Is this real?"
 
 - **One running example.** When a document walks through a process or a scenario, use one invented scenario for the whole document, such as a new receptionist's first week at a clinic. Introduce it once, near the start, and say that it is invented. A reader who arrives at a section from a link has not met the scenario and takes its details as real, so name it there in a few words. Other documents, such as reports and reference pages, may use several examples, or real cases that the source material gives.
 - **Few example blocks.** Add an example block only where the shape of a result is not obvious from the text, such as the layout of a form. When every step has a block, the reader learns to skip them. Where the format allows, collapse a long example, so that a reader who knows the shape can pass it.
 - **What a step produces.** Where the text describes steps, show an excerpt of what a step produces, such as a form, a schedule or a ticket. A log of a tool run shows how the tool worked, which belongs on the tool's reference page, and its hashes, timings and counts look like real data.
 - **Values in examples.** Explain each specific value in an example, such as a date, an identifier or a duration, or replace it with a placeholder that is clearly not real, such as `<incident number>`. Unexplained values look like real data.
+
+A general case in place of an invented incident that reads as real:
+
+```
+Known: after an incident, the on-call engineer restores the service.
+       The cause is recorded as a bug, and each follow-up action
+       becomes a task with an owner.
+
+Bad:   On March 3, login failed for some users, incident OPS-311. On-call
+       restored service in 41 minutes. The cause became bug OPS-305.
+
+Good:  When an incident happens, the on-call engineer restores the
+       service first. The cause is then recorded as a bug, and each
+       follow-up action becomes a task with an owner.
+```
 
 An example that shows what a step produces, taken from the running example:
 
@@ -140,11 +208,47 @@ Good:  For example, the first-week schedule for the new receptionist
 - **Words that go stale.** Avoid "new", "now", "currently" and "soon", which become wrong without anyone editing them. When timing matters, give a date.
 - **Partial coverage.** If a section covers its subject only in part, say so at its top. Leave no empty headings.
 
+Status given where the reader needs it:
+
+```
+Known: the online booking system is not built. Until it is, staff book
+       meeting rooms by email to the front desk. The policy has a
+       section on planned changes.
+
+Bad:   Staff book meeting rooms in the online booking system. (Twenty
+       lines later: the booking system is not available yet.)
+
+Good:  Staff book meeting rooms by email to the front desk. (In the
+       section on planned changes: an online booking system that will
+       replace the email.)
+
+Known: the section is a placeholder, and nobody has written it.
+
+Bad:   Drafted after the director's review.
+Good:  To be done.
+```
+
 ## "Can I trust the page?"
 
 - **Headings with explained terms.** A heading uses the reader's words and no term that the page has not explained yet.
 - **One version across documents.** Keep terms and formatting the same across the page and its companion documents. When two documents describe the same thing in different ways, readers suspect that neither is current.
 - **Leftovers from publishing tools.** Documentation generators often add a symbol such as "¶" as the visible link of each heading's anchor, and it shows up when the page is copied, printed or converted. Raw markup, template placeholders and broken links are other leftovers. Check a copy in the format that the reader uses.
+
+Headings that say what the section contains:
+
+```
+Known: the section covers how the team turns a request into an item
+       in its backlog that is ready for work.
+
+Bad:   Workflow 1: Request to ready backlog item
+Good:  Turn a request into a backlog item that is ready for work
+
+Known: the section covers how the clinic records patient complaints,
+       and how each complaint gets an answer.
+
+Bad:   Complaints and closing the loop
+Good:  Record and answer patient complaints
+```
 
 ## Rules for some documents
 
@@ -209,6 +313,27 @@ Good:  Decision                              Owner
 ### When the readers need different depth
 
 - **What each layer holds.** For readers who decide, the main text gives the outcome, who decides and the evidence the decision needs. Tool names, commands, file paths and configuration go into the detail layer. A reader who decides should be able to follow the main text with every details block closed.
+
+One step of a process, written in two layers for employees and the finance team:
+
+```
+Known: the manager's check starts from a submitted expense claim and
+       ends with the claim approved or returned to the employee. The
+       employee's manager checks the receipts and decides. In the
+       finance system, the claim is form EX-2, and it waits in the
+       manager's queue for up to five days.
+
+Bad:   ## Step 2.3: Approval
+       Input: see step 2.2. Form EX-2 waits in the manager's queue for
+       up to five days, and then the system escalates it.
+
+Good:  ## Check the claim
+       Input: a submitted expense claim. Output: the claim, approved or
+       returned to the employee.
+       The employee's manager checks the receipts and decides.
+       Details (collapsed): in the finance system, the claim is form
+       EX-2, and it waits in the manager's queue for up to five days.
+```
 
 ### When the document proposes options
 
@@ -297,3 +422,21 @@ These add to the passes in the Review method of `SKILL.md`.
 - **Read each section alone.** Read each section as if you arrived from a search or a link, and check it against "Sections that stand alone" above.
 - **Separate the types.** Ask of each section whether it helps the reader do something or understand something. A section that tries to do both mixes a procedure with an explanation, and should be split. Then note the purpose each section serves. Sections with different purposes belong in different documents or clearly separated sections.
 - **Ask for a paraphrase.** When you test the text with a reader who has only the document (see Review method in `SKILL.md`), ask them to say in their own words what each section means. Readers often call a text clear and still misread a key term. Compare the paraphrase with what the text was meant to say.
+
+## Facts stay fixed
+
+A fix that uses facts the source material gives (`SKILL.md` shows the case where the source material lacks the fact and the fix is a marked gap):
+
+```
+Known: there are three steps. First an engineer watches every agent
+       session. Then agents run in the pipeline with read-only access.
+       Last, agents may push branches by themselves.
+
+Bad:   Autonomy expands in stages (R7).
+
+Good:  Agents start under supervision and get more independence in
+       three steps.
+       1. At first, an engineer watches every agent session.
+       2. Next, agents may run in the pipeline with read-only access.
+       3. Later, agents may push branches by themselves.
+```

@@ -23,8 +23,8 @@ Run the script by its path inside the skill folder:
 Exit codes: 0 success, 1 problems found, 2 usage error.
 
 The page template is assets/review.html in the skill folder. When the environment
-variable STAGED_DOCS_TEMPLATE is set, it names the template file to use instead; the
-tests use it for a stand-in template.
+variable STAGED_DOCS_TEMPLATE is set, it names the template file to use instead of
+the one in the skill folder.
 """
 
 import argparse

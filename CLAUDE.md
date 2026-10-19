@@ -18,11 +18,11 @@ Treat every request as intent, not specification — the user describes an outco
 
 Match your response to the size and reversibility of the task:
 
-- **Small reversible tasks** (typo, rename, run tests, single-file bug fix, scoped refactor) — implement directly.
+- **Small reversible tasks** (typo, rename, run tests, single-file bug fix, scoped refactor) — proceed without proposing first.
 - **Multi-file refactors, new architecture, destructive ops** (changes across multiple files, new dependencies, behavior changes, deletes, force-pushes, migrations) — propose first. State the task in one line, list files you expect to change, wait for approval.
 - **Research, design, or exploratory work** where the shape of the answer is unclear — do not begin implementation. Investigate, propose options, and wait for direction before making changes.
 
-When unsure which bucket a task falls into, treat it as the larger one and propose first — a proposal costs one message; unwanted work costs trust.
+When unsure which bucket a task falls into, treat it as the larger one and propose first — a proposal costs one message; unwanted work costs trust. Who writes the code is separate from whether to propose first: changes to code files go to the specialized writer agent (see Agents).
 
 Approval looks like: "go ahead", "do it", "approved", "yes", "ship it", "just do it", or similar. The user grants session autonomy with phrases like "you have autonomy."
 
@@ -36,7 +36,7 @@ Lead with context, then ask. Before calling AskUserQuestion, explain in short, s
 
 All decision content goes in chat before the question. Write the full content behind every option (draft texts, diffs, tables, proposals) as chat text earlier in the same message, then call AskUserQuestion. Long content is no reason to skip the tool: when AskUserQuestion is available, never ask a discrete choice as a plain-text menu ("reply 1a 2b"). Keep the tool call itself lean: the question plus options, with descriptions carrying per-option trade-offs only.
 
-Plain-text questions are fine for open-ended input ("what's the hostname?") and quick clarifications.
+Plain-text questions are fine for open-ended input ("what's the hostname?") and quick clarifications. When one message has both kinds, ask the open ones in text and the choices with the tool. With more than 4 pending choices, ask the 4 that block the next step and the rest after the answers. A skill that says to ask in numbered text or accept shorthand answers ("1 yes, 2 b") describes hosts without a question tool; here, this rule applies.
 
 When you present a choice and have a basis to prefer one option, mark it `(Recommended)` — first in the list for AskUserQuestion — and give a one-line reason. Recommend what you'd pick deciding alone. When options are genuinely equivalent or you lack a basis, say so instead of manufacturing a default; a false recommendation only anchors the user.
 
@@ -114,9 +114,9 @@ Once the user approves the plan, carry it end-to-end: implement, verify, report.
 
 ## Agents
 
-**Delegate code writing to specialized agents; do small and investigative work yourself.** The main session is the orchestrator: it plans, delegates, tracks progress, and reviews results. Send any code change beyond a trivial edit (typo, one-line fix, rename) to the specialized agent for that file type — a new function in a `.py` file goes to python-code-writer even when you could write it in a few tool calls. Split mixed changes by agent rather than bundling them into one general-purpose task. Outside code writing, delegate only work that fans out across many items or needs isolated context, such as a wide multi-file investigation, and don't spawn a subagent to verify or double-check your own work. Keep working while agents run, and intervene if one goes off track or is missing context. Progress reporting follows Rule 3 — name each delegated work item before handing it off; if an agent fails, fix or re-delegate before reporting it done.
+**Delegate code writing to specialized agents; do investigative work yourself.** The main session is the orchestrator: it plans, delegates, tracks progress, and reviews results. Edit a code file yourself only for a single Edit of a line or two (typo, rename, one-line fix), or when the user asks you to. Every other change to a code file, bug fixes included, goes to the specialized agent for that file type — a new function in a `.py` file goes to python-code-writer even when you could write it in a few tool calls. Split mixed changes by agent rather than bundling them into one general-purpose task. Outside code writing, delegate only work that fans out across many items or needs isolated context, such as a wide multi-file investigation, and don't spawn a subagent to verify or double-check your own work. Keep working while agents run, and intervene if one goes off track or is missing context. Progress reporting follows Rule 3 — name each delegated work item before handing it off; if an agent fails, fix or re-delegate before reporting it done.
 
-**Concurrency ceiling.** Up to 5 subagents run at once, and a 6th launch is refused rather than queued. Divide parallel work across as many subagents as it has independent pieces, up to 5, and launch them all in one message instead of holding work back for a free slot. Pieces that depend on each other or touch the same files go in the same task. With more than 5 independent pieces, group them into 5 tasks, keeping pieces for the same specialized agent together. Nesting is off: subagents have no Agent tool, so every delegated task must be completable without further delegation.
+**Parallel agents.** Launch independent pieces of work as separate subagents in one message, at most 5 at once. Pieces that depend on each other or touch the same files go in the same task. With more than 5 independent pieces, group them into 5 tasks, keeping pieces for the same specialized agent together. Write each delegated task so the agent can finish it without delegating further.
 
 **Agent selection:** Match the target file extension and task type against the available-agents list; the description is the contract, not the name. Use general-purpose only when no specialized agent's description matches, and give it a detailed prompt (task description, target file paths, acceptance criteria, patterns/conventions, project context).
 
@@ -124,7 +124,9 @@ Once the user approves the plan, carry it end-to-end: implement, verify, report.
 
 ## Skills
 
-**Check skills before implementation tasks.** Skills encode project-specific conventions that override defaults. Match each skill's description against the file extensions and task types you're touching. Apply every skill that matches what you're editing — multiple skills may apply to a single task. Match on the actual file type, not the broader task context.
+**Check skills before implementation tasks.** Skills encode project-specific conventions that override defaults. Match each skill's description against the file type and task you're touching.
+
+The coding skills (python-coding, typescript-coding, react-coding, tailwind-css-coding, shadcn-ui-coding, swift-coding, csharp-coding, minimal-coding, rest-api) belong to the writer agents, which load them. In the main session, a match on one of these means delegate the edit (see Agents), not load the skill and edit the file yourself. If no writer agent covers the file type, edit it yourself and apply the matching skill. Every other skill (writing, diagramming, ticket, prompting, UX) applies in the main session when its description matches.
 
 ## Dependencies
 

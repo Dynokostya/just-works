@@ -2,6 +2,12 @@
 
 Use for business processes, workflows, and decision flows. Swimlane partitions make it clear who is responsible for each step.
 
+## Contents
+
+- Basic flow
+- Swimlanes with partitions
+- Coloring activity steps with stereotypes
+
 ## Basic flow
 
 ```plantuml

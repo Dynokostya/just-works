@@ -19,6 +19,7 @@
       "Bash(echo:*)"
     ],
     "deny": [
+      "Read(**/.env)",
       "Read(**/*.pem)",
       "Read(**/*.key)",
       "Read(**/*.p12)",
