@@ -89,6 +89,7 @@ if "%SKIP_CONFIG%"=="1" (
 )
 
 call :install_file "%SCRIPT_DIR%CLAUDE.md" "%CLAUDE_HOME%\CLAUDE.md" "CLAUDE.md"
+call :install_file "%SCRIPT_DIR%.claude\hooks\skill-guard.sh" "%CLAUDE_HOME%\hooks\skill-guard.sh" "hooks\skill-guard.sh"
 call :sync_owned_file "%SCRIPT_DIR%web-chat-prompt.md" web-chat-prompt.md
 if "%SKIP_STATUSLINE%"=="1" (
     echo [+] Skipping statusline-command.sh ^(--skip-statusline^)
@@ -451,6 +452,7 @@ echo     settings.json             Permission and hook configuration
 echo     CLAUDE.md                 Global behavioral instructions
 echo     web-chat-prompt.md        Instructions for claude.ai chat
 echo     statusline-command.sh     Status line script ^(needs jq^)
+echo     hooks\skill-guard.sh      Loads coding skills before the first code edit ^(needs jq^)
 echo.
 echo   %%USERPROFILE%%\.codex\
 echo     agents\       Custom agent definitions (python-code-writer, prompt-writer, ...)

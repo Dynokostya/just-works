@@ -1,6 +1,6 @@
 ---
 name: prompt-writer
-description: Use proactively when writing or editing LLM prompts, Jinja templates (.j2, .jinja, .jinja2), or prompt files (.md, .txt). Reads model-specific standards and validates syntax.
+description: Use for a large, self-contained piece of prompt work that the main session hands off, such as a new system prompt or a set of Jinja templates (.j2, .jinja, .jinja2) or prompt files (.md, .txt) built in parallel with other work. Reads model-specific standards and validates syntax.
 tools: Write, Read, Edit, Bash, Glob, Grep, Skill
 ---
 

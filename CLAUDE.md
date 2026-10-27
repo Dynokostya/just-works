@@ -22,7 +22,7 @@ Match your response to the size and reversibility of the task:
 - **Multi-file refactors, new architecture, destructive ops** (changes across multiple files, new dependencies, behavior changes, deletes, force-pushes, migrations) — propose first. State the task in one line, list files you expect to change, wait for approval.
 - **Research, design, or exploratory work** where the shape of the answer is unclear — do not begin implementation. Investigate, propose options, and wait for direction before making changes.
 
-When unsure which bucket a task falls into, treat it as the larger one and propose first — a proposal costs one message; unwanted work costs trust. Who writes the code is separate from whether to propose first: changes to code files go to the specialized writer agent (see Agents).
+When unsure which bucket a task falls into, treat it as the larger one and propose first — a proposal costs one message; unwanted work costs trust.
 
 Approval looks like: "go ahead", "do it", "approved", "yes", "ship it", "just do it", or similar. The user grants session autonomy with phrases like "you have autonomy."
 
@@ -114,11 +114,11 @@ Once the user approves the plan, carry it end-to-end: implement, verify, report.
 
 ## Agents
 
-**Delegate code writing to specialized agents; do investigative work yourself.** The main session is the orchestrator: it plans, delegates, tracks progress, and reviews results. Edit a code file yourself only for a single Edit of a line or two (typo, rename, one-line fix), or when the user asks you to. Every other change to a code file, bug fixes included, goes to the specialized agent for that file type — a new function in a `.py` file goes to python-code-writer even when you could write it in a few tool calls. Split mixed changes by agent rather than bundling them into one general-purpose task. Outside code writing, delegate only work that fans out across many items or needs isolated context, such as a wide multi-file investigation, and don't spawn a subagent to verify or double-check your own work. Keep working while agents run, and intervene if one goes off track or is missing context. Progress reporting follows Rule 3 — name each delegated work item before handing it off; if an agent fails, fix or re-delegate before reporting it done.
+**Write code in the main session.** Plan, edit, check, and fix in one context, so each step keeps the decisions behind the step before it. Hand a piece of implementation to a writer agent only when it is large and self-contained: it needs little from this conversation beyond its brief and has a clear interface to the rest of the change, such as a new module or one of several independent parts built in parallel. Steps that depend on each other and changes to the same files stay in the main session. Outside code writing, delegate only work that fans out across many items or needs isolated context, such as a wide multi-file investigation, and don't spawn a subagent to verify or double-check your own work. Keep working while agents run, and intervene if one goes off track or is missing context. Progress reporting follows Rule 3: name each delegated work item before handing it off, and if an agent fails, fix or re-delegate before reporting it done.
 
-**Parallel agents.** Launch independent pieces of work as separate subagents in one message, at most 5 at once. Pieces that depend on each other or touch the same files go in the same task. With more than 5 independent pieces, group them into 5 tasks, keeping pieces for the same specialized agent together. Write each delegated task so the agent can finish it without delegating further.
+**Parallel agents.** Launch independent pieces of work as separate subagents in one message, at most 5 at once. Pieces that depend on each other or touch the same files go in the same task. With more than 5 independent pieces, group them into 5 tasks. Write each delegated task so the agent can finish it without delegating further.
 
-**Agent selection:** Match the target file extension and task type against the available-agents list; the description is the contract, not the name. Use general-purpose only when no specialized agent's description matches, and give it a detailed prompt (task description, target file paths, acceptance criteria, patterns/conventions, project context).
+**Agent selection and briefs:** For a code piece, pick the writer agent whose description matches the target files; the description is the contract, not the name. Use general-purpose only when no writer agent matches. A subagent sees only its brief, so every brief carries the task, target file paths, acceptance criteria, conventions to follow, and the decisions already made in this conversation that the work depends on.
 
 **Clarify before exploring, explore before implementing.** When a request is ambiguous enough that you don't know where to look, clarify scope first — unfocused exploration wastes effort. When the task is clear enough to know where to look, explore the relevant code before proposing. For a broad sweep — many files, unknown naming conventions — an Explore agent earns its cost; for a targeted look at code you can already name, read it directly. When a plan depends on an external library's API, read that library's source or docs before relying on it.
 
@@ -126,7 +126,7 @@ Once the user approves the plan, carry it end-to-end: implement, verify, report.
 
 **Check skills before implementation tasks.** Skills encode project-specific conventions that override defaults. Match each skill's description against the file type and task you're touching.
 
-The coding skills (python-coding, typescript-coding, react-coding, tailwind-css-coding, shadcn-ui-coding, swift-coding, csharp-coding, minimal-coding, rest-api) belong to the writer agents, which load them. In the main session, a match on one of these means delegate the edit (see Agents), not load the skill and edit the file yourself. If no writer agent covers the file type, edit it yourself and apply the matching skill. Every other skill (writing, diagramming, ticket, prompting, UX) applies in the main session when its description matches.
+The coding skills (python-coding, typescript-coding, react-coding, tailwind-css-coding, shadcn-ui-coding, swift-coding, csharp-coding, minimal-coding, rest-api) apply wherever code is written. Before editing code in the main session, load the ones that match the file type and task. Writer agents load their own. Every other skill (writing, diagramming, ticket, prompting, UX) applies in the main session when its description matches.
 
 ## Dependencies
 
@@ -136,10 +136,7 @@ The coding skills (python-coding, typescript-coding, react-coding, tailwind-css-
 
 ## Environment
 
-**After editing code:**
-- Run the project's linter and formatter (discover from config files)
-- Run affected tests, not just the file you changed — changes propagate through imports and interfaces
-- Fix lint issues even outside your current task scope
+**After editing code**, scale the checks to the change. Run the project's linter and formatter (discover them from config files) on the files you changed, and run the tests that cover the changed code and its callers. For a one-line fix, or a change to comments or docs, the cheapest relevant check is enough. Fix findings in the code you changed; mention other findings instead of fixing them.
 
 **Before implementation work**, orient yourself: check project docs (README, ARCHITECTURE.md), build/config files (package.json, pyproject.toml, Cargo.toml, Makefile), and entry points relevant to the task.
 

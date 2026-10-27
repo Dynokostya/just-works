@@ -1,5 +1,5 @@
 name = "swift-code-writer"
-description = "Use for every change to Swift (.swift) files, including small fixes. Applies swift-coding skill standards and runs quality checks."
+description = "Use for a large, self-contained piece of Swift (.swift) work that the main session hands off, such as a new module or one of several independent parts built in parallel. Applies swift-coding skill standards and runs quality checks."
 sandbox_mode = "workspace-write"
 
 developer_instructions = """

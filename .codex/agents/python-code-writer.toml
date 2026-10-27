@@ -1,5 +1,5 @@
 name = "python-code-writer"
-description = "Use for every change to Python (.py) files, including small fixes. Applies python-coding skill standards and runs quality checks."
+description = "Use for a large, self-contained piece of Python (.py) work that the main session hands off, such as a new module or one of several independent parts built in parallel. Applies python-coding skill standards and runs quality checks."
 sandbox_mode = "workspace-write"
 
 developer_instructions = """

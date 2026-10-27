@@ -1,6 +1,6 @@
 ---
 name: gpt-6-prompting
-description: Apply when creating or editing prompts targeting the GPT-6 family (gpt-6-astra, gpt-6.1-sol, gpt-6-luna). Covers bias to action, approval boundaries, writing style, skill and AGENTS.md hygiene, reasoning effort per model, delegation, testing calibration, and migration from GPT-5.6.
+description: Apply when creating or editing prompts, system prompts, AGENTS.md files or agent instructions that target the GPT-6 family (gpt-6-astra, gpt-6.1-sol, gpt-6-luna), including reasoning effort settings and migration from GPT-5.6.
 ---
 
 # GPT-6 Prompt Writing Guidelines

@@ -1,5 +1,5 @@
 name = "csharp-code-writer"
-description = "Use for every change to C# (.cs) files, including small fixes. Applies csharp-coding skill standards and runs quality checks."
+description = "Use for a large, self-contained piece of C# (.cs) work that the main session hands off, such as a new module or one of several independent parts built in parallel. Applies csharp-coding skill standards and runs quality checks."
 sandbox_mode = "workspace-write"
 
 developer_instructions = """

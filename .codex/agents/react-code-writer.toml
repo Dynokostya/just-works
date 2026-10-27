@@ -1,5 +1,5 @@
 name = "react-code-writer"
-description = "Use for every change to React (.tsx/.jsx) files, Tailwind CSS classes, or shadcn/ui components, including small fixes. Applies react-coding, typescript-coding, tailwind-css-coding, and shadcn-ui-coding skill standards."
+description = "Use for a large, self-contained piece of React (.tsx/.jsx) work, including Tailwind CSS classes and shadcn/ui components, that the main session hands off, such as a new feature area or one of several independent parts built in parallel. Applies react-coding, typescript-coding, tailwind-css-coding, and shadcn-ui-coding skill standards."
 sandbox_mode = "workspace-write"
 
 developer_instructions = """

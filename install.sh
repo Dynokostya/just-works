@@ -69,6 +69,7 @@ What gets installed:
     CLAUDE.md                 Global behavioral instructions
     web-chat-prompt.md        Instructions for claude.ai chat
     statusline-command.sh     Status line script (needs jq)
+    hooks/skill-guard.sh      Loads coding skills before the first code edit (needs jq)
 
   ~/.codex/
     agents/       Custom agent definitions (python-code-writer, prompt-writer, ...)
@@ -406,6 +407,7 @@ if ! $CODEX_ONLY; then
     fi
 
     install_file "${SCRIPT_DIR}/CLAUDE.md" "${CLAUDE_HOME}/CLAUDE.md" "CLAUDE.md"
+    install_file "${SCRIPT_DIR}/.claude/hooks/skill-guard.sh" "${CLAUDE_HOME}/hooks/skill-guard.sh" "hooks/skill-guard.sh"
     sync_owned_files "${SCRIPT_DIR}" web-chat-prompt.md
     if ! $SKIP_STATUSLINE; then
         install_file "${SCRIPT_DIR}/.claude/statusline-command.sh" "${CLAUDE_HOME}/statusline-command.sh" "statusline-command.sh"

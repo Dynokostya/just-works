@@ -14,9 +14,9 @@ Just copy `.claude/` into any project — or install globally — and get pre-co
 
 **Full Claude Code fluency** — uses the whole toolset by default: `AskUserQuestion` for structured choices, rich markdown, and parallel tool calls — not plain-text walls.
 
-**Context-isolating subagents** — delegates file-type work (`python`, `react`, `swift`, …) to subagents that carry their own context, so the main thread stays lean and focused.
+**Main-session coding** — the main session writes code itself with the coding skill for the file type, so planning, edits and fixes share one context. Subagents take wide codebase exploration and large, self-contained pieces of work that can run in parallel. In Claude Code, the `skill-guard.sh` hook blocks the first write to a `.py`, `.ts`, `.tsx`, `.jsx`, `.swift` or `.cs` file in a session until Claude has loaded that language's coding skill and `minimal-coding`.
 
-**Agents** — file-type-triggered writers (`python`, `typescript`, `swift`, `csharp`, `react`), plus `prompt-writer`. 6 per provider. PlantUML diagrams are handled by the `plantuml-diagramming` skill.
+**Agents** — writers for those large, self-contained pieces (`python`, `typescript`, `swift`, `csharp`, `react`), plus `prompt-writer`. 6 per provider. PlantUML diagrams are handled by the `plantuml-diagramming` skill.
 
 **Skills** — coding standards (Python, TypeScript, React, Tailwind, shadcn/ui, Swift, C#), model-specific prompt engineering (Claude Opus 5.5 and Fable 5.1, GPT-6, Gemini 3), behavioral modes (`minimal-coding` for least-code solutions), and `human-writing` for documents that people outside the project can follow. Applied automatically based on the file type you're editing. The exception is `staged-docs`, which runs only when you start it with a topic (`/staged-docs <topic>`, or `$staged-docs` in Codex): it builds a document with you piece by piece, in a mode you choose per piece (agent-drafted, step by step, or author-led), with review rounds you decide on a local page.
 
@@ -24,7 +24,7 @@ Just copy `.claude/` into any project — or install globally — and get pre-co
 
 ## Installation
 
-Installs agents, skills, and settings globally to `~/.claude/` and `~/.codex/` (Codex skills go to `~/.agents/skills/`). The status line script (`statusline-command.sh`) needs [`jq`](https://jqlang.org/).
+Installs agents, skills, and settings globally to `~/.claude/` and `~/.codex/` (Codex skills go to `~/.agents/skills/`). The status line script (`statusline-command.sh`) and the skill-guard hook (`hooks/skill-guard.sh`) need [`jq`](https://jqlang.org/); without it, the hook lets every write through.
 
 The installer only touches what this repo ships. It replaces each agent, skill and output style one by one, so other skills and agents already in those folders stay as they are. Before it replaces or removes anything it backs it up to `~/just-works-backups/<timestamp>/`, unless you answer `n` at the prompt or pass `--no-backup`. Each install writes a `.just-works-manifest` file in `~/.claude/`, `~/.codex/` and `~/.agents/` listing what it installed. On the next run, entries that a newer version no longer ships (renamed or deleted skills, for example) are removed from that list. Your own files are never in it.
 
@@ -44,10 +44,10 @@ To install into another Claude Code profile or Codex home, set the variable that
 |---|---|---|
 | Permissions | prompts for everything | `bypassPermissions` + safe read-only allow-list |
 | Security deny-list | empty | blocks reads of keys, credentials, lockfiles, build dirs |
-| Model / effort | Claude Code defaults | `opus[1m]` main model at `high` effort, subagents forced to `sonnet` at `high` effort; the limit of 5 concurrent subagents and nesting depth 1 are set by `env` variables in `settings.json` |
+| Model / effort | Claude Code defaults | `opus[1m]` main model at `xhigh` effort, subagents forced to `sonnet` at `xhigh` effort; the limit of 5 concurrent subagents and nesting depth 1 are set by `env` variables in `settings.json` |
 | Output style | `default` | `Compressed` (fewer tokens) |
 | Codex | model + basic status line | `danger-full-access`, no approval prompts, up to 6 concurrent agent threads, MCP server (Playwright) |
-| Hooks (Claude) | none | Bash command rewriting + completion sounds |
+| Hooks (Claude) | skill guard | skill guard + Bash command rewriting + completion sounds |
 
 **Two `--personal` hooks need extra setup to work:**
 
@@ -161,6 +161,7 @@ Confirm with `rtk verify` (prefix `CLAUDE_CONFIG_DIR=<dir>` for other config dir
   settings.json           # Personal permissions, hooks, env (--personal)
   settings.json.default   # Minimal settings
   statusline-command.sh   # Status line (needs jq)
+  hooks/skill-guard.sh    # Loads coding skills before the first code edit (needs jq)
 .codex/
   agents/                 # Codex custom agent definitions (TOML)
   skills/                 # Codex-only extras laid over .claude/skills (staged-docs/agents/openai.yaml)

@@ -1,6 +1,6 @@
 ---
 name: fable-5-1-prompting
-description: Apply when creating or editing prompts targeting Claude Fable 5.1 (claude-fable-5-1). Covers effort re-sweeps, finishing the whole task, progress updates, tool-call batching, append-only reminders, prose and formatting style, coding scope, long autonomous runs, subagents, refusals, and migration from Fable 5.
+description: Apply when creating or editing prompts, system prompts or agent instructions that target Claude Fable 5.1 (claude-fable-5-1), including effort settings and migration from Fable 5. Not for other models; for Opus 5.5 use opus-5-5-prompting.
 ---
 
 # Fable 5.1 Prompting

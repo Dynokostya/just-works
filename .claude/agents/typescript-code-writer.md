@@ -1,6 +1,6 @@
 ---
 name: typescript-code-writer
-description: Use proactively for every change to TypeScript (.ts) files, including small fixes. Applies project TypeScript standards and runs quality checks.
+description: Use for a large, self-contained piece of TypeScript (.ts) work that the main session hands off, such as a new module or one of several independent parts built in parallel. Applies project TypeScript standards and runs quality checks.
 tools: Write, Read, Edit, Bash, Glob, Grep, Skill
 skills:
   - typescript-coding

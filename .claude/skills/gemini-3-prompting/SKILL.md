@@ -1,6 +1,6 @@
 ---
 name: gemini-3-prompting
-description: Apply when creating or editing prompts targeting the Gemini 3.x family (3.1 Pro, 3 Flash, 3.5 to 3.8 Flash, Flash-Lite). Covers prompt layering, thinking-level support per model, temperature, few-shot, long context, grounding and agentic instructions, tool and grounding prompt wording, and migration from 3.0 and 2.5. Not for Gemini 4 (gemini-4-argon).
+description: Apply when creating or editing prompts, system prompts or agent instructions that target the Gemini 3.x family (3.1 Pro, 3 Flash, 3.5 to 3.8 Flash, Flash-Lite), including thinking-level settings, grounding and tool prompts, and migration from 3.0 and 2.5. Not for Gemini 4 (gemini-4-argon).
 ---
 
 # Gemini 3.x Prompting

@@ -1,6 +1,6 @@
 ---
 name: python-code-writer
-description: Use proactively for every change to Python (.py) files, including small fixes. Applies project Python standards and runs quality checks.
+description: Use for a large, self-contained piece of Python (.py) work that the main session hands off, such as a new module or one of several independent parts built in parallel. Applies project Python standards and runs quality checks.
 tools: Write, Read, Edit, Bash, Glob, Grep, Skill
 skills:
   - python-coding

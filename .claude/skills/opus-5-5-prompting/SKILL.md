@@ -1,6 +1,6 @@
 ---
 name: opus-5-5-prompting
-description: Apply when creating or editing prompts targeting Claude Opus 5.5 (claude-opus-5-5). Covers effort calibration, progress updates, early stopping in unattended runs, explore-first agents, pasted-content marking, frontend defaults, scope and verification tuning, code review, and migration from Opus 5. Do not apply to other Claude models — for Fable 5.1 use fable-5-1-prompting.
+description: Apply when creating or editing prompts, system prompts or agent instructions that target Claude Opus 5.5 (claude-opus-5-5), including effort settings and migration from Opus 5. Not for other models; for Fable 5.1 use fable-5-1-prompting.
 ---
 
 # Opus 5.5 Prompting

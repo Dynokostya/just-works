@@ -1,6 +1,6 @@
 ---
 name: tailwind-css-coding
-description: Apply when writing or editing Tailwind CSS classes in any template or component file. Behavioral corrections for dynamic styling, class composition, responsive design, dark mode, interaction states, accessibility, and common antipatterns.
+description: Apply when writing or editing Tailwind CSS utility classes in a project that uses Tailwind CSS. Behavioral corrections for dynamic styling, class composition, responsive design, dark mode, interaction states, accessibility, and common antipatterns.
 ---
 
 # Tailwind CSS Coding

@@ -71,10 +71,10 @@
   "outputStyle": "Compressed",
   "modelSettings": {
     "claude-opus-5-5": {
-      "effortLevel": "high"
+      "effortLevel": "xhigh"
     },
     "claude-sonnet-5-5": {
-      "effortLevel": "high"
+      "effortLevel": "xhigh"
     }
   },
   "attribution": {
@@ -83,8 +83,6 @@
   },
   "awaySummaryEnabled": false,
   "idleCompaction": false,
-  "skillListingBudgetFraction": 0.05,
-  "skillListingMaxDescChars": 2048,
   "env": {
     "CLAUDE_CODE_SUBAGENT_MODEL": "sonnet",
     "CLAUDE_CODE_SUBAGENT_MODEL_FORCE": "1",
@@ -92,7 +90,6 @@
     "DISABLE_FEEDBACK_COMMAND": "1",
     "CLAUDE_CODE_DISABLE_FEEDBACK_SURVEY": "1",
     "BASH_MAX_OUTPUT_LENGTH": "150000",
-    "CLAUDE_CODE_MAX_OUTPUT_TOKENS": "128000",
     "CLAUDE_STREAM_IDLE_TIMEOUT_MS": "1800000",
     "API_TIMEOUT_MS": "1800000",
     "CLAUDE_AUTOCOMPACT_PCT_OVERRIDE": "80",
@@ -107,6 +104,15 @@
           {
             "type": "command",
             "command": "rtk hook claude"
+          }
+        ]
+      },
+      {
+        "matcher": "Write|Edit|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash ~/.claude/hooks/skill-guard.sh"
           }
         ]
       }
