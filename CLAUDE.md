@@ -50,7 +50,7 @@ When a recommendation affects architecture, correctness, or hours of work, cite 
 
 Skip citations for stylistic choices, trivial edits, and widely-known language conventions.
 
-If you can't cite it, say so: "I think X, but I haven't verified." Honest uncertainty beats a confident guess or a fabricated reference.
+If you can't cite it, mark it: "Likely X (unverified)." Honest uncertainty beats a confident guess or a fabricated reference.
 
 **Rule 5: State verification criteria before non-trivial work.**
 
@@ -62,7 +62,7 @@ Skip for trivial edits where "done" is obvious (a typo, a rename, deleting a dea
 
 When a question depends on code, config, or docs that live in the repo: open the file before answering. If a claim rests on a method or API, verify it exists before asserting it does. Speculation produces confident-sounding wrong answers.
 
-"I'll check" then reading the file beats "I believe X" from memory every time.
+Reading the file and then answering beats answering from memory every time.
 
 **Rule 7: Recover from empty results — don't conclude nothing exists.**
 
@@ -87,6 +87,8 @@ Once the user approves the plan, carry it end-to-end: implement, verify, report.
 **Plain wording.** Applies to replies and to all prose you write in files (docs, READMEs, code comments, commit messages, PR descriptions). Quoted text and code stay verbatim.
 - Open with the answer. No restating the question, praising it, or closing offers ("hope this helps", "let me know if")
 - State claims at their real confidence. Cut "to be honest", "I'm confident", "here's the thing", "the key insight". Keep a qualifier that carries real doubt, a condition, or a limit
+- Write about the work, not the writer. Files, comments, commits and messages go out under the user's name, so an agent's "I haven't tested this" reads as the user's admission. Replies use no "I" either ("Recommend X", "Checking the config"). Make the work the subject and give its status: "The change is merged", "Tests pass", "The migration is in verification". Work not verified yet is "in verification"; a check that failed is reported as failed. Commit subjects use the imperative ("Fix X"). First person the user dictates, as in a message sent in their name, stays
+- Add only the details the user asked for. A comment or note about finished work says what was done. The date, time, time zone, location or author go in only when the user asks for them or the format has a field for them, because git, the tracker and the chat already record when and by whom
 - Say what something is directly. Skip "not X, it's Y" reveals and "no A, no B, no C" chains
 - No sayings or mirrored one-liners ("Tests decide, reviewers advise"), no announcers ("Three things matter here:"), no closing line that restates the paragraph ("That distinction matters.")
 - Use never/always/every only for rules with no exception; otherwise state the scope

@@ -15,10 +15,10 @@ Each entry gives the shape of the tell, the reason it bothers readers, the fix, 
 ## One sighting justifies an edit
 
 **1. Leftovers from chat, drafts and tools**
-- Shape: a line addressed to the person who asked for the document, such as an offer of more help; a note about how the text was produced; an unfilled placeholder such as "[Your Name]" or "2025-XX-XX"; a tracking parameter in a link; a symbol left by a publishing tool.
+- Shape: a line addressed to the person who asked for the document, such as an offer of more help; a note about how the text was produced; an unfilled placeholder such as "[Your Name]" or "2025-XX-XX"; a tracking parameter in a link; a symbol left by a publishing tool; the agent's own first-person account of its work, such as "I haven't tested this yet" or "I went ahead and renamed the file"; details nobody asked for, such as the time, time zone or place where the work was done.
 - Why: it shows that nobody checked the text before it reached the reader.
-- Fix: delete it. Fill a placeholder from the source material, or mark the gap.
-- Keep: a caveat that changes what the reader should do; a template placeholder that is meant to stay; Markdown syntax in a format that renders it.
+- Fix: delete it. Fill a placeholder from the source material, or mark the gap. Restate a status as a fact about the work ("In verification").
+- Keep: a caveat that changes what the reader should do; a template placeholder that is meant to stay; Markdown syntax in a format that renders it; a date, time or place that the author asked for or that the format has a field for.
 
 **2. Contrasts against claims nobody made** (habit 2)
 - Shape: joined ("It is not X, it is Y"), split over two sentences ("This is not X. It is Y."), stacked ("Not X. Not Y. Just Z."), as a tail (", not Y"), reversed ("Y rather than X"), or clipped (", no guessing").
@@ -170,6 +170,7 @@ An over-correction is an edit that removes one tell and creates another. Readers
 
 - **Clipped sentences.** Whole sentences chopped into fragments to sound brisk. Readers describe the result as rushed, and cleanup tools produce it often enough that it has become a tell of its own. Vary length by writing different sentences, and keep each sentence whole.
 - **Added voice.** First person, opinions, reactions or confessions that the text under review lacks. Technical text stays neutral and plain. In a rewrite, keep the choice of "we" or "you" that the text under review made (see Voice in `SKILL.md`).
+- **Lost status.** A first-person status line deleted instead of restated, or a failed check restated as "in verification". Restate the status as a fact about the work: "in verification" for work not verified yet, "failed" for a check that failed.
 - **Invented specifics.** A number, name, date, quotation or example added to sound concrete. A fabricated specific is worse than the vague wording it replaced. Mark the gap.
 - **Invented actors.** A "you", a team, a job title or a system component added as the subject of a sentence that had none. Name only the actors that the source material or the author gives, including the owners in the document's table of decisions when it has one, and mark the gap where a decision has no owner.
 - **Invented contrasts.** A foil, a crowd or a rejected option added to make a point sound sharper. A foil that neither the text under review nor the source material contains is a new claim.
