@@ -58,7 +58,6 @@ What gets installed:
     output-styles/  Selectable output styles (compressed, ...)
     settings.json             Permission and hook configuration
     CLAUDE.md                 Global behavioral instructions
-    web-chat-prompt.md        Instructions for claude.ai chat
     statusline-command.sh     Status line script (needs jq)
     hooks/skill-guard.sh      Loads coding skills before the first code edit (needs jq)
 
@@ -288,21 +287,6 @@ class Manifest {
     this.doneScopes.add(scope);
   }
 
-  // Files owned by just-works directly in the home directory.
-  syncOwnedFiles(srcBase, names) {
-    this.prune('.', names);
-    this.doneScopes.add('.');
-    for (const name of names) {
-      const src = join(srcBase, name);
-      if (!existsSync(src)) {
-        warn(`Source not found, skipping: ${src}`);
-        continue;
-      }
-      installFile(src, join(this.home, name), name, this.opts);
-      this.added.add(name);
-    }
-  }
-
   // Entries installed now, plus old entries of scopes this run skipped.
   save() {
     const all = new Set(this.added);
@@ -412,7 +396,8 @@ async function main() {
 
     installFile(join(PACKAGE_ROOT, 'CLAUDE.md'), join(CLAUDE_HOME, 'CLAUDE.md'), 'CLAUDE.md', opts);
     installFile(join(PACKAGE_ROOT, '.claude', 'hooks', 'skill-guard.sh'), join(CLAUDE_HOME, 'hooks', 'skill-guard.sh'), 'hooks/skill-guard.sh', opts);
-    claude.syncOwnedFiles(PACKAGE_ROOT, ['web-chat-prompt.md']);
+    // Scope "." holds the chat prompt file that earlier versions installed in the home dir.
+    claude.retireScope('.');
     if (!flags.skipStatusline) {
       installFile(join(PACKAGE_ROOT, '.claude', 'statusline-command.sh'), join(CLAUDE_HOME, 'statusline-command.sh'), 'statusline-command.sh', opts);
     } else {
@@ -452,10 +437,7 @@ async function main() {
       const configLabel = `config.toml (${flags.azure ? 'azure, ' : ''}${flags.personal ? 'personal' : 'default'})`;
       installFile(configSrc, join(CODEX_HOME, 'config.toml'), configLabel, opts);
 
-      const hooksSrc = flags.personal
-        ? join(PACKAGE_ROOT, '.codex', 'hooks.json')
-        : join(PACKAGE_ROOT, '.codex', 'hooks.json.default');
-      installFile(hooksSrc, join(CODEX_HOME, 'hooks.json'), `hooks.json (${flags.personal ? 'personal' : 'default'})`, opts);
+      installFile(join(PACKAGE_ROOT, '.codex', 'hooks.json'), join(CODEX_HOME, 'hooks.json'), 'hooks.json', opts);
     } else {
       info('Skipping config.toml and hooks.json (--skip-config)');
     }

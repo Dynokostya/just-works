@@ -67,7 +67,6 @@ What gets installed:
     output-styles/  Selectable output styles (compressed, ...)
     settings.json             Permission and hook configuration
     CLAUDE.md                 Global behavioral instructions
-    web-chat-prompt.md        Instructions for claude.ai chat
     statusline-command.sh     Status line script (needs jq)
     hooks/skill-guard.sh      Loads coding skills before the first code edit (needs jq)
 
@@ -309,22 +308,6 @@ retire_scope() {
     DONE_SCOPES="${DONE_SCOPES} $1 "
 }
 
-# sync_owned_files <src-base-dir> <name>...: files owned by just-works directly in the home dir
-sync_owned_files() {
-    local base="$1" name shipped=""; shift
-    for name in "$@"; do shipped="${shipped}${name}"$'\n'; done
-    prune_stale "." "$shipped"
-    DONE_SCOPES="${DONE_SCOPES} . "
-    for name in "$@"; do
-        if [[ ! -f "${base}/${name}" ]]; then
-            warn "Source not found, skipping: ${base}/${name}"
-            continue
-        fi
-        install_file "${base}/${name}" "${CUR_HOME}/${name}" "$name"
-        manifest_add "$name"
-    done
-}
-
 # Write the manifest: entries installed now, plus old entries of scopes this run skipped
 manifest_end() {
     local entry scope all tmp
@@ -408,7 +391,8 @@ if ! $CODEX_ONLY; then
 
     install_file "${SCRIPT_DIR}/CLAUDE.md" "${CLAUDE_HOME}/CLAUDE.md" "CLAUDE.md"
     install_file "${SCRIPT_DIR}/.claude/hooks/skill-guard.sh" "${CLAUDE_HOME}/hooks/skill-guard.sh" "hooks/skill-guard.sh"
-    sync_owned_files "${SCRIPT_DIR}" web-chat-prompt.md
+    # Scope "." holds the chat prompt file that earlier versions installed in the home dir
+    retire_scope "."
     if ! $SKIP_STATUSLINE; then
         install_file "${SCRIPT_DIR}/.claude/statusline-command.sh" "${CLAUDE_HOME}/statusline-command.sh" "statusline-command.sh"
     else
@@ -449,11 +433,7 @@ if ! $CLAUDE_ONLY; then
                 install_file "${SCRIPT_DIR}/.codex/config.toml.default" "${CODEX_HOME}/config.toml" "config.toml (default)"
             fi
         fi
-        if $PERSONAL; then
-            install_file "${SCRIPT_DIR}/.codex/hooks.json" "${CODEX_HOME}/hooks.json" "hooks.json (personal)"
-        else
-            install_file "${SCRIPT_DIR}/.codex/hooks.json.default" "${CODEX_HOME}/hooks.json" "hooks.json (default)"
-        fi
+        install_file "${SCRIPT_DIR}/.codex/hooks.json" "${CODEX_HOME}/hooks.json" "hooks.json"
     else
         info "Skipping config.toml and hooks.json (--skip-config)"
     fi
