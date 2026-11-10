@@ -18,9 +18,11 @@ Just copy `.claude/` into any project — or install globally — and get pre-co
 
 **Agents** — writers for those large, self-contained pieces (`python`, `typescript`, `swift`, `csharp`, `react`), plus `prompt-writer`. 6 per provider. PlantUML diagrams are handled by the `plantuml-diagramming` skill.
 
-**Skills** — coding standards (Python, TypeScript, React, Tailwind, shadcn/ui, Swift, C#), model-specific prompt engineering (Claude Opus 5.5 and Fable 5.1, GPT-6, Gemini 3), behavioral modes (`minimal-coding` for least-code solutions), and `human-writing` for documents that people outside the project can follow. Applied automatically based on the file type you're editing. The exception is `staged-docs`, which runs only when you start it with a topic (`/staged-docs <topic>`, or `$staged-docs` in Codex): it builds a document with you piece by piece, in a mode you choose per piece (agent-drafted, step by step, or author-led), with review rounds you decide on a local page.
+**Skills** — coding standards (Python, TypeScript, React, Tailwind, shadcn/ui, Swift, C#, REST APIs), model-specific prompt engineering (Claude Opus 5.5 and Fable 5.2, GPT-6, Gemini 3), behavioral modes (`minimal-coding` for least-code solutions), `human-writing` for documents that people outside the project can follow, `ticket-writing` for issue-tracker tickets, and two UX skills: `predictive-ux-evaluation` (model-based checks of a UI, such as a cognitive walkthrough) and `synthetic-user-research` (AI personas for early research signal). Applied automatically based on the file type you're editing or the task at hand. The exception is `staged-docs`, which runs only when you start it with a topic (`/staged-docs <topic>`, or `$staged-docs` in Codex): it builds a document with you piece by piece, in a mode you choose per piece (agent-drafted, step by step, or author-led), with review rounds you decide on a local page.
 
 **Security** — the `--personal` `settings.json` blocks agent reads of `.env`, `*.pem`, `*.key`, credentials, cloud configs, SSH keys, Terraform state, and databases. The default `settings.json` has an empty deny-list.
+
+**BMad workflows** — [bmad-workflows.md](bmad-workflows.md) explains which BMad Method skills to run for a piece of work. Those skills come from a separate fork, and this repo's installers do not install them.
 
 ## Installation
 
@@ -44,7 +46,7 @@ To install into another Claude Code profile or Codex home, set the variable that
 |---|---|---|
 | Permissions | prompts for everything | `bypassPermissions` + safe read-only allow-list |
 | Security deny-list | empty | blocks reads of keys, credentials, lockfiles, build dirs |
-| Model / effort | Claude Code defaults | `opus[1m]` main model at `xhigh` effort, subagents forced to `sonnet` at `xhigh` effort; the limit of 5 concurrent subagents and nesting depth 1 are set by `env` variables in `settings.json` |
+| Model / effort | Claude Code defaults | `fable` (Fable 5.2, 1M context) main model at `high` effort, subagents forced to `opus` (Opus 5.5) at `medium` effort; the limit of 3 concurrent subagents and nesting depth 1 are set by `env` variables in `settings.json` |
 | Output style | `default` | `Compressed` (fewer tokens) |
 | Codex | model + basic status line | `danger-full-access`, no approval prompts, up to 6 concurrent agent threads, MCP server (Playwright) |
 | Hooks (Claude) | skill guard | skill guard + Bash command rewriting + completion sounds |
@@ -92,9 +94,10 @@ npx @dynokostya/just-works@latest       # update
 ```bash
 git clone https://github.com/dynokostya/just-works.git
 cd just-works
-./install.sh            # macOS / Linux
-install.bat             # Windows
+./install.sh
 ```
+
+`install.sh` runs on macOS and Linux. On Windows, install via npm.
 
 To update: `git pull && ./install.sh`
 
@@ -102,6 +105,7 @@ To update: `git pull && ./install.sh`
 
 ```bash
 --personal              # opinionated settings (pre-approved commands, hooks, sounds)
+--azure                 # Codex config for Azure OpenAI instead of the OpenAI API
 --dry-run               # preview without changes
 --skip-config           # skip settings.json (still migrates a legacy rtk hook entry)
 --skip-statusline       # skip statusline-command.sh
@@ -112,12 +116,12 @@ To update: `git pull && ./install.sh`
 --no-backup             # skip backup prompt (for CI/scripts)
 ```
 
-### Codex Azure config
+### Codex config
 
 Default install copies `config.toml.default` → `~/.codex/config.toml` (minimal model config).
 Personal (my) install copies `config.toml` → `~/.codex/config.toml` (includes MCP servers).
 
-Either way, edit the file — replace `<your-resource-name>` with your Azure OpenAI resource and set your environment variable:
+For Azure OpenAI, add `--azure`. The installer then copies the matching file from `.codex/config/azure/`. After the install, edit `~/.codex/config.toml`: replace `<your-resource-name>` with your Azure OpenAI resource, and set the API key:
 
 ```bash
 export AZURE_OPENAI_API_KEY="your-key-here"
@@ -125,12 +129,8 @@ export AZURE_OPENAI_API_KEY="your-key-here"
 
 ### MCP for Claude Code
 
-MCP servers are configured per project, not globally. The installers do not copy the MCP files, so download the one you want from this repo into your project. `.mcp.json.default` is an empty server list; `.mcp.json` declares the Playwright server.
+MCP servers are configured per project, not globally, and the installers do not copy an MCP file. To use the Playwright server in a project, download this repo's `.mcp.json` into it:
 
-```bash
-curl -fsSL https://raw.githubusercontent.com/dynokostya/just-works/main/.mcp.json.default -o /path/to/your/project/.mcp.json
-```
-OR
 ```bash
 curl -fsSL https://raw.githubusercontent.com/dynokostya/just-works/main/.mcp.json -o /path/to/your/project/.mcp.json
 ```
@@ -168,14 +168,14 @@ Confirm with `rtk verify` (prefix `CLAUDE_CONFIG_DIR=<dir>` for other config dir
   config.toml             # Personal config (--personal)
   config.toml.default     # Minimal config
   config/azure/           # Azure OpenAI variants of both
-  hooks.json              # Lifecycle hooks (notification), plus hooks.json.default
-bin/cli.mjs               # npx installer
-install.sh, install.bat   # Installers for macOS/Linux and Windows
+  hooks.json              # Lifecycle hooks (notification)
+bin/cli.mjs               # npx installer (macOS, Linux, Windows)
+install.sh                # Installer for macOS and Linux
 bootstrap.sh              # curl | bash wrapper around install.sh
-.mcp.json, .mcp.json.default  # Per-project MCP server declarations
+.mcp.json                 # Playwright MCP server declaration to copy into a project
 CLAUDE.md                 # Behavioral instructions for Claude Code
-web-chat-prompt.md        # Behavioral instructions for claude.ai chat
 AGENTS.md                 # Behavioral instructions for Codex
+bmad-workflows.md         # Guide to the BMad Method skills, which install separately
 ```
 
 `.claude/` and `.codex/` are parallel and independent — use one or both.
