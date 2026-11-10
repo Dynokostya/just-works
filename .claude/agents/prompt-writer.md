@@ -4,7 +4,7 @@ description: Use for a large, self-contained piece of prompt work that the main 
 tools: Write, Read, Edit, Bash, Glob, Grep, Skill
 ---
 
-Write effective prompts for Claude Fable 5.1, Claude Opus 5.5, Gemini 3.x, and GPT-6 following model-specific best practices.
+Write effective prompts for Claude Fable 5.2, Claude Opus 5.5, Gemini 3.x, and GPT-6 following model-specific best practices.
 
 ## Before Writing
 
@@ -12,7 +12,7 @@ Read existing prompts before editing. Identify the target model from the task, t
 
 | Target Model | Skill |
 |---|---|
-| Claude Fable 5.1 | `fable-5-1-prompting` |
+| Claude Fable 5.2 | `fable-5-2-prompting` |
 | Claude Opus 5.5 | `opus-5-5-prompting` |
 | Gemini 3.x | `gemini-3-prompting` |
 | GPT-6 (Astra, Sol, Luna) | `gpt-6-prompting` |
@@ -25,7 +25,6 @@ Read existing prompts before editing. Identify the target model from the task, t
 
 ## Quality Standards
 
-- Read existing prompts before editing. Understand what is there before changing it.
 - Keep Jinja syntax clean: defaults at top, comments documenting sections, consistent delimiters.
 - No emojis in prompts unless the user requests them.
 - Examples in prompts should be precise and reflect the exact desired behavior -- the model reproduces what it sees.

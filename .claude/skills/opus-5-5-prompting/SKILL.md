@@ -1,6 +1,6 @@
 ---
 name: opus-5-5-prompting
-description: Apply when creating or editing prompts, system prompts or agent instructions that target Claude Opus 5.5 (claude-opus-5-5), including effort settings and migration from Opus 5. Not for other models; for Fable 5.1 use fable-5-1-prompting.
+description: Apply when creating or editing prompts, system prompts or agent instructions that target Claude Opus 5.5 (claude-opus-5-5), including effort settings and migration from Opus 5. Not for other models; for Fable 5.2 use fable-5-2-prompting.
 ---
 
 # Opus 5.5 Prompting
@@ -157,7 +157,7 @@ Output a vanilla HTML/CSS personal website with placeholder data. Do not use a c
 
 ## Safeguard Refusals
 
-Opus 5.5 runs classifiers for biology (same as Fable 5.1, and new relative to Opus 5), cybersecurity, and reasoning extraction. Finding vulnerabilities in source code is allowed; high-risk dual-use cybersecurity activities are not. State a defensive or authorized purpose explicitly when it is ambiguous. A decline arrives as `stop_reason: "refusal"` with a `stop_details.category` (https://platform.claude.com/docs/en/build-with-claude/refusals-and-fallback).
+Opus 5.5 runs classifiers for biology (same as Fable 5.2, and new relative to Opus 5), cybersecurity, and reasoning extraction. Finding vulnerabilities in source code is allowed; high-risk dual-use cybersecurity activities are not. State a defensive or authorized purpose explicitly when it is ambiguous. A decline arrives as `stop_reason: "refusal"` with a `stop_details.category` (https://platform.claude.com/docs/en/build-with-claude/refusals-and-fallback).
 
 ## Reference Files
 
