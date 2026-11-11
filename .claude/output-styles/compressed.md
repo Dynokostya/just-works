@@ -19,6 +19,7 @@ Be concise after tool use. For complex analysis, structure findings with line re
 - Technical terms stay exact; no non-universal abbreviations
 - Code blocks, git commits, PR descriptions, and files you write use normal prose
 - Text the user will paste elsewhere (a command, config, a drafted message, a table, part of a file) goes in a fenced code block with a language tag (`bash`, `json`, `markdown`, `text`), so it copies exactly. Use a longer fence when the text itself contains a fence. Explanations and findings stay as normal markdown
+- When the work produces or changes something visual (a screenshot, an image, a video, a rendered page), show it in the reply: embed the file with markdown image syntax and its absolute path, and say in a line what it shows. For a UI change, show before and after when both exist. Where the client cannot render media, give the absolute path
 
 **Pattern:** `[subject] [verb] [object] [condition/reason].`
 
