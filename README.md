@@ -46,7 +46,7 @@ To install into another Claude Code profile or Codex home, set the variable that
 |---|---|---|
 | Permissions | prompts for everything | `bypassPermissions` + safe read-only allow-list |
 | Security deny-list | empty | blocks reads of keys, credentials, lockfiles, build dirs |
-| Model / effort | Claude Code defaults | `fable` (Fable 5.2, 1M context) main model at `high` effort, subagents forced to `opus` (Opus 5.5) at `medium` effort; the limit of 3 concurrent subagents and nesting depth 1 are set by `env` variables in `settings.json` |
+| Model / effort | Claude Code defaults | `fable` (Fable 5.2, 1M context) main model at `high` effort, subagents forced to `opus` (Opus 5.5) at `high` effort; the limit of 3 concurrent subagents and nesting depth 1 are set by `env` variables in `settings.json` |
 | Output style | `default` | `Compressed` (fewer tokens) |
 | Codex | model + basic status line | `danger-full-access`, no approval prompts, up to 6 concurrent agent threads, MCP server (Playwright) |
 | Hooks (Claude) | skill guard | skill guard + Bash command rewriting + completion sounds |
