@@ -212,10 +212,10 @@ const MANIFEST_NAME = '.just-works-manifest';
 
 // Entries shipped by earlier versions, used when a home has no manifest yet.
 const LEGACY_ENTRIES = {
-  claude: ['skills/opus-5-prompting', 'skills/fable-5-prompting', 'skills/gpt-5-6-prompting', 'CLAUDE-CHAT.md', 'agents/diagrammer.md',
+  claude: ['skills/opus-5-prompting', 'skills/fable-5-prompting', 'skills/gpt-5-6-prompting', 'skills/predictive-ux-evaluation', 'CLAUDE-CHAT.md', 'agents/diagrammer.md',
     'agents/ticket-creator.md', 'commands/git-sync.md', 'commands/project-docs.md'],
   codex: ['agents/diagrammer.toml', 'agents/ticket-creator.toml', 'prompts/git-sync.md', 'prompts/project-docs.md'],
-  agents: ['skills/opus-5-prompting', 'skills/fable-5-prompting', 'skills/gpt-5-6-prompting'],
+  agents: ['skills/opus-5-prompting', 'skills/fable-5-prompting', 'skills/gpt-5-6-prompting', 'skills/predictive-ux-evaluation'],
 };
 
 const scopeOf = (entry) => (entry.includes('/') ? entry.split('/')[0] : '.');

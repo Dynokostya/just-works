@@ -207,9 +207,9 @@ CUR_HOME="" CUR_MANIFEST="" OLD_ENTRIES="" NEW_ENTRIES="" DONE_SCOPES=""
 # Entries shipped by earlier versions, used when a home has no manifest yet
 legacy_entries() {
     case "$1" in
-        claude) printf '%s\n' skills/opus-5-prompting skills/fable-5-prompting skills/gpt-5-6-prompting CLAUDE-CHAT.md agents/diagrammer.md agents/ticket-creator.md commands/git-sync.md commands/project-docs.md ;;
+        claude) printf '%s\n' skills/opus-5-prompting skills/fable-5-prompting skills/gpt-5-6-prompting skills/predictive-ux-evaluation CLAUDE-CHAT.md agents/diagrammer.md agents/ticket-creator.md commands/git-sync.md commands/project-docs.md ;;
         codex)  printf '%s\n' agents/diagrammer.toml agents/ticket-creator.toml prompts/git-sync.md prompts/project-docs.md ;;
-        agents) printf '%s\n' skills/opus-5-prompting skills/fable-5-prompting skills/gpt-5-6-prompting ;;
+        agents) printf '%s\n' skills/opus-5-prompting skills/fable-5-prompting skills/gpt-5-6-prompting skills/predictive-ux-evaluation ;;
     esac
 }
 

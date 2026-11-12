@@ -1,16 +1,3 @@
----
-name: predictive-ux-evaluation
-description: >
-  Predictive (model-based) UX evaluation of web UIs and HTML prototypes using
-  cognitive walkthrough, KLM/GOMS, Fitts's law, Hick's law and first-fixation
-  analysis. Use when asked to evaluate a UI, prototype or flow for first-time-user
-  failures, expert task time, target size and distance, choice time or where the
-  eye goes first; for "cognitive walkthrough", "KLM", "Fitts", "usability
-  inspection", "will users find this" or "how long will this task take"; or to
-  verify or re-run a prior report. Does not predict conversion, preference or
-  emotion.
----
-
 # Predictive UX Evaluation
 
 Inspection methods that predict *where a first-time user fails* and *how long a practiced expert takes*. They do not predict conversion, preference, or emotion. Run the lane check before any method. Hand every pass to a real-user study.
