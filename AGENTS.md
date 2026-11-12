@@ -95,7 +95,7 @@ Once the user approves the plan, carry it end-to-end: implement, verify, report.
 - `explorer` — read-only codebase exploration for gathering evidence
 - `monitor` — long-running task monitoring (up to 1-hour polling)
 
-**Spawning agents:** Use `spawn_agent` to delegate discrete work items. A spawned agent sees only its instructions, so provide the task description, target file paths, acceptance criteria, relevant conventions, and the decisions already made in this conversation that the work depends on. Use `spawn_agents_on_csv` for batch fan-out across multiple similar tasks. Spawn independent pieces together; pieces that depend on each other or touch the same files go to one agent. Write each task so the agent can finish it without spawning further agents.
+**Spawning agents:** Use `spawn_agent` to delegate discrete work items. A spawned agent sees only its instructions, so provide the task description, target file paths, acceptance criteria, relevant conventions, and the decisions already made in this conversation that the work depends on. Use `spawn_agents_on_csv` for batch fan-out across multiple similar tasks. Use one agent by default: work on one topic goes to one agent in one brief. Spawn several together only when the pieces are independent and each is a long job on its own (dozens of tool calls); pieces that depend on each other or touch the same files go to one agent. Write each task so the agent can finish it without spawning further agents.
 
 **Agent lifecycle:** `spawn_agent` → `send_input` (additional instructions) → `wait_agent` (block until done) → `close_agent` (cleanup).
 
