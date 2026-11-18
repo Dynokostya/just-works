@@ -63,7 +63,7 @@
     ],
     "defaultMode": "bypassPermissions"
   },
-  "model": "fable",
+  "model": "opus",
   "enableAllProjectMcpServers": true,
   "autoMemoryEnabled": false,
   "plansDirectory": "./.claude/plans",
@@ -87,7 +87,7 @@
   "awaySummaryEnabled": false,
   "idleCompaction": false,
   "env": {
-    "CLAUDE_CODE_SUBAGENT_MODEL": "opus",
+    "CLAUDE_CODE_SUBAGENT_MODEL": "sonnet",
     "CLAUDE_CODE_SUBAGENT_MODEL_FORCE": "1",
     "DISABLE_ERROR_REPORTING": "1",
     "DISABLE_FEEDBACK_COMMAND": "1",
